@@ -106,9 +106,15 @@ echo "#############################"
 echo "   Let\'s run some tests!"
 echo "#############################"
 
+# clone a plugin
+PLUGIN="kong-plugin-route-transformer"
+if [ ! -d "./$PLUGIN" ]; then
+  git clone https://github.com/kong/$PLUGIN.git kong-plugin
+fi
 
-pushd /Users/thijs/code/kong-plugin-route-transformer
 
+# test from the plugin repo
+pushd ./kong-plugin
 docker run -it --rm \
     --network=$NETWORK_NAME \
     -v $(realpath ./):/kong-plugin \
@@ -117,6 +123,5 @@ docker run -it --rm \
     -e "KONG_CASSANDRA_CONTACT_POINTS=$CASSANDRA_NAME" \
     kong-plugin-test \
     bin/busted -v -o gtest /kong-plugin/spec
-
 #    --entrypoint "/bin/sh" \
 popd
