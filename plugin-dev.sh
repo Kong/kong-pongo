@@ -1,3 +1,9 @@
+
+
+# move to our script directory, to clone stuff only once
+pushd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Step 1
 #
 # This part should become part of Kong distro's
 # a few KB's with additional test files
@@ -17,20 +23,24 @@ if [ ! -d "./kong-ee" ]; then
 fi
 
 
+# Step 2
 #
 # This is what a customer/developer would run to build a
 # test image with all deps installed (basically "make dev")
 #
+# Tags should probably be Kong version specific
 docker build \
    --build-arg KONG_BASE=kong-plugin-dev \
    --tag "kong-plugin-test" .
 
+# done return to our old directory
+popd
 
 
-
+# Step 3
 #
-# Now here let's try to run some plugin tests
-# Most of this should probably be done through docker-compose
+# Now here let's start the dependencies
+# Most of this should probably be done through docker-compose/Gojira
 
 
 echo #############################
@@ -103,18 +113,17 @@ sleep $SLEEP
 
 
 echo "#############################"
-echo "   Let\'s run some tests!"
+echo "   Let's run some tests!"
 echo "#############################"
 
-# clone a plugin
-PLUGIN="kong-plugin-route-transformer"
-if [ ! -d "./$PLUGIN" ]; then
-  git clone https://github.com/kong/$PLUGIN.git kong-plugin
-fi
+
+# Step 4
+#
+# Now here let's run the actual tests
 
 
 # test from the plugin repo
-pushd ./kong-plugin
+#pushd ./kong-plugin
 docker run -it --rm \
     --network=$NETWORK_NAME \
     -v $(realpath ./):/kong-plugin \
@@ -124,4 +133,4 @@ docker run -it --rm \
     kong-plugin-test \
     bin/busted -v -o gtest /kong-plugin/spec
 #    --entrypoint "/bin/sh" \
-popd
+#popd
