@@ -131,6 +131,7 @@ docker run -it --rm \
     -e "KONG_PG_HOST=$POSTGRES_NAME" \
     -e "KONG_CASSANDRA_CONTACT_POINTS=$CASSANDRA_NAME" \
     kong-plugin-test \
-    bin/busted -v -o gtest /kong-plugin/spec
+    /bin/sh -c "bin/busted -v -o gtest /kong-plugin/spec"
+#    bin/busted -v -o gtest /kong-plugin/spec
 #    --entrypoint "/bin/sh" \
 #popd
