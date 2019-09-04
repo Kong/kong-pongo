@@ -8,6 +8,11 @@ RUN  apk add unzip
 RUN  apk add make
 RUN  apk add g++
 
+# add dev files
+ARG KONG_DEV_FILES
+ENV KONG_DEV_FILES=${KONG_DEV_FILES}
+COPY $KONG_DEV_FILES /kong
+
 # setup the developemnt dependencies using the make target
 RUN cd /kong && make dependencies
 

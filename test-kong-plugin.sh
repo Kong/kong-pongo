@@ -1,53 +1,50 @@
+#!/bin/bash
+
+DEFAULT_IMAGE="kong-ee"
+IMAGE_BASE_NAME=kong_plugin_tester
+KONG_IMAGE=${KONG_IMAGE-$DEFAULT_IMAGE}
 
 
-# move to our script directory, to clone stuff only once
-pushd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-# Step 1
-#
-# This part should become part of Kong distro's
-# a few KB's with additional test files
-#
-if [ ! -d "./kong-ee" ]; then
-  git clone https://github.com/kong/kong-ee.git
-  pushd kong-ee
-  git checkout 0.36-1
+# Locate our script directory containing the dev files
+MY_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-  cp ../Dockerfile-plugin-dev ./
 
-  docker build \
-     -f Dockerfile-plugin-dev \
-     --tag "kong-plugin-dev" .
 
-  popd
+# detect what version of Kong is in the base image
+VERSION=$(docker run -it --rm \
+    -e "KONG_LICENSE_DATA=$KONG_LICENSE_DATA" \
+    $KONG_IMAGE \
+    /bin/sh -c "/usr/local/openresty/luajit/bin/luajit -e \"io.stdout:write(io.popen([[kong version]]):read():match([[([%d%.%-]+)]]))\"" \
+)
+
+if [ ! $? -eq 0 ]; then
+    echo "Error: could not get the Kong version from docker image '$KONG_IMAGE'."
+    echo "You can specify the base image to use with the KONG_IMAGE env variable."
+    exit 1
+fi
+
+if [ ! -d "$MY_HOME/kong-versions/$VERSION" ]; then
+    echo "Error: no development package available for version '$VERSION'."
+    exit 1
 fi
 
 
-# Step 2
-#
-# This is what a customer/developer would run to build a
-# test image with all deps installed (basically "make dev")
-#
-# Tags should probably be Kong version specific
-docker build \
-   --build-arg KONG_BASE=kong-plugin-dev \
-   --tag "kong-plugin-test" .
 
-# done return to our old directory
-popd
+# build the test image if we do not have it
+docker inspect --type=image $IMAGE_BASE_NAME:$VERSION > /dev/null
+
+if [ ! $? -eq 0 ]; then
+    echo "Testing against Kong version '$VERSION', but test image not build yet, building now..."
+    docker build \
+        --build-arg KONG_BASE="$KONG_IMAGE" \
+        --build-arg KONG_DEV_FILES="$MY_HOME/kong-versions/$VERSION/kong" \
+        --tag "$IMAGE_BASE_NAME:$VERSION" .
+fi
 
 
-# Step 3
-#
+
 # Now here let's start the dependencies
-# Most of this should probably be done through docker-compose/Gojira
-
-
-echo #############################
-echo        STARTING
-echo #############################
-
-
 NETWORK_NAME=kong-plugin-test-network
 POSTGRES_NAME=kong-plugin-test-postgres
 CASSANDRA_NAME=kong-plugin-test-cassandra
@@ -63,6 +60,7 @@ if [ "$NETWORK" == "UNAVAILABLE" ]; then
 #else
 #    echo Network already exists...
 fi
+
 
 
 # set up Postgres
@@ -83,9 +81,10 @@ if [ ! "$POSTGRES" == "RUNNING" ]; then
                -e "POSTGRES_DB=kong_tests" \
                postgres:9.6
     SLEEP=5
-else
-    echo Postgres already running...
+#else
+#    echo Postgres already running...
 fi
+
 
 
 # set up Cassandra
@@ -104,26 +103,18 @@ if [ ! "$CASSANDRA" == "RUNNING" ]; then
                -p 9042:9042 \
                cassandra:3
     SLEEP=5
-else
-    echo Cassandra already running...
+#else
+#    echo Cassandra already running...
 fi
+
+
 
 # if we started a database, let's wait for them to start up
 sleep $SLEEP
 
 
-echo "#############################"
-echo "   Let's run some tests!"
-echo "#############################"
-
-
-# Step 4
-#
-# Now here let's run the actual tests
-
 
 # test from the plugin repo
-#pushd ./kong-plugin
 docker run -it --rm \
     --network=$NETWORK_NAME \
     -v $(realpath ./):/kong-plugin \
