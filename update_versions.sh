@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# Pre 0.36 is not supported (make target 'dependencies' is missing)
-KONG_EE_VERSIONS="0.36 0.36-1 0.36-2"
-
-
 # USAGE: this script gathers the development files from the Kong-EE source
 # repository. After a new version has been released, add it to the list above
 # run this script and commit the new files located in "./kong-versions".
@@ -15,6 +11,10 @@ KONG_EE_VERSIONS="0.36 0.36-1 0.36-2"
 #  -  0 on success
 #  -  1 on error
 #  - 99 if new files were checked out and need to be committed
+
+
+# Get defaults
+source ./set_variables.sh
 
 
 
