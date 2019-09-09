@@ -1,5 +1,12 @@
 #!/bin/sh
 
+
+# USAGE: do not use this file directly. It is the entry script for the
+# test container, it will be injected when the container is build.
+# there is no use in manually running this script.
+
+
+
 # if we have preferences for busted set, move them to /kong
 # such that busted will pick them up automagically
 if [ -f /kong-plugin/.busted ]; then
