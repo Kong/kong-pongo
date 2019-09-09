@@ -1,6 +1,7 @@
 #!/bin/bash
 
-KONG_EE_VERSIONS="0.34 0.34-1 0.35 0.35-1 0.35-3 0.35-4 0.36 0.36-1 0.36-2"
+# Pre 0.36 is not supported (make target 'dependencies' is missing)
+KONG_EE_VERSIONS="0.36 0.36-1 0.36-2"
 
 
 # USAGE: this script gathers the development files from the Kong-EE source
@@ -9,6 +10,11 @@ KONG_EE_VERSIONS="0.34 0.34-1 0.35 0.35-1 0.35-3 0.35-4 0.36 0.36-1 0.36-2"
 #
 # As such this can only be done if you have access to the Kong source repo.
 # If you do not have access, then there is no use in running this script.
+#
+# The exit code is:
+#  -  0 on success
+#  -  1 on error
+#  - 99 if new files were checked out and need to be committed
 
 
 
@@ -47,13 +53,32 @@ for VERSION in $KONG_EE_VERSIONS ; do
         mkdir ../kong-versions/$VERSION/kong
         cp    Makefile             ../kong-versions/$VERSION/kong/
         cp -R bin                  ../kong-versions/$VERSION/kong/
-        cp -R spec/fixtures        ../kong-versions/$VERSION/kong/spec/
-        cp    spec/helpers.lua     ../kong-versions/$VERSION/kong/spec/
-        cp    spec/kong_tests.conf ../kong-versions/$VERSION/kong/spec/
-        if [ -d "spec/kong-ee" ]; then
-            cp -R spec-ee/fixtures     ../kong-versions/$VERSION/kong/spec-ee/
-            cp    spec-ee/helpers.lua  ../kong-versions/$VERSION/kong/spec-ee/
-        fi
+
+        mkdir ../kong-versions/$VERSION/kong/spec
+        for fname in spec/*; do
+            case $fname in
+            (spec/[0-9]*)
+                # These we skip
+                ;;
+            (*) 
+                # everything else we copy
+                cp -R "$fname" ../kong-versions/$VERSION/kong/spec/
+                ;;
+            esac
+        done
+
+        mkdir ../kong-versions/$VERSION/kong/spec-ee
+        for fname in spec-ee/*; do
+            case $fname in
+            (spec-ee/[0-9]*)
+                # These we skip
+                ;;
+            (*) 
+                # everything else we copy
+                cp -R "$fname" ../kong-versions/$VERSION/kong/spec-ee/
+                ;;
+            esac
+        done
     fi
 done;
 
@@ -65,9 +90,11 @@ git status > /dev/null
 if ! git diff-index --quiet HEAD --
 then
   echo "Files have changed, please commit the changes"
+  exit 99
 fi
 
 if git diff-files --quiet --ignore-submodules --
 then
   echo "Files were added, please commit the changes"
+  exit 99
 fi
