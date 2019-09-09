@@ -1,7 +1,7 @@
 #!/bin/bash
 
-DEFAULT_IMAGE="kong-ee"
 IMAGE_BASE_NAME=kong_plugin_tester
+DEFAULT_IMAGE="kong-ee"
 KONG_IMAGE=${KONG_IMAGE-$DEFAULT_IMAGE}
 
 
@@ -36,10 +36,16 @@ docker inspect --type=image $IMAGE_BASE_NAME:$VERSION > /dev/null
 
 if [ ! $? -eq 0 ]; then
     echo "Testing against Kong version '$VERSION', but test image not build yet, building now..."
+    pushd "$MY_HOME"  > /dev/null
     docker build \
         --build-arg KONG_BASE="$KONG_IMAGE" \
-        --build-arg KONG_DEV_FILES="$MY_HOME/kong-versions/$VERSION/kong" \
+        --build-arg KONG_DEV_FILES="./kong-versions/$VERSION/kong" \
         --tag "$IMAGE_BASE_NAME:$VERSION" .
+    if [ ! $? -eq 0 ]; then
+        echo "Error: failed to build test environment."
+        exit 1
+    fi
+    popd  > /dev/null
 fi
 
 
