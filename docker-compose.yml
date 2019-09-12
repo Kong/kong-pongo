@@ -1,0 +1,49 @@
+version: '3.5'
+
+networks:
+  kong-plugin-test-network:
+    name: ${NETWORK_NAME}
+
+services:
+  postgres:
+    image: postgres:${POSTGRES:-9.5}
+    environment:
+      POSTGRES_USER: kong
+      POSTGRES_DB: kong_tests
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - pg_isready
+      - -U
+      - kong
+      timeout: 10s
+    networks:
+      - kong-plugin-test-network
+    restart: on-failure
+
+  cassandra:
+    image: cassandra:${CASSANDRA:-3.9}
+    environment:
+      MAX_HEAP_SIZE: 256M
+      HEAP_NEWSIZE: 128M
+    healthcheck:
+      test: ["CMD", "cqlsh", "-e", "describe keyspaces"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+    networks:
+      - kong-plugin-test-network
+    restart: on-failure
+
+  kong:
+    image: ${KONG_TEST_IMAGE}
+    environment:
+      - KONG_CASSANDRA_CONTACT_POINTS=cassandra
+      - KONG_PG_HOST=postgres
+      - KONG_LICENSE_DATA=${KONG_LICENSE_DATA}
+    networks:
+      - kong-plugin-test-network
+    volumes:
+      - ${KONG_TEST_PLUGIN_PATH}:/kong-plugin

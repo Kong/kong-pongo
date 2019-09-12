@@ -1,134 +1,181 @@
-#!/bin/bash
-
-IMAGE_BASE_NAME=kong_plugin_tester
-DEFAULT_IMAGE="kong-ee"
-KONG_IMAGE=${KONG_IMAGE-$DEFAULT_IMAGE}
+#!/usr/bin/env bash
 
 
+function globals {
+  LOCAL_PATH=$(dirname "$(realpath "$0")")
+  DOCKER_FILE=${LOCAL_PATH}/Dockerfile
+  DOCKER_COMPOSE_FILE=${LOCAL_PATH}/docker-compose.yml
 
-# Locate our script directory containing the dev files
-MY_HOME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  # Now here let's start the dependencies
+  NETWORK_NAME=kong-plugin-test-network
+  IMAGE_BASE_NAME=kong-plugin-test
+  KONG_TEST_PLUGIN_PATH=$(realpath .)
 
-
-
-# detect what version of Kong is in the base image
-VERSION=$(docker run -it --rm \
-    -e "KONG_LICENSE_DATA=$KONG_LICENSE_DATA" \
-    $KONG_IMAGE \
-    /bin/sh -c "/usr/local/openresty/luajit/bin/luajit -e \"io.stdout:write(io.popen([[kong version]]):read():match([[([%d%.%-]+)]]))\"" \
-)
-
-if [ ! $? -eq 0 ]; then
-    echo "Error: could not get the Kong version from docker image '$KONG_IMAGE'."
-    echo "You can specify the base image to use with the KONG_IMAGE env variable."
-    exit 1
-fi
-
-if [ ! -d "$MY_HOME/kong-versions/$VERSION" ]; then
-    echo "Error: no development package available for version '$VERSION'."
-    exit 1
-fi
+  unset ACTION
+  # By default we do not set it. Meaning test both postgres and cassandra
+  unset KONG_DATABASE
+  EXTRA_ARGS=()
+}
 
 
+function usage {
+cat << EOF
 
-# build the test image if we do not have it
-docker inspect --type=image $IMAGE_BASE_NAME:$VERSION > /dev/null
+Usage: $(basename $0) action [options...]
 
-if [ ! $? -eq 0 ]; then
-    echo "Testing against Kong version '$VERSION', but test image not build yet, building now..."
-    pushd "$MY_HOME"  > /dev/null
+Options:
+  --cassandra           only use cassandra db
+  --postgres            only use postgres db
+
+Commands:
+  up            start required database containers for testing
+
+  run           run spec files, accepts spec files or folders as arguments
+
+  shell         get a shell directly on a kong container
+
+  down          remove all containers
+
+EOF
+}
+
+
+function parse_args {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --postgres)
+        KONG_DATABASE=postgres
+        ;;
+      --cassandra)
+        KONG_DATABASE=cassandra
+        ;;
+      --help|-h)
+        usage; exit 0
+        ;;
+      *)
+        EXTRA_ARGS+=("$1")
+        ;;
+    esac
+    shift
+  done
+}
+
+
+function get_version {
+  local cmd=(
+    '/bin/sh' '-c'
+    "/usr/local/openresty/luajit/bin/luajit -e \"io.stdout:write(io.popen([[kong version]]):read():match([[([%d%.%-]+)]]))\""
+  )
+  VERSION=$(docker run -it --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "${cmd[@]}")
+  KONG_TEST_IMAGE=$IMAGE_BASE_NAME:$VERSION
+}
+
+
+function compose {
+  export NETWORK_NAME
+  export KONG_TEST_IMAGE
+  export KONG_TEST_PLUGIN_PATH
+  docker-compose -f "$DOCKER_COMPOSE_FILE" "$@"
+}
+
+function healthy {
+  local iid=$1
+  [[ -z $iid ]] && return 1
+  docker inspect "$iid" | grep healthy &> /dev/null
+  return $?
+}
+
+function cid {
+  compose ps -q "$1" 2> /dev/null
+}
+
+
+function wait_for_db {
+  local iid
+  local db="$1"
+
+  iid=$(cid "$db")
+
+  if healthy "$iid"; then return; fi
+
+  msg "Waiting for $db"
+
+  while ! healthy "$iid"; do
+    sleep 0.5
+  done
+}
+
+
+function main {
+  parse_args "$@"
+
+  ACTION=${EXTRA_ARGS[0]}; unset 'EXTRA_ARGS[0]'
+
+  case "$ACTION" in
+  build)
+    get_version
     docker build \
-        --build-arg KONG_BASE="$KONG_IMAGE" \
-        --build-arg KONG_DEV_FILES="./kong-versions/$VERSION/kong" \
-        --tag "$IMAGE_BASE_NAME:$VERSION" .
-    if [ ! $? -eq 0 ]; then
-        echo "Error: failed to build test environment."
-        exit 1
+      -f "$DOCKER_FILE" \
+      --build-arg KONG_BASE="$KONG_IMAGE" \
+      --build-arg KONG_DEV_FILES="./kong-versions/$VERSION/kong" \
+      --tag "$KONG_TEST_IMAGE" \
+      "$LOCAL_PATH" || err "Error: failed to build test environment"
+    ;;
+  up)
+    if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "postgres" ]]; then
+      healthy "$(cid postgres)" || compose up -d postgres
+      wait_for_db postgres
     fi
-    popd  > /dev/null
-fi
 
-
-
-# Now here let's start the dependencies
-NETWORK_NAME=kong-plugin-test-network
-POSTGRES_NAME=kong-plugin-test-postgres
-CASSANDRA_NAME=kong-plugin-test-cassandra
-
-SLEEP=0
-
-# set up docker network
-NETWORK=UNAVAILABLE
-docker network ls -q --filter "name=$NETWORK_NAME" | grep -q . && NETWORK=AVAILABLE
-if [ "$NETWORK" == "UNAVAILABLE" ]; then
-    echo Creating docker network
-    docker network create $NETWORK_NAME
-#else
-#    echo Network already exists...
-fi
-
-
-
-# set up Postgres
-POSTGRES=UNAVAILABLE
-docker ps -q -a --filter "name=$POSTGRES_NAME" | grep -q . && POSTGRES=STOPPED
-docker ps -q --filter "name=$POSTGRES_NAME" | grep -q . && POSTGRES=RUNNING
-
-if [ ! "$POSTGRES" == "RUNNING" ]; then
-    if [ "$POSTGRES" == "STOPPED" ]; then
-        echo Postgres stopped, removing...
-        docker rm $POSTGRES_NAME
+    if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "cassandra" ]]; then
+      healthy "$(cid cassandra)" || compose up -d cassandra
+      wait_for_db cassandra
     fi
-    echo Creating postgres...
-    docker run -d --name $POSTGRES_NAME \
-               --network=$NETWORK_NAME \
-               -p 5432:5432 \
-               -e "POSTGRES_USER=kong" \
-               -e "POSTGRES_DB=kong_tests" \
-               postgres:9.6
-    SLEEP=5
-#else
-#    echo Postgres already running...
-fi
-
-
-
-# set up Cassandra
-CASSANDRA=UNAVAILABLE
-docker ps -q -a --filter "name=$CASSANDRA_NAME" | grep -q . && CASSANDRA=STOPPED
-docker ps -q --filter "name=$CASSANDRA_NAME" | grep -q . && CASSANDRA=RUNNING
-
-if [ ! "$CASSANDRA" == "RUNNING" ]; then
-    if [ "$CASSANDRA" == "STOPPED" ]; then
-        echo Cassandra stopped, removing...
-        docker rm $CASSANDRA_NAME
+    ;;
+  run)
+    get_version
+    local busted_params="-v -o gtest"
+    if [[ -n $1 ]]; then
+      local files=()
+      local c_path
+      for file in "${EXTRA_ARGS[@]}"; do
+        [[ ! -f $file ]] && [[ ! -d $file ]] && err "$file does not exist"
+        # substitute absolute host path for absolute docker path
+        c_path=$(realpath "$file" | sed "s/${KONG_TEST_PLUGIN_PATH////\\/}/\/kong-plugin/")
+        files+=( "$c_path" )
+      done
+      busted_params="$busted_params ${files[*]}"
     fi
-    echo Creating cassandra...
-    docker run -d --name $CASSANDRA_NAME \
-               --network=$NETWORK_NAME \
-               -p 9042:9042 \
-               cassandra:3
-    SLEEP=5
-#else
-#    echo Cassandra already running...
-fi
+    compose run --rm \
+      -e KONG_LICENSE_DATA \
+      -e KONG_TEST_PLUGIN_PATH \
+      kong \
+      "/bin/sh" "-c" "bin/busted $busted_params"
+    ;;
+  down)
+    compose down
+    ;;
+  shell)
+    get_version
+    compose run --rm kong sh
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
+  esac
+}
 
 
+function err {
+  >&2 echo "$@"
+  exit 1
+}
 
-# if we started a database, let's wait for them to start up
-sleep $SLEEP
+function msg {
+  >&2 echo "$@"
+}
 
 
-
-# test from the plugin repo
-docker run -it --rm \
-    --network=$NETWORK_NAME \
-    -v $(realpath ./):/kong-plugin \
-    -e "KONG_LICENSE_DATA=$KONG_LICENSE_DATA" \
-    -e "KONG_PG_HOST=$POSTGRES_NAME" \
-    -e "KONG_CASSANDRA_CONTACT_POINTS=$CASSANDRA_NAME" \
-    kong-plugin-test \
-    /bin/sh -c "bin/busted -v -o gtest /kong-plugin/spec"
-#    bin/busted -v -o gtest /kong-plugin/spec
-#    --entrypoint "/bin/sh" \
-#popd
+globals
+main "$@"
