@@ -6,7 +6,6 @@ function globals {
   DOCKER_FILE=${LOCAL_PATH}/Dockerfile
   DOCKER_COMPOSE_FILE=${LOCAL_PATH}/docker-compose.yml
 
-  # Now here let's start the dependencies
   NETWORK_NAME=kong-plugin-test-network
   IMAGE_BASE_NAME=kong-plugin-test
   KONG_TEST_PLUGIN_PATH=$(realpath .)
@@ -27,7 +26,7 @@ Options:
   --cassandra           only use cassandra db
   --postgres            only use postgres db
 
-Commands:
+Actions:
   up            start required database containers for testing
 
   run           run spec files, accepts spec files or folders as arguments
@@ -78,12 +77,14 @@ function compose {
   docker-compose -f "$DOCKER_COMPOSE_FILE" "$@"
 }
 
+
 function healthy {
   local iid=$1
   [[ -z $iid ]] && return 1
   docker inspect "$iid" | grep healthy &> /dev/null
   return $?
 }
+
 
 function cid {
   compose ps -q "$1" 2> /dev/null
@@ -171,6 +172,7 @@ function err {
   >&2 echo "$@"
   exit 1
 }
+
 
 function msg {
   >&2 echo "$@"
