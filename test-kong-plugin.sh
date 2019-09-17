@@ -125,15 +125,21 @@ function main {
   up)
     if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "postgres" ]]; then
       healthy "$(cid postgres)" || compose up -d postgres
-      wait_for_db postgres
     fi
 
     if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "cassandra" ]]; then
       healthy "$(cid cassandra)" || compose up -d cassandra
-      wait_for_db cassandra
     fi
     ;;
   run)
+    if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "postgres" ]]; then
+      wait_for_db postgres
+    fi
+
+    if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "cassandra" ]]; then
+      wait_for_db cassandra
+    fi
+
     get_version
     local busted_params="-v -o gtest"
     if [[ -n $1 ]]; then
