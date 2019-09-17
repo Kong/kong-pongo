@@ -38,7 +38,7 @@ services:
     restart: on-failure
 
   kong:
-    image: ${KONG_TEST_IMAGE}
+    image: ${KONG_TEST_IMAGE:-ignore_if_not_provided}
     environment:
       - KONG_CASSANDRA_CONTACT_POINTS=cassandra
       - KONG_PG_HOST=postgres
