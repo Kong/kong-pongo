@@ -68,11 +68,11 @@ Get a shell into your plugin repository, and run `pongo`, for example:
 git clone git@github.com:Kong/kong-plugin.git
 cd kong-plugin
 
-pongo up
 pongo run ./spec
 ```
 
-When done the test environment can be torn down by:
+The above command (`pongo run`) will automatically start the test environment.
+When done, the test environment can be torn down by:
 
 ```shell
 pongo down
