@@ -46,8 +46,13 @@ Actions:
 
   down          remove all containers
 
+Environment variables:
+  KONG_IMAGE    the base Kong Docker image to use when building the test image
+
+  KONG_LICENSE_DATA
+                set this variable with the Kong Enterprise license data
+
 Example usage:
-  KONG_IMAGE=kong-ee $(basename $0) build
   KONG_IMAGE=kong-ee $(basename $0) run
   $(basename $0) down
 
