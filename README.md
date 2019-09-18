@@ -55,10 +55,6 @@ Set up the following:
     mkdir -p ~/.local/bin
     ln -s $(realpath kong-pongo/pongo.sh) ~/.local/bin/pongo
     ```
-* Build the test image. This needs to be done only once. To do so execute:
-    ```shell
-    pongo build
-    ```
 
 ## Do a test run
 
@@ -71,8 +67,8 @@ cd kong-plugin
 pongo run ./spec
 ```
 
-The above command (`pongo run`) will automatically start the test environment.
-When done, the test environment can be torn down by:
+The above command (`pongo run`) will automatically build the test image and
+start the test environment. When done, the test environment can be torn down by:
 
 ```shell
 pongo down
