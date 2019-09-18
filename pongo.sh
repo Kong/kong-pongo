@@ -5,8 +5,8 @@ function globals {
   DOCKER_FILE=${LOCAL_PATH}/Dockerfile
   DOCKER_COMPOSE_FILE=${LOCAL_PATH}/docker-compose.yml
 
-  NETWORK_NAME=kong-plugin-test-network
-  IMAGE_BASE_NAME=kong-plugin-test
+  NETWORK_NAME=kong-pongo-test-network
+  IMAGE_BASE_NAME=kong-pongo-test
   KONG_TEST_PLUGIN_PATH=$(realpath .)
 
   unset ACTION
