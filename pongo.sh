@@ -19,6 +19,16 @@ function globals {
 function usage {
 cat << EOF
 
+                /~\\
+  ______       C oo
+  | ___ \      _( ^)
+  | |_/ /__  _/__ ~\ __   ___
+  |  __/ _ \| '_ \ / _\` |/ _ \\
+  | | | (_) | | | | (_| | (_) |
+  \_|  \___/|_| |_|\__, |\___/
+                    __/ |
+                   |___/
+
 Usage: $(basename $0) action [options...]
 
 Options:
@@ -35,6 +45,11 @@ Actions:
   shell         get a shell directly on a kong container
 
   down          remove all containers
+
+Example usage:
+  KONG_IMAGE=kong-ee $(basename $0) build
+  KONG_IMAGE=kong-ee $(basename $0) run
+  $(basename $0) down
 
 EOF
 }
