@@ -127,6 +127,34 @@ function wait_for_db {
 }
 
 
+function compose_up {
+  if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "postgres" ]]; then
+    healthy "$(cid postgres)" || compose up -d postgres
+  fi
+
+  if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "cassandra" ]]; then
+    healthy "$(cid cassandra)" || compose up -d cassandra
+  fi
+}
+
+
+function ensure_available {
+  compose ps | grep "Up (health" &> /dev/null
+  if [[ ! $? -eq 0 ]]; then
+    echo "Notice: auto-starting the test environment, use the 'down' action to stop it"
+    compose_up
+  fi
+
+  if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "postgres" ]]; then
+    wait_for_db postgres
+  fi
+
+  if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "cassandra" ]]; then
+    wait_for_db cassandra
+  fi
+}
+
+
 function main {
   parse_args "$@"
 
@@ -145,24 +173,11 @@ function main {
     ;;
 
   up)
-    if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "postgres" ]]; then
-      healthy "$(cid postgres)" || compose up -d postgres
-    fi
-
-    if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "cassandra" ]]; then
-      healthy "$(cid cassandra)" || compose up -d cassandra
-    fi
+    compose_up
     ;;
 
   run)
-    if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "postgres" ]]; then
-      wait_for_db postgres
-    fi
-
-    if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "cassandra" ]]; then
-      wait_for_db cassandra
-    fi
-
+    ensure_available
     get_version
     local busted_params="-v -o gtest"
     if [[ -n $1 ]]; then
