@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # USAGE: this script gathers the development files from the Kong-EE source
 # repository. After a new version has been released, add it to the list above
@@ -67,18 +67,27 @@ for VERSION in $KONG_EE_VERSIONS ; do
             esac
         done
 
-        mkdir ../kong-versions/$VERSION/kong/spec-ee
-        for fname in spec-ee/*; do
-            case $fname in
-            (spec-ee/[0-9]*)
-                # These we skip
-                ;;
-            (*) 
-                # everything else we copy
-                cp -R "$fname" ../kong-versions/$VERSION/kong/spec-ee/
-                ;;
-            esac
-        done
+        if [[ -d spec-ee ]]; then 
+            mkdir ../kong-versions/$VERSION/kong/spec-ee
+            for fname in spec-ee/*; do
+                case $fname in
+                (spec-ee/[0-9]*)
+                    # These we skip
+                    ;;
+                (*) 
+                    # everything else we copy
+                    cp -R "$fname" ../kong-versions/$VERSION/kong/spec-ee/
+                    ;;
+                esac
+            done
+        fi
+
+        # pre-0.36 versions need an update to the Makefile because they do not
+        # have the 'dependencies' make target
+        cat ../kong-versions/$VERSION/kong/Makefile | grep dependencies: &> /dev/null
+        if [[ ! $? -eq 0 ]]; then
+            cat ../Makefile-addition >> ../kong-versions/$VERSION/kong/Makefile
+        fi
     fi
 done;
 
