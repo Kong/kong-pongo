@@ -42,21 +42,37 @@ Set up the following:
 * Have a docker image of Kong Enterprise, and set the image name in the
   environment variable `KONG_IMAGE`.
 * Have the Kong Enterprise license key, and set it in `KONG_LICENSE_DATA`.
+
+## Installation
+
+
+> Note you need `~/.local/bin` on your `$PATH`.
+
+* clone the repo and install Pongo:
+    ```shell
+    PATH=$PATH:~/.local/bin
+    git clone git@github.com:Kong/kong-pongo.git
+    mkdir -p ~/.local/bin
+    ln -s $(realpath kong-pongo/pongo.sh) ~/.local/bin/pongo
+    ```
 * Build the test image. This needs to be done only once. To do so execute:
     ```shell
-    KONG_IMAGE=<image-name> pongo build
+    pongo build
     ```
 
 ## Do a test run
 
-Get a shell into your plugin repository, and run the tests:
+Get a shell into your plugin repository, and run `pongo`, for example:
 
 ```shell
-pongo run
+git clone git@github.com:Kong/kong-plugin.git
+cd kong-plugin
+
+pongo up
+pongo run ./spec
 ```
 
-The above command will automatically start the test environment. When done
-the test environment can be torn down by:
+When done the test environment can be torn down by:
 
 ```shell
 pongo down
