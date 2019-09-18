@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
 function globals {
-  #DEBUG=1
-
   LOCAL_PATH=$(dirname "$(realpath "$0")")
   DOCKER_FILE=${LOCAL_PATH}/Dockerfile
   DOCKER_COMPOSE_FILE=${LOCAL_PATH}/docker-compose.yml
@@ -47,14 +45,15 @@ function parse_args {
     case "$1" in
       --postgres)
         KONG_DATABASE=postgres
-        debug "found --postgres; using only Postgres"
         ;;
       --cassandra)
         KONG_DATABASE=cassandra
-        debug "found --cassandra; using only Cassandra"
         ;;
       --help|-h)
         usage; exit 0
+        ;;
+      --debug)
+        set -x
         ;;
       *)
         EXTRA_ARGS+=("$1")
@@ -70,12 +69,9 @@ function get_version {
     '/bin/sh' '-c'
     "/usr/local/openresty/luajit/bin/luajit -e \"io.stdout:write(io.popen([[kong version]]):read():match([[([%d%.%-]+)]]))\""
   )
-  debug "Getting Kong version from image: $KONG_IMAGE"
   [[ ! $KONG_IMAGE ]] && err "variable \$KONG_IMAGE has not been set"
   VERSION=$(docker run -it --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "${cmd[@]}")
-  debug "VERSION=$VERSION"
   KONG_TEST_IMAGE=$IMAGE_BASE_NAME:$VERSION
-  debug "KONG_TEST_IMAGE=$KONG_TEST_IMAGE"
 }
 
 
@@ -105,14 +101,12 @@ function wait_for_db {
   local db="$1"
 
   iid=$(cid "$db")
-  debug "finding $db: iid=$iid"
 
   if healthy "$iid"; then return; fi
 
   msg "Waiting for $db"
 
   while ! healthy "$iid"; do
-    debug "waiting..."
     sleep 0.5
   done
 }
@@ -199,11 +193,6 @@ function err {
 
 function msg {
   >&2 echo "$@"
-}
-
-
-function debug {
-  [[ $DEBUG ]] && msg "Debug: $@"
 }
 
 
