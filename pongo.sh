@@ -141,7 +141,7 @@ function compose_up {
 function ensure_available {
   compose ps | grep "Up (health" &> /dev/null
   if [[ ! $? -eq 0 ]]; then
-    echo "Notice: auto-starting the test environment, use the 'down' action to stop it"
+    msg "Notice: auto-starting the test environment, use the 'down' action to stop it"
     compose_up
   fi
 
@@ -154,6 +154,15 @@ function ensure_available {
   fi
 }
 
+function build_image {
+  get_version
+  docker build \
+    -f "$DOCKER_FILE" \
+    --build-arg KONG_BASE="$KONG_IMAGE" \
+    --build-arg KONG_DEV_FILES="./kong-versions/$VERSION/kong" \
+    --tag "$KONG_TEST_IMAGE" \
+    "$LOCAL_PATH" || err "Error: failed to build test environment"
+}
 
 function main {
   parse_args "$@"
@@ -163,13 +172,7 @@ function main {
   case "$ACTION" in
 
   build)
-    get_version
-    docker build \
-      -f "$DOCKER_FILE" \
-      --build-arg KONG_BASE="$KONG_IMAGE" \
-      --build-arg KONG_DEV_FILES="./kong-versions/$VERSION/kong" \
-      --tag "$KONG_TEST_IMAGE" \
-      "$LOCAL_PATH" || err "Error: failed to build test environment"
+    build_image
     ;;
 
   up)
@@ -179,6 +182,13 @@ function main {
   run)
     ensure_available
     get_version
+
+    docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
+    if [[ ! $? -eq 0 ]]; then
+      msg "Notice: image '$KONG_TEST_IMAGE' not found, auto-building it"
+      build_image
+    fi
+
     local busted_params="-v -o gtest"
     if [[ -n $1 ]]; then
       local files=()
@@ -191,6 +201,7 @@ function main {
       done
       busted_params="$busted_params ${files[*]}"
     fi
+
     compose run --rm \
       -e KONG_LICENSE_DATA \
       -e KONG_TEST_PLUGIN_PATH \
