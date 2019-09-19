@@ -15,7 +15,8 @@ COPY test_plugin_entrypoint.sh /kong/bin/test_plugin_entrypoint.sh
 # LuaRocks needs unzip to unpack rocks, and dev essentials to build
 # setup the developemnt dependencies using the make target
 # and make the entrypoint executable
-RUN apk add unzip make g++ \
+RUN apk update \
+    && apk add unzip make g++ \
     && cd /kong \
     && make dependencies \
     && chmod +x /kong/bin/test_plugin_entrypoint.sh
