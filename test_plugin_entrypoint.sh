@@ -45,4 +45,6 @@ if [ -z "$KONG_TEST_DNS_RESOLVER" ]; then
   export "KONG_TEST_DNS_RESOLVER=$KONG_DNS_RESOLVER"
 fi
 
+echo "Kong version: $(kong version)"
+
 exec "$@"

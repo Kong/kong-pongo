@@ -27,14 +27,18 @@ Actions:
   down          remove all containers
 
 Environment variables:
+  KONG_VERSION  the specific Kong version to use when building the test image
+
   KONG_IMAGE    the base Kong Docker image to use when building the test image
 
   KONG_LICENSE_DATA
                 set this variable with the Kong Enterprise license data
 
 Example usage:
-  KONG_IMAGE=kong-ee $(basename $0) run
-  $(basename $0) down
+  pongo run
+  KONG_VERSION=0.36-1 pongo run
+  KONG_IMAGE=kong-ee pongo run
+  pongo down
 ```
 
 # pongo
@@ -44,9 +48,10 @@ Pongo provides a simple way of testing Kong Enterprise plugins
 
 Set up the following:
 
-* Have a docker image of Kong Enterprise, and set the image name in the
-  environment variable `KONG_IMAGE`.
 * Have the Kong Enterprise license key, and set it in `KONG_LICENSE_DATA`.
+* Have a docker image of Kong Enterprise, and set the image name in the
+  environment variable `KONG_IMAGE`, or alternatively log in to Bintray before
+  running Pongo.
 
 ## Installation
 
@@ -69,7 +74,14 @@ Get a shell into your plugin repository, and run `pongo`, for example:
 git clone git@github.com:Kong/kong-plugin.git
 cd kong-plugin
 
+# auto pull and build the test images (log into bintray first!)
 pongo run ./spec
+
+# Run against a specific version of Kong (log into bintray first!)
+KONG_VERSION=0.36-1 pongo run ./spec
+
+# Run against a local image of Kong
+KONG_IMAGE=kong-ee pongo run ./spec
 ```
 
 The above command (`pongo run`) will automatically build the test image and

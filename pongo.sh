@@ -13,6 +13,8 @@ function globals {
   # By default we do not set it. Meaning test both postgres and cassandra
   unset KONG_DATABASE
   EXTRA_ARGS=()
+
+  source ${LOCAL_PATH}/set_variables.sh
 }
 
 
@@ -47,12 +49,16 @@ Actions:
   down          remove all containers
 
 Environment variables:
+  KONG_VERSION  the specific Kong version to use when building the test image
+
   KONG_IMAGE    the base Kong Docker image to use when building the test image
 
   KONG_LICENSE_DATA
                 set this variable with the Kong Enterprise license data
 
 Example usage:
+  $(basename $0) run
+  KONG_VERSION=0.36-1 $(basename $0) run
   KONG_IMAGE=kong-ee $(basename $0) run
   $(basename $0) down
 
@@ -84,12 +90,44 @@ function parse_args {
 }
 
 
+function validate_version {
+  local version=$1
+  for entry in $KONG_EE_VERSIONS ; do
+    if [[ "$version" == "$entry" ]]; then
+      return
+    fi
+  done;
+  err "version '$version' is not supported, supported versions are: "$'\n'"  $KONG_EE_VERSIONS"
+}
+
+
+function get_image {
+  local image=kong-docker-kong-enterprise-edition-docker.bintray.io/kong-enterprise-edition:$KONG_VERSION-alpine
+  docker inspect --type=image $image &> /dev/null
+  if [[ ! $? -eq 0 ]]; then
+    docker pull $image
+    if [[ ! $? -eq 0 ]]; then
+      err "failed to pull: $image"
+    fi
+  fi
+
+  KONG_IMAGE=$image
+}
+
+
 function get_version {
   local cmd=(
     '/bin/sh' '-c'
     "/usr/local/openresty/luajit/bin/luajit -e \"io.stdout:write(io.popen([[kong version]]):read():match([[([%d%.%-]+)]]))\""
   )
-  [[ ! $KONG_IMAGE ]] && err "variable \$KONG_IMAGE has not been set"
+  if [[ -z $KONG_IMAGE ]]; then
+    if [[ -z $KONG_VERSION ]]; then
+      KONG_VERSION=$KONG_EE_DEFAULT_VERSION
+    fi
+    validate_version $KONG_VERSION
+    get_image
+  fi
+
   VERSION=$(docker run -it --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "${cmd[@]}")
   KONG_TEST_IMAGE=$IMAGE_BASE_NAME:$VERSION
 }
@@ -161,6 +199,7 @@ function ensure_available {
 
 function build_image {
   get_version
+  validate_version $VERSION
   docker build \
     -f "$DOCKER_FILE" \
     --build-arg KONG_BASE="$KONG_IMAGE" \
