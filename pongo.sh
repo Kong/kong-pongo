@@ -43,7 +43,7 @@ Actions:
   build         build the Kong test image
 
   run           run spec files, accepts Busted options and spec files/folders
-                as arguments
+                as arguments, see: '$(basename $0) run -- --help' 
 
   shell         get a shell directly on a kong container
 
@@ -68,24 +68,32 @@ EOF
 
 
 function parse_args {
+  local args_done=0
   while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --postgres)
-        KONG_DATABASE=postgres
-        ;;
-      --cassandra)
-        KONG_DATABASE=cassandra
-        ;;
-      --help|-h)
-        usage; exit 0
-        ;;
-      --debug)
-        set -x
-        ;;
-      *)
-        EXTRA_ARGS+=("$1")
-        ;;
-    esac
+    if [[ args_done -eq 0 ]]; then
+      case "$1" in
+        --)
+          args_done=1
+          ;;
+        --postgres)
+          KONG_DATABASE=postgres
+          ;;
+        --cassandra)
+          KONG_DATABASE=cassandra
+          ;;
+        --help|-h)
+          usage; exit 0
+          ;;
+        --debug)
+          set -x
+          ;;
+        *)
+          EXTRA_ARGS+=("$1")
+          ;;
+      esac
+    else
+      EXTRA_ARGS+=("$1")
+    fi
     shift
   done
 }
