@@ -42,7 +42,8 @@ Actions:
 
   build         build the Kong test image
 
-  run           run spec files, accepts spec files or folders as arguments
+  run           run spec files, accepts Busted options and spec files/folders
+                as arguments
 
   shell         get a shell directly on a kong container
 
@@ -58,7 +59,7 @@ Environment variables:
 
 Example usage:
   $(basename $0) run
-  KONG_VERSION=0.36-1 $(basename $0) run
+  KONG_VERSION=0.36-1 $(basename $0) run -v -o gtest ./spec/02-access_spec.lua
   KONG_IMAGE=kong-ee $(basename $0) run
   $(basename $0) down
 
@@ -233,24 +234,42 @@ function main {
       build_image
     fi
 
-    local busted_params="-v -o gtest"
-    if [[ -n $1 ]]; then
-      local files=()
-      local c_path
-      for file in "${EXTRA_ARGS[@]}"; do
-        [[ ! -f $file ]] && [[ ! -d $file ]] && err "$file does not exist"
+    # figure out where in the arguments list the file-list starts
+    local files_start_index=9999
+    local index=1
+    for arg in "${EXTRA_ARGS[@]}"; do
+      if [[ ! -f $arg ]] && [[ ! -d $arg ]]; then
+        # arg does not exist as a file, so files start at the
+        # next index at the earliest
+        let files_start_index=$index+1
+      fi
+      let index++
+    done
+
+    local busted_params=()
+    local busted_files=()
+    index=1
+    for arg in "${EXTRA_ARGS[@]}"; do
+      if [[ "$index" -lt "$files_start_index" ]]; then
+        busted_params+=( "$arg" )
+      else
         # substitute absolute host path for absolute docker path
-        c_path=$(realpath "$file" | sed "s/${KONG_TEST_PLUGIN_PATH////\\/}/\/kong-plugin/")
-        files+=( "$c_path" )
-      done
-      busted_params="$busted_params ${files[*]}"
+        local c_path=$(realpath "$arg" | sed "s/${KONG_TEST_PLUGIN_PATH////\\/}/\/kong-plugin/")
+        busted_files+=( "$c_path" )
+      fi
+      let index++
+    done
+
+    if [[ ${#busted_files[@]} -eq 0 ]]; then
+      # no paths given, so set up the busted default: ./spec
+      busted_files+=( "/kong-plugin/spec" )
     fi
 
     compose run --rm \
       -e KONG_LICENSE_DATA \
       -e KONG_TEST_PLUGIN_PATH \
       kong \
-      "/bin/sh" "-c" "bin/busted $busted_params"
+      "/bin/sh" "-c" "bin/busted ${busted_params[*]} ${busted_files[*]}"
     ;;
 
   down)
