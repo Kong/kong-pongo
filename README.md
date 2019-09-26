@@ -9,7 +9,7 @@
                     __/ |
                    |___/
 
-Usage: pongo.sh action [options...]
+Usage: pongo action [options...]
 
 Options:
   --cassandra           only use cassandra db
@@ -20,7 +20,8 @@ Actions:
 
   build         build the Kong test image
 
-  run           run spec files, accepts spec files or folders as arguments
+  run           run spec files, accepts Busted options and spec files/folders
+                as arguments
 
   shell         get a shell directly on a kong container
 
@@ -36,7 +37,7 @@ Environment variables:
 
 Example usage:
   pongo run
-  KONG_VERSION=0.36-1 pongo run
+  KONG_VERSION=0.36-1 pongo run -v -o gtest ./spec/02-access_spec.lua
   KONG_IMAGE=kong-ee pongo run
   pongo down
 ```
@@ -77,8 +78,9 @@ cd kong-plugin
 # auto pull and build the test images (log into bintray first!)
 pongo run ./spec
 
-# Run against a specific version of Kong (log into bintray first!)
-KONG_VERSION=0.36-1 pongo run ./spec
+# Run against a specific version of Kong (log into bintray first!) and pass
+# a number of Busted options
+KONG_VERSION=0.36-1 pongo run -v -o gtest ./spec
 
 # Run against a local image of Kong
 KONG_IMAGE=kong-ee pongo run ./spec
