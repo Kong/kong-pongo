@@ -21,7 +21,7 @@ Actions:
   build         build the Kong test image
 
   run           run spec files, accepts Busted options and spec files/folders
-                as arguments
+                as arguments, see: 'pongo run -- --help'
 
   shell         get a shell directly on a kong container
 
