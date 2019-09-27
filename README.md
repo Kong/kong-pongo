@@ -93,6 +93,17 @@ start the test environment. When done, the test environment can be torn down by:
 pongo down
 ```
 
+## Debugging
+
+When running the tests, the Kong prefix (or working directory) will be set to
+`./servroot`.
+
+So to track what is happening you can use a `tail` on `./servroot/logs/error.log`
+like this:
+
+```shell
+tail -F ./servroot/logs/error.log
+```
 
 ## How it works
 
