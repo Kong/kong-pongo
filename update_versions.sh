@@ -14,41 +14,55 @@
 
 
 # Get defaults
-source ./set_variables.sh
+source $(dirname "$(realpath "$0")")/set_variables.sh
 
 
+function update_repo {
+    local repo_name=$1
 
-# do we need to clone the repo?
-if [ ! -d "./kong-ee" ]; then
-    git clone -q https://github.com/kong/kong-ee.git
-    if [ ! $? -eq 0 ]; then
-        echo "Error: cannot update git repo, make sure you're authorized and connected!"
-        exit 1
+    if [ ! -d "./$repo_name" ]; then
+        git clone -q https://github.com/kong/$repo_name.git
+        if [ ! $? -eq 0 ]; then
+            echo "Error: cannot update git repo $repo_name, make sure you're authorized and connected!"
+            exit 1
+        fi
     fi
-fi
 
-# update the repo
-pushd kong-ee > /dev/null
+    pushd $repo_name > /dev/null
 
-git checkout -q master
-git pull -q
+    git checkout -q master
+    git pull -q
 
-if [ ! $? -eq 0 ]; then
-    echo "Warning: cannot pull latest changes, make sure you're authorized and connected!"
-fi
+    if [ ! $? -eq 0 ]; then
+        echo "Warning: cannot pull latest changes for $repo_name, make sure you're authorized and connected!"
+    fi
+    popd > /dev/null
+}
 
-  
+
+echo "updating kong repository..."
+update_repo kong
+echo "updating kong-ee repository..."
+update_repo kong-ee
+
 # clean artifacts
-rm -rf ../kong-versions
-mkdir ../kong-versions
+rm -rf ./kong-versions
+mkdir ./kong-versions
 
 echo "copying files ..."
-for VERSION in $KONG_EE_VERSIONS ; do
+for VERSION in ${KONG_VERSIONS[*]}; do
+    if $(is_enterprise $VERSION); then
+        pushd ./kong-ee > /dev/null
+        echo "Enterprise $VERSION"
+    else
+        pushd ./kong > /dev/null
+        echo "Open source $VERSION"
+    fi
+
     git checkout -q $VERSION
     if [ ! $? -eq 0 ]; then
         echo "Warning: skipping unknown version $VERSION"
     else
-        echo $VERSION
         mkdir ../kong-versions/$VERSION
         mkdir ../kong-versions/$VERSION/kong
         cp    Makefile             ../kong-versions/$VERSION/kong/
@@ -82,16 +96,15 @@ for VERSION in $KONG_EE_VERSIONS ; do
             done
         fi
 
-        # pre-0.36 versions need an update to the Makefile because they do not
-        # have the 'dependencies' make target
+        # update old Makefile if it does not have the 'dependencies' make target
         cat ../kong-versions/$VERSION/kong/Makefile | grep dependencies: &> /dev/null
         if [[ ! $? -eq 0 ]]; then
             cat ../Makefile-addition >> ../kong-versions/$VERSION/kong/Makefile
         fi
     fi
+    popd > /dev/null
 done;
 
-popd > /dev/null
 
 # check wether updates were made
 git status > /dev/null
