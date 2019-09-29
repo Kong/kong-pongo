@@ -101,17 +101,23 @@ function parse_args {
 
 function validate_version {
   local version=$1
-  for entry in $KONG_EE_VERSIONS ; do
+  for entry in ${KONG_VERSIONS[*]}; do
     if [[ "$version" == "$entry" ]]; then
       return
     fi
   done;
-  err "version '$version' is not supported, supported versions are: "$'\n'"  $KONG_EE_VERSIONS"
+  err "version '$version' is not supported, supported versions are: "$'\n'"  ${KONG_VERSIONS[@]}"
 }
 
 
 function get_image {
-  local image=kong-docker-kong-enterprise-edition-docker.bintray.io/kong-enterprise-edition:$KONG_VERSION-alpine
+  local image
+  if $(is_enterprise $KONG_VERSION); then
+    image=kong-docker-kong-enterprise-edition-docker.bintray.io/kong-enterprise-edition:$KONG_VERSION-alpine
+  else
+    image=kong:$KONG_VERSION-alpine
+  fi
+
   docker inspect --type=image $image &> /dev/null
   if [[ ! $? -eq 0 ]]; then
     docker pull $image
@@ -131,7 +137,7 @@ function get_version {
   )
   if [[ -z $KONG_IMAGE ]]; then
     if [[ -z $KONG_VERSION ]]; then
-      KONG_VERSION=$KONG_EE_DEFAULT_VERSION
+      KONG_VERSION=$KONG_DEFAULT_VERSION
     fi
     validate_version $KONG_VERSION
     get_image
