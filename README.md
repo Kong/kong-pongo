@@ -45,11 +45,12 @@ Example usage:
 ```
 
 # pongo
-Pongo provides a simple way of testing Kong Enterprise plugins
+
+Pongo provides a simple way of testing Kong plugins
 
 ## Requirements
 
-Set up the following:
+Set up the following when testing against Kong Enterprise:
 
 * Have the Kong Enterprise license key, and set it in `KONG_LICENSE_DATA`.
 * Have a docker image of Kong Enterprise, and set the image name in the
@@ -57,7 +58,6 @@ Set up the following:
   running Pongo.
 
 ## Installation
-
 
 > Note you need `~/.local/bin` on your `$PATH`.
 
@@ -77,7 +77,7 @@ Get a shell into your plugin repository, and run `pongo`, for example:
 git clone git@github.com:Kong/kong-plugin.git
 cd kong-plugin
 
-# auto pull and build the test images (log into bintray first!)
+# auto pull and build the test images
 pongo run ./spec
 
 # Run against a specific version of Kong (log into bintray first!) and pass
@@ -119,8 +119,8 @@ The repo has 3 main components;
    there is no need to use docker-compose, it can be used transparently from
    Pongo.
 3. `update_versions.sh`: This is a script that extracts the development files
-   from the Kong-EE source repo and stores them in this repo. This script
+   from the Kong source repos and stores them in this repo. This script
    should only be updated (version list at the top), and run, after a new
-   version of Kong-EE has been released. There is no need to use this script
+   version of Kong has been released. There is no need to use this script
    as a user of Pongo.
 
