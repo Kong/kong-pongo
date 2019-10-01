@@ -73,7 +73,7 @@ fix-windows:
 	  chmod 0755 $$script ; \
 	done;
 
-# Makefile additional target for pre-0.36 versions, (to be) injected by Pongo
+# Makefile additional for old versions, (to be) injected by Pongo
 dependencies:
 	@for rock in $(DEV_ROCKS) ; do \
 	  if luarocks list --porcelain $$rock | grep -q "installed" ; then \
