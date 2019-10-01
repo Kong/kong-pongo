@@ -43,11 +43,13 @@ Actions:
   build         build the Kong test image
 
   run           run spec files, accepts Busted options and spec files/folders
-                as arguments, see: '$(basename $0) run -- --help' 
+                as arguments, see: '$(basename $0) run -- --help'
 
   shell         get a shell directly on a kong container
 
   down          remove all containers
+
+  clean         removes the containers and deletes all test images
 
 Environment variables:
   KONG_VERSION  the specific Kong version to use when building the test image
@@ -293,6 +295,20 @@ function main {
   shell)
     get_version
     compose run --rm kong sh
+    ;;
+
+  clean)
+    compose down
+    docker images --filter=reference='kong-pongo-test:*' --format "found: {{.ID}}" | grep found
+    if [[ $? -eq 0 ]]; then
+      docker rmi $(docker images --filter=reference='kong-pongo-test:*' --format "{{.ID}}")
+    fi
+    if [ -d "$LOCAL_PATH/kong" ]; then
+      rm -rf "$LOCAL_PATH/kong"
+    fi
+    if [ -d "$LOCAL_PATH/kong-ee" ]; then
+      rm -rf "$LOCAL_PATH/kong-ee"
+    fi
     ;;
 
   *)

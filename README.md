@@ -27,6 +27,8 @@ Actions:
 
   down          remove all containers
 
+  clean         removes the containers and deletes all test images
+
 Environment variables:
   KONG_VERSION  the specific Kong version to use when building the test image
 
