@@ -15,15 +15,7 @@ fi
 
 # if there is a rockspec, then install it first, so we get any required
 # dependencies installed before testing
-if [ -f /kong-plugin/*.rockspec ]; then
-  old_dir="$PWD"
-  cd /kong-plugin
-  for rockspec in $(ls /kong-plugin/*.rockspec); do
-    luarocks install --only-deps $rockspec
-  done
-  cd "$old_dir"
-  unset old_dir
-fi
+find /kong-plugin -maxdepth 1 -type f -name '*.rockspec' -exec luarocks install --only-deps {} \;
 
 # add the plugin code to the LUA_PATH such that the plugin will be found
 export "LUA_PATH=/kong-plugin/?.lua;/kong-plugin/?/init.lua;;"
