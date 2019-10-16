@@ -11,11 +11,13 @@ COPY $KONG_DEV_FILES /kong
 COPY test_plugin_entrypoint.sh /kong/bin/test_plugin_entrypoint.sh
 
 
-# LuaRocks needs unzip to unpack rocks, and dev essentials to build
-# setup the developemnt dependencies using the make target
+# httpie and jq are genric utilities usable from the shell action.
+# LuaRocks needs unzip to unpack rocks, and dev essentials to build.
+# Setup the developemnt dependencies using the make target
 # and make the entrypoint executable
 RUN apk update \
-    && apk add unzip make g++ \
+    && apk add unzip make g++ py-pip jq \
+    && pip install httpie \
     && cd /kong \
     && make dependencies \
     && chmod +x /kong/bin/test_plugin_entrypoint.sh
