@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# use the "--debug" flag to debug this script; setting the "set -x" option
+
 function globals {
   LOCAL_PATH=$(dirname "$(realpath "$0")")
   DOCKER_FILE=${LOCAL_PATH}/Dockerfile
@@ -10,8 +12,8 @@ function globals {
   KONG_TEST_PLUGIN_PATH=$(realpath .)
 
   unset ACTION
-  # By default we do not set it. Meaning test both postgres and cassandra
-  unset KONG_DATABASE
+  KONG_DEPS_AVAILABLE=( "postgres" "cassandra" "redis" )
+  KONG_DEPS_START=( "postgres" "cassandra" )
   EXTRA_ARGS=()
 
   source ${LOCAL_PATH}/set_variables.sh
@@ -34,14 +36,15 @@ cat << EOF
                     __/ |
                    |___/
 
-Usage: $(basename $0) action [options...]
+Usage: $(basename $0) action [options...] [--] [action options...]
 
 Options:
-  --cassandra           only use cassandra db
-  --postgres            only use postgres db
+  --no-cassandra     do not start cassandra db
+  --no-postgres      do not start postgres db
+  --redis            do start redis db
 
 Actions:
-  up            start required database containers for testing
+  up            start required dependency containers for testing
 
   build         build the Kong test image
 
@@ -50,9 +53,9 @@ Actions:
 
   shell         get a shell directly on a kong container
 
-  down          remove all containers
+  down          remove all dependency containers
 
-  clean         removes the containers and deletes all test images
+  clean         removes the dependency containers and deletes all test images
 
 Environment variables:
   KONG_VERSION  the specific Kong version to use when building the test image
@@ -62,13 +65,70 @@ Environment variables:
   KONG_LICENSE_DATA
                 set this variable with the Kong Enterprise license data
 
+  POSTGRES      the version of the Postgres dependency to use (default 9.5)
+  CASSANDRA     the version of the Cassandra dependency to use (default 3.9)
+  REDIS         the version of the Redis dependency to use (default 5.0.4)
+
 Example usage:
   $(basename $0) run
   KONG_VERSION=0.36-1 $(basename $0) run -v -o gtest ./spec/02-access_spec.lua
-  KONG_IMAGE=kong-ee $(basename $0) run
+  POSTGRES=9.4 KONG_IMAGE=kong-ee $(basename $0) run
   $(basename $0) down
 
 EOF
+}
+
+
+#array_contains arr "a b"  && echo yes || echo no
+function array_contains { 
+  local array="$1[@]"
+  local seeking=$2
+  local in=1
+  for element in "${!array}"; do
+    if [[ "$element" == "$seeking" ]]; then
+      in=0
+      break
+    fi
+  done
+  return $in
+}
+
+
+function add_dependency {
+  local to_add=$1
+  array_contains KONG_DEPS_START "$to_add" && return || KONG_DEPS_START+=("$to_add")
+}
+
+
+function remove_dependency {
+  local to_remove=$1
+  local new_array=()
+  for dependency in ${KONG_DEPS_START[*]}; do
+    if [[ "$dependency" != "$to_remove" ]]; then
+      new_array+=("$dependency")
+    fi
+  done;
+  KONG_DEPS_START=("${new_array[@]}")
+}
+
+
+function handle_dep_arg {
+  local arg=$1
+  local is_dep=1
+  for dependency in ${KONG_DEPS_AVAILABLE[*]}; do
+    if [[ "--$dependency" == "$arg" ]]; then
+      add_dependency "$dependency"
+      is_dep=0
+      break
+    fi
+    if [[ "--no-$dependency" == "$arg" ]]; then
+      remove_dependency "$dependency"
+      is_dep=0
+      break
+    fi
+  done;
+  #msg "after '$arg' deps: ${KONG_DEPS_START[@]} extra-args: ${EXTRA_ARGS[@]}"
+  return $is_dep
 }
 
 
@@ -80,12 +140,6 @@ function parse_args {
         --)
           args_done=1
           ;;
-        --postgres)
-          KONG_DATABASE=postgres
-          ;;
-        --cassandra)
-          KONG_DATABASE=cassandra
-          ;;
         --help|-h)
           usage; exit 0
           ;;
@@ -93,7 +147,7 @@ function parse_args {
           set -x
           ;;
         *)
-          EXTRA_ARGS+=("$1")
+          handle_dep_arg "$1" || EXTRA_ARGS+=("$1")
           ;;
       esac
     else
@@ -174,15 +228,15 @@ function cid {
 }
 
 
-function wait_for_db {
+function wait_for_dependency {
   local iid
-  local db="$1"
+  local dep="$1"
 
-  iid=$(cid "$db")
+  iid=$(cid "$dep")
 
   if healthy "$iid"; then return; fi
 
-  msg "Waiting for $db"
+  msg "Waiting for $dep"
 
   while ! healthy "$iid"; do
     sleep 0.5
@@ -191,13 +245,9 @@ function wait_for_db {
 
 
 function compose_up {
-  if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "postgres" ]]; then
-    healthy "$(cid postgres)" || compose up -d postgres
-  fi
-
-  if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "cassandra" ]]; then
-    healthy "$(cid cassandra)" || compose up -d cassandra
-  fi
+  for dependency in ${KONG_DEPS_START[*]}; do
+    healthy "$(cid $dependency)" || compose up -d $dependency
+  done;
 }
 
 
@@ -208,13 +258,9 @@ function ensure_available {
     compose_up
   fi
 
-  if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "postgres" ]]; then
-    wait_for_db postgres
-  fi
-
-  if [[ -z $KONG_DATABASE ]] || [[ $KONG_DATABASE == "cassandra" ]]; then
-    wait_for_db cassandra
-  fi
+  for dependency in ${KONG_DEPS_START[*]}; do
+    wait_for_dependency $dependency
+  done;
 }
 
 function build_image {
