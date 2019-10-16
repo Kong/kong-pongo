@@ -299,7 +299,9 @@ function main {
       msg "Notice: image '$KONG_TEST_IMAGE' not found, auto-building it"
       build_image
     fi
-    compose run --rm kong sh
+    compose run --rm \
+      -e KONG_PG_DATABASE=kong_tests \
+      kong sh
     ;;
 
   clean)
