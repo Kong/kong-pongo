@@ -9,14 +9,15 @@
                     __/ |
                    |___/
 
-Usage: pongo action [options...]
+Usage: pongo action [options...] [--] [action options...]
 
 Options:
-  --cassandra           only use cassandra db
-  --postgres            only use postgres db
+  --no-cassandra     do not start cassandra db
+  --no-postgres      do not start postgres db
+  --redis            do start redis db
 
 Actions:
-  up            start required database containers for testing
+  up            start required dependency containers for testing
 
   build         build the Kong test image
 
@@ -25,9 +26,9 @@ Actions:
 
   shell         get a shell directly on a kong container
 
-  down          remove all containers
+  down          remove all dependency containers
 
-  clean         removes the containers and deletes all test images
+  clean         removes the dependency containers and deletes all test images
 
 Environment variables:
   KONG_VERSION  the specific Kong version to use when building the test image
@@ -37,10 +38,14 @@ Environment variables:
   KONG_LICENSE_DATA
                 set this variable with the Kong Enterprise license data
 
+  POSTGRES      the version of the Postgres dependency to use (default 9.5)
+  CASSANDRA     the version of the Cassandra dependency to use (default 3.9)
+  REDIS         the version of the Redis dependency to use (default 5.0.4)
+
 Example usage:
   pongo run
   KONG_VERSION=0.36-1 pongo run -v -o gtest ./spec/02-access_spec.lua
-  KONG_IMAGE=kong-ee pongo run
+  POSTGRES=9.4 KONG_IMAGE=kong-ee pongo run
   pongo down
 ```
 

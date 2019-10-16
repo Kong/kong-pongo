@@ -37,6 +37,17 @@ services:
       - kong-plugin-test-network
     restart: on-failure
 
+  redis:
+    image: redis:${REDIS:-5.0.4}-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+    restart: on-failure
+    networks:
+      - kong-plugin-test-network
+
   kong:
     image: ${KONG_TEST_IMAGE:-ignore_if_not_provided}
     environment:
