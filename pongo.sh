@@ -15,6 +15,9 @@ function globals {
   EXTRA_ARGS=()
 
   source ${LOCAL_PATH}/set_variables.sh
+
+  unset CUSTOM_PLUGINS
+  unset PLUGINS
 }
 
 
@@ -225,6 +228,28 @@ function build_image {
     "$LOCAL_PATH" || err "Error: failed to build test environment"
 }
 
+
+function get_plugin_names {
+  if [[ -d ./kong/plugins/ ]]; then
+    for dir in $(find ./kong/plugins -maxdepth 1 -mindepth 1 -type d); do
+      dir=${dir##*/}    # grab everything after the final "/"
+      if [[ -f ./kong/plugins/$dir/handler.lua ]]; then
+        if [[ "$CUSTOM_PLUGINS" == "" ]]; then
+          CUSTOM_PLUGINS=$dir
+        else
+          CUSTOM_PLUGINS=$CUSTOM_PLUGINS,$dir
+        fi
+      fi
+    done
+  fi
+  if [[ "$CUSTOM_PLUGINS" == "" ]]; then
+    PLUGINS=bundled
+  else
+    PLUGINS=bundled,$CUSTOM_PLUGINS
+  fi
+}
+
+
 function main {
   parse_args "$@"
 
@@ -293,6 +318,7 @@ function main {
     ;;
 
   shell)
+    get_plugin_names
     get_version
     docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
     if [[ ! $? -eq 0 ]]; then
@@ -301,6 +327,8 @@ function main {
     fi
     compose run --rm \
       -e KONG_PG_DATABASE=kong_tests \
+      -e KONG_PLUGINS=$PLUGINS \
+      -e KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS \
       kong sh
     ;;
 
