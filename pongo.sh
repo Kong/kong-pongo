@@ -294,6 +294,11 @@ function main {
 
   shell)
     get_version
+    docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
+    if [[ ! $? -eq 0 ]]; then
+      msg "Notice: image '$KONG_TEST_IMAGE' not found, auto-building it"
+      build_image
+    fi
     compose run --rm kong sh
     ;;
 
