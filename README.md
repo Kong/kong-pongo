@@ -24,6 +24,9 @@ Actions:
   run           run spec files, accepts Busted options and spec files/folders
                 as arguments, see: 'pongo run -- --help'
 
+  tail          starts a tail on the specified file. Default file is
+                ./servroot/logs/error.log, an alternate file can be specified
+
   shell         get a shell directly on a kong container
 
   down          remove all dependency containers
@@ -105,8 +108,14 @@ pongo down
 When running the tests, the Kong prefix (or working directory) will be set to
 `./servroot`.
 
-So to track what is happening you can use a `tail` on `./servroot/logs/error.log`
-like this:
+To track the error log (where any `print` or `ngx.log` statements will go) you
+can use the tail command
+
+```shell
+pongo tail
+```
+
+The above would be identical to:
 
 ```shell
 tail -F ./servroot/logs/error.log

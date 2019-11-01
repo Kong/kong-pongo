@@ -51,6 +51,9 @@ Actions:
   run           run spec files, accepts Busted options and spec files/folders
                 as arguments, see: '$(basename $0) run -- --help'
 
+  tail          starts a tail on the specified file. Default file is
+                ./servroot/logs/error.log, an alternate file can be specified
+
   shell         get a shell directly on a kong container
 
   down          remove all dependency containers
@@ -309,6 +312,28 @@ function main {
 
   up)
     compose_up
+    ;;
+
+  tail)
+    local tail_file="${EXTRA_ARGS[1]}"
+    if [[ "$tail_file" == "" ]]; then
+      tail_file="./servroot/logs/error.log"
+    fi
+
+    if [[ ! -f $tail_file ]]; then
+      echo "waiting for tail file to appear: $tail_file"
+      local index=1
+      while [ $index -le 300 ]
+      do
+        if [[ -f $tail_file ]]; then
+          break
+        fi
+        let index++
+        sleep 1
+      done
+    fi
+
+    tail -F "$tail_file"
     ;;
 
   run)
