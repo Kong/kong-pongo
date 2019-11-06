@@ -121,6 +121,38 @@ The above would be identical to:
 tail -F ./servroot/logs/error.log
 ```
 
+## Test initialization
+
+By default when the test container is started, it will look for a `.rockspec`
+file, if it find one, then it will install that rockspec file with the
+`--deps-only` flag. Meaning it will not install that rock itself, but if it
+depends on any external libraries, those rocks will be installed.
+
+For example; the Kong plugin `session` relies on the `lua-resty-session` rock.
+So by default it will install that dependency before starting the tests.
+
+An alternate way is to provide a `.pongo-setup.sh` file. If that file is present
+then that file will be executed (using `source`), instead of the default behaviour.
+
+For example, the following `.pongo-setup.sh` file will install a specific
+development branch of `lua-resty-session` instead of the one specified in
+the rockspec:
+
+```shell
+# remove any existing version if installed
+luarocks remove lua-resty-session --force
+
+git clone https://github.com/Tieske/lua-resty-session
+cd lua-resty-session
+
+# now checkout and install the development branch
+git checkout redis-ssl
+luarocks make
+
+cd ..
+rm -rf lua-resty-session
+```
+
 ## How it works
 
 The repo has 3 main components;

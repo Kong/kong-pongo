@@ -13,10 +13,6 @@ if [ -f /kong-plugin/.busted ]; then
   cp /kong-plugin/.busted /kong/
 fi
 
-# if there is a rockspec, then install it first, so we get any required
-# dependencies installed before testing
-find /kong-plugin -maxdepth 1 -type f -name '*.rockspec' -exec luarocks install --only-deps {} \;
-
 # add the plugin code to the LUA_PATH such that the plugin will be found
 export "LUA_PATH=/kong-plugin/?.lua;/kong-plugin/?/init.lua;;"
 
@@ -49,6 +45,18 @@ if [ -z "$KONG_TEST_DNS_RESOLVER" ]; then
   export "KONG_TEST_DNS_RESOLVER=$KONG_DNS_RESOLVER"
 fi
 
-echo "Kong version: $(kong version)"
 
+
+# perform any custom setup if specified
+if [ -f /kong-plugin/.pongo-setup.sh ]; then
+  source /kong-plugin/.pongo-setup.sh
+else
+  # if there is a rockspec, then install it first, so we get any required
+  # dependencies installed before testing
+  find /kong-plugin -maxdepth 1 -type f -name '*.rockspec' -exec luarocks install --only-deps {} \;
+fi
+
+
+
+echo "Kong version: $(kong version)"
 exec "$@"
