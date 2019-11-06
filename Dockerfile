@@ -16,7 +16,7 @@ COPY test_plugin_entrypoint.sh /kong/bin/test_plugin_entrypoint.sh
 # Setup the developemnt dependencies using the make target
 # and make the entrypoint executable
 RUN apk update \
-    && apk add unzip make g++ py-pip jq \
+    && apk add unzip make g++ py-pip jq git \
     && pip install httpie \
     && cd /kong \
     && make dependencies \
