@@ -10,7 +10,7 @@ COPY $KONG_DEV_FILES /kong
 # add new entrypoint for plugin testing
 COPY test_plugin_entrypoint.sh /kong/bin/test_plugin_entrypoint.sh
 
-
+USER root
 # httpie and jq are genric utilities usable from the shell action.
 # LuaRocks needs unzip to unpack rocks, and dev essentials to build.
 # Setup the developemnt dependencies using the make target

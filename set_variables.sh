@@ -7,6 +7,7 @@ KONG_EE_VERSIONS=(
   "0.35" "0.35-1" "0.35-3" "0.35-4"
   "0.36-1" "0.36-2"
   # 0.36 is not supported because LuaRocks was borked in that version
+  "1.3"
 )
 
 # Open source versions
