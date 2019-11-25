@@ -16,8 +16,8 @@ services:
       test:
       - CMD
       - pg_isready
-      - -U
-      - kong
+      - --dbname=kong_tests
+      - --username=kong
       timeout: 10s
     networks:
       - kong-plugin-test-network
