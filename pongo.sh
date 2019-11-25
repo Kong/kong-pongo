@@ -397,9 +397,12 @@ function main {
       build_image
     fi
     compose run --rm \
-      -e KONG_PG_DATABASE=kong_tests \
-      -e KONG_PLUGINS=$PLUGINS \
-      -e KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS \
+      -e KONG_LICENSE_DATA \
+      -e KONG_LOG_LEVEL \
+      -e KONG_ANONYMOUS_REPORTS \
+      -e "KONG_PG_DATABASE=kong_tests" \
+      -e "KONG_PLUGINS=$PLUGINS" \
+      -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
       kong sh
     ;;
 
