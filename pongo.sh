@@ -58,7 +58,7 @@ Actions:
 
   down          remove all dependency containers
 
-  clean         removes the dependency containers and deletes all test images
+  clean / nuke  removes the dependency containers and deletes all test images
 
 Environment variables:
   KONG_VERSION  the specific Kong version to use when building the test image
@@ -299,6 +299,21 @@ function get_plugin_names {
 }
 
 
+function cleanup {
+  compose down
+  docker images --filter=reference='kong-pongo-test:*' --format "found: {{.ID}}" | grep found
+  if [[ $? -eq 0 ]]; then
+    docker rmi $(docker images --filter=reference='kong-pongo-test:*' --format "{{.ID}}")
+  fi
+  if [ -d "$LOCAL_PATH/kong" ]; then
+    rm -rf "$LOCAL_PATH/kong"
+  fi
+  if [ -d "$LOCAL_PATH/kong-ee" ]; then
+    rm -rf "$LOCAL_PATH/kong-ee"
+  fi
+}
+
+
 function main {
   parse_args "$@"
 
@@ -407,17 +422,11 @@ function main {
     ;;
 
   clean)
-    compose down
-    docker images --filter=reference='kong-pongo-test:*' --format "found: {{.ID}}" | grep found
-    if [[ $? -eq 0 ]]; then
-      docker rmi $(docker images --filter=reference='kong-pongo-test:*' --format "{{.ID}}")
-    fi
-    if [ -d "$LOCAL_PATH/kong" ]; then
-      rm -rf "$LOCAL_PATH/kong"
-    fi
-    if [ -d "$LOCAL_PATH/kong-ee" ]; then
-      rm -rf "$LOCAL_PATH/kong-ee"
-    fi
+    cleanup
+    ;;
+
+  nuke)
+    cleanup
     ;;
 
   *)
