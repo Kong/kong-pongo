@@ -4,8 +4,8 @@
 
 function globals {
   LOCAL_PATH=$(dirname "$(realpath "$0")")
-  DOCKER_FILE=${LOCAL_PATH}/Dockerfile
-  DOCKER_COMPOSE_FILE=${LOCAL_PATH}/docker-compose.yml
+  DOCKER_FILE=${LOCAL_PATH}/assets/Dockerfile
+  DOCKER_COMPOSE_FILE=${LOCAL_PATH}/assets/docker-compose.yml
 
   NETWORK_NAME=kong-pongo-test-network
   IMAGE_BASE_NAME=kong-pongo-test
@@ -16,7 +16,7 @@ function globals {
   KONG_DEPS_START=( "postgres" "cassandra" )
   EXTRA_ARGS=()
 
-  source ${LOCAL_PATH}/set_variables.sh
+  source ${LOCAL_PATH}/assets/set_variables.sh
 
   unset CUSTOM_PLUGINS
   unset PLUGINS

@@ -99,7 +99,7 @@ for VERSION in ${KONG_VERSIONS[*]}; do
         # update old Makefile if it does not have the 'dependencies' make target
         cat ../kong-versions/$VERSION/kong/Makefile | grep dependencies: &> /dev/null
         if [[ ! $? -eq 0 ]]; then
-            cat ../Makefile-addition >> ../kong-versions/$VERSION/kong/Makefile
+            cat ../assets/Makefile-addition >> ../kong-versions/$VERSION/kong/Makefile
         fi
     fi
     popd > /dev/null
