@@ -33,6 +33,8 @@ Actions:
 
   clean         removes the dependency containers and deletes all test images
 
+  update        update embedded artifacts for building test images
+
 Environment variables:
   KONG_VERSION  the specific Kong version to use when building the test image
 
@@ -153,20 +155,35 @@ cd ..
 rm -rf lua-resty-session
 ```
 
-## How it works
+## Releasing (new Kong versions)
 
-The repo has 3 main components;
+When new Kong versions are released, the test artifacts contained within this
+repository must be updated. Do so as follows:
 
-1. `pongo.sh`: This is the actual test script. It can be run from a
-   plugin repo. It can build the test image and set up the datastores
-   (postgres & cassandra). And then run the tests found in the repo.
-   As a user, this is the only script you need.
-2. docker-compose file: this has the dependencies (postgres and cassandra).
-   there is no need to use docker-compose, it can be used transparently from
-   Pongo.
-3. `update_versions.sh`: This is a script that extracts the development files
-   from the Kong source repos and stores them in this repo. This script
-   should only be updated (version list at the top), and run, after a new
-   version of Kong has been released. There is no need to use this script
-   as a user of Pongo.
-
+1. clone this repo and checkout a new branch:
+   ```shell
+   git clone http://github.com/Kong/kong-pongo.git
+   cd kong-pongo
+   git checkout -b newrelease
+   ```
+1. update `assets/set_variables.sh` and add the new versions
+1. commit the change with message:
+   > `feat(version) added <Enterprise|open source> version  <x.x>`
+1. update the artifacts
+   ```shell
+   pongo update
+   ```
+1. commit the change with message:
+   > `chore(version) added <Enterprise|open source> version  <x.x> artifacts`
+   ```shell
+   git add kong-versions/
+   git commit
+   ```
+1. test the changes:
+   ```shell
+   git clone http://github.com/Kong/kong-plugin.git
+   cd kong-plugin
+   KONG_VERSION=<x.x> pongo run
+   rm -rf kong-plugin
+   ```
+1. push the branch and create a PR.

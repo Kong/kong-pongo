@@ -60,6 +60,8 @@ Actions:
 
   clean / nuke  removes the dependency containers and deletes all test images
 
+  update        update embedded artifacts for building test images
+
 Environment variables:
   KONG_VERSION  the specific Kong version to use when building the test image
 
@@ -419,6 +421,10 @@ function main {
       -e "KONG_PLUGINS=$PLUGINS" \
       -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
       kong sh
+    ;;
+
+  update)
+    source ${LOCAL_PATH}/assets/update_versions.sh
     ;;
 
   clean)

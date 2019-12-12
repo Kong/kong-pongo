@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 
 # USAGE: this script gathers the development files from the Kong-EE source
 # repository. After a new version has been released, add it to the list above
@@ -12,9 +11,8 @@
 #  -  1 on error
 #  - 99 if new files were checked out and need to be committed
 
-
-# Get defaults
-source $(dirname "$(realpath "$0")")/set_variables.sh
+# switch to Pongo directory, since we need to run and update there
+pushd $LOCAL_PATH > /dev/null
 
 
 function update_repo {
@@ -37,6 +35,14 @@ function update_repo {
         echo "Warning: cannot pull latest changes for $repo_name, make sure you're authorized and connected!"
     fi
     popd > /dev/null
+}
+
+
+function update_message {
+    echo "Files were added/changed, please commit the changes:"
+    echo "    git add kong-versions/"
+    echo "    git commit"
+    exit 99
 }
 
 
@@ -111,12 +117,10 @@ git status > /dev/null
 
 if ! git diff-index --quiet HEAD --
 then
-  echo "Files have changed, please commit the changes"
-  exit 99
+  update_message
 fi
 
 if git diff-files --quiet --ignore-submodules --
 then
-  echo "Files were added, please commit the changes"
-  exit 99
+  update_message
 fi
