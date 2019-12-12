@@ -24,6 +24,9 @@ export KONG_DNS_RESOLVER=127.0.0.11
 # set working dir in mounted volume to be able to check the logs
 export KONG_PREFIX=/kong-plugin/servroot
 
+# set debug logs; specifically for the 'shell' command, tests already have it
+export KONG_LOG_LEVEL=debug
+
 # export the KONG_ variables also in the KONG_TEST_ range
 if [ -z "$KONG_TEST_LICENSE_DATA" ]; then
   export "KONG_TEST_LICENSE_DATA=$KONG_LICENSE_DATA"
