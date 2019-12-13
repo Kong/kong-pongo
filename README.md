@@ -69,15 +69,21 @@ Set up the following when testing against Kong Enterprise:
 
 ## Installation
 
-> Note you need `~/.local/bin` on your `$PATH`.
+Clone the repository and install Pongo:
+```shell
+PATH=$PATH:~/.local/bin
+git clone git@github.com:Kong/kong-pongo.git
+mkdir -p ~/.local/bin
+ln -s $(realpath kong-pongo/pongo.sh) ~/.local/bin/pongo
+```
 
-* clone the repo and install Pongo:
-    ```shell
-    PATH=$PATH:~/.local/bin
-    git clone git@github.com:Kong/kong-pongo.git
-    mkdir -p ~/.local/bin
-    ln -s $(realpath kong-pongo/pongo.sh) ~/.local/bin/pongo
-    ```
+_Notes_: 
+* you need `~/.local/bin` on your `$PATH`
+* for MacOS you need the [`coreutils`](https://www.gnu.org/software/coreutils/coreutils.html)
+  to be installed. This is easiest via the [Homebrew package manager](https://brew.sh/) by doing:
+  ```
+  brew install coreutils
+  ```
 
 ## Do a test run
 
