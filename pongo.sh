@@ -214,7 +214,7 @@ function get_version {
     get_image
   fi
 
-  VERSION=$(docker run -it --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "${cmd[@]}")
+  VERSION=$(docker run --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "${cmd[@]}")
   KONG_TEST_IMAGE=$IMAGE_BASE_NAME:$VERSION
 }
 
