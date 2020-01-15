@@ -97,15 +97,19 @@ fi
 git add kong-versions/
 
 if [[ "$CODE_BASE" == "CE" ]]; then
-  git commit --message="chore(version) added Kong open source version $ADD_VERSION artifacts"
+  git commit -q --message="chore(version) added Kong open source version $ADD_VERSION artifacts"
 else
-  git commit --message="chore(version) added Kong Enterprise version $ADD_VERSION artifacts"
+  git commit -q --message="chore(version) added Kong Enterprise version $ADD_VERSION artifacts"
 fi
 
-# push to remote
+# push to remote anmd create a PR
 git push --set-upstream origin $BRANCH_NAME
 echo
-echo "Success! A new branch '$BRANCH_NAME' was pushed to the repo with the following commits:"
+echo "Now creating a Github pull-request:"
+hub pull-request --no-edit
+echo
+echo "Success! A new branch '$BRANCH_NAME' was pushed to the repo (and a PR created)"
+echo "with the following commits:"
 git log --oneline -2
 echo
 git checkout $PREVIOUS_BRANCH &> /dev/null
