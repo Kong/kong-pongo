@@ -38,17 +38,9 @@ function update_repo {
 }
 
 
-function update_message {
-    echo "Files were added/changed, please commit the changes:"
-    echo "    git add kong-versions/"
-    echo "    git commit"
-    exit 99
-}
-
-
-echo "updating kong repository..."
+echo "Cloning kong repository..."
 update_repo kong
-echo "updating kong-ee repository..."
+echo "Cloning kong-ee repository..."
 update_repo kong-ee
 
 # clean artifacts
@@ -111,16 +103,14 @@ for VERSION in ${KONG_VERSIONS[*]}; do
     popd > /dev/null
 done;
 
-
 # check wether updates were made
-git status > /dev/null
-
-if ! git diff-index --quiet HEAD --
-then
-  update_message
+if [[ ! -z $(git status -s) ]]; then
+    echo "Files were added/changed, please commit the changes:"
+    echo "    git add kong-versions/"
+    echo "    git commit"
+    return 99
+else
+    echo "No new files were added"
 fi
 
-if git diff-files --quiet --ignore-submodules --
-then
-  update_message
-fi
+return 0

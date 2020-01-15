@@ -165,11 +165,9 @@ function parse_args {
 
 function validate_version {
   local version=$1
-  for entry in ${KONG_VERSIONS[*]}; do
-    if [[ "$version" == "$entry" ]]; then
-      return
-    fi
-  done;
+  if $(version_exists $version); then
+    return
+  fi
   err "Version '$version' is not supported, supported versions are:
   Kong: ${KONG_CE_VERSIONS[@]}
   Kong Enterprise: ${KONG_EE_VERSIONS[@]}
@@ -429,6 +427,7 @@ function main {
 
   update)
     source ${LOCAL_PATH}/assets/update_versions.sh
+    exit $?
     ;;
 
   clean)

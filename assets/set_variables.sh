@@ -1,26 +1,24 @@
 #!/bin/bash
 
+# this requires LOCAL_PATH to be set to the Pongo directory
+
+
 # Enterprise versions
-KONG_EE_VERSIONS=(
-  "0.33" "0.33-1" "0.33-2"
-  "0.34" "0.34-1"
-  "0.35" "0.35-1" "0.35-3" "0.35-4"
-  "0.36-1" "0.36-2" "0.36-3" "0.36-4"
-  # 0.36 is not supported because LuaRocks was borked in that version
-  "1.3"
-)
+if [[ ! -f $LOCAL_PATH/assets/kong_EE_versions.ver ]]; then
+  echo "$LOCAL_PATH/assets/kong_EE_versions.ver file is missing!"
+  exit 1
+fi
+IFS=$'\r\n' GLOBIGNORE='*' command eval  'KONG_EE_VERSIONS=($(cat $LOCAL_PATH/assets/kong_EE_versions.ver))'
+#echo "Current list:   ${KONG_EE_VERSIONS[@]}"
+
 
 # Open source versions
-KONG_CE_VERSIONS=(
-  "0.13.0" "0.13.1"
-  "0.14.0" "0.14.1"
-  "0.15.0"
-  "1.0.0" "1.0.1" "1.0.2" "1.0.3" "1.0.4"
-  "1.1.0" "1.1.1" "1.1.2" "1.1.3"
-  "1.2.0" "1.2.1" "1.2.2"
-  "1.3.0"
-  "1.4.0" "1.4.1" "1.4.2"
-)
+if [[ ! -f $LOCAL_PATH/assets/kong_CE_versions.ver ]]; then
+  echo "$LOCAL_PATH/assets/kong_CE_versions.ver file is missing!"
+  exit 1
+fi
+IFS=$'\r\n' GLOBIGNORE='*' command eval  'KONG_CE_VERSIONS=($(cat $LOCAL_PATH/assets/kong_CE_versions.ver))'
+#echo "Current list:   ${KONG_CE_VERSIONS[@]}"
 
 
 # Create a new array with all versions combined
@@ -40,6 +38,16 @@ function is_enterprise {
   local check_version=$1 
   for VERSION in ${KONG_EE_VERSIONS[*]}; do
     if [[ "$VERSION" == "$check_version" ]]; then
+      return 0
+    fi
+  done;
+  return 1
+}
+
+function version_exists {
+  local version=$1
+  for entry in ${KONG_VERSIONS[*]}; do
+    if [[ "$version" == "$entry" ]]; then
       return 0
     fi
   done;
