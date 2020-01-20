@@ -7,8 +7,9 @@ function globals {
   DOCKER_FILE=${LOCAL_PATH}/assets/Dockerfile
   DOCKER_COMPOSE_FILE=${LOCAL_PATH}/assets/docker-compose.yml
 
-  NETWORK_NAME=kong-pongo-test-network
-  IMAGE_BASE_NAME=kong-pongo-test
+  PROJECT_NAME=kong-pongo
+  NETWORK_NAME=${PROJECT_NAME}_test-network
+  IMAGE_BASE_NAME=${PROJECT_NAME}-test
   KONG_TEST_PLUGIN_PATH=$(realpath .)
 
   unset ACTION
@@ -218,7 +219,7 @@ function compose {
   export NETWORK_NAME
   export KONG_TEST_IMAGE
   export KONG_TEST_PLUGIN_PATH
-  docker-compose -f "$DOCKER_COMPOSE_FILE" "$@"
+  docker-compose -p ${PROJECT_NAME} -f "$DOCKER_COMPOSE_FILE" "$@"
 }
 
 
@@ -305,9 +306,9 @@ function get_plugin_names {
 
 function cleanup {
   compose down
-  docker images --filter=reference='kong-pongo-test:*' --format "found: {{.ID}}" | grep found
+  docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "found: {{.ID}}" | grep found
   if [[ $? -eq 0 ]]; then
-    docker rmi $(docker images --filter=reference='kong-pongo-test:*' --format "{{.ID}}")
+    docker rmi $(docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "{{.ID}}")
   fi
   if [ -d "$LOCAL_PATH/kong" ]; then
     rm -rf "$LOCAL_PATH/kong"
