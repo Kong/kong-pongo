@@ -59,6 +59,8 @@ Actions:
 
   down          remove all dependency containers
 
+  status        show status of the Pongo network, images, and containers
+
   clean / nuke  removes the dependency containers and deletes all test images
 
   update        update embedded artifacts for building test images
@@ -429,6 +431,21 @@ function main {
   update)
     source ${LOCAL_PATH}/assets/update_versions.sh
     exit $?
+    ;;
+
+  status)
+    echo Pongo networks:
+    echo ===============
+    docker network ls | grep "${PROJECT_NAME}"
+    echo
+    echo Pongo dependency containers:
+    echo ============================
+    docker ps | grep "${PROJECT_NAME}"
+    echo
+    echo Pongo cached images:
+    echo ====================
+    docker images "${PROJECT_NAME}*"
+    echo
     ;;
 
   clean)

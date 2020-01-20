@@ -31,6 +31,8 @@ Actions:
 
   down          remove all dependency containers
 
+  status        show status of the Pongo network, images, and containers
+
   clean         removes the dependency containers and deletes all test images
 
   update        update embedded artifacts for building test images
