@@ -164,32 +164,22 @@ rm -rf lua-resty-session
 ## Releasing (new Kong versions)
 
 When new Kong versions are released, the test artifacts contained within this
-repository must be updated. Do so as follows:
+Pongo repository must be updated.
 
-1. clone this repo and checkout a new branch:
-   ```shell
-   git clone http://github.com/Kong/kong-pongo.git
-   cd kong-pongo
-   git checkout -b newrelease
-   ```
-1. update `assets/set_variables.sh` and add the new versions
-1. commit the change with message:
-   > `feat(version) added <Enterprise|open source> version  <x.x>`
-1. update the artifacts
-   ```shell
-   pongo update
-   ```
-1. commit the change with message:
-   > `chore(version) added <Enterprise|open source> version  <x.x> artifacts`
-   ```shell
-   git add kong-versions/
-   git commit
-   ```
-1. test the changes:
-   ```shell
-   git clone http://github.com/Kong/kong-plugin.git
-   cd kong-plugin
-   KONG_VERSION=<x.x> pongo run
-   rm -rf kong-plugin
-   ```
-1. push the branch and create a PR.
+To do so there are some pre-requisites;
+
+- have [hub](https://hub.github.com/) installed and configured
+- on OSX have [coreutils](https://www.gnu.org/software/coreutils/coreutils.html) installed
+- have access to the `kong-pongo` and `kong-ee` repositories on Github
+
+Update the version as follows:
+
+```shell
+# The code-base is either "EE" (Enterprise) or "CE" (Opensource)
+
+KONG_CODE_BASE="EE" ADD_KONG_VERSION="1.2.3" \
+  && git clone http://github.com/Kong/kong-pongo.git \
+  && kong-pongo/assets/add_version.sh $KONG_CODE_BASE $ADD_KONG_VERSION
+```
+
+The result should be a new PR on Pongo repo.
