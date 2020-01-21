@@ -369,7 +369,7 @@ function main {
     fi
 
     # figure out where in the arguments list the file-list starts
-    local files_start_index=9999
+    local files_start_index=1
     local index=1
     for arg in "${EXTRA_ARGS[@]}"; do
       if [[ ! -f $arg ]] && [[ ! -d $arg ]]; then
