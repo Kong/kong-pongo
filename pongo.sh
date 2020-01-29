@@ -88,7 +88,7 @@ EOF
 
 
 #array_contains arr "a b"  && echo yes || echo no
-function array_contains { 
+function array_contains {
   local array="$1[@]"
   local seeking=$2
   local in=1
@@ -403,7 +403,7 @@ function main {
       -e KONG_LICENSE_DATA \
       -e KONG_TEST_PLUGIN_PATH \
       kong \
-      "/bin/sh" "-c" "bin/busted ${busted_params[*]} ${busted_files[*]}"
+      "/bin/sh" "-c" "bin/busted --helper=bin/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
     ;;
 
   down)

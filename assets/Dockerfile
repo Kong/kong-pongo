@@ -6,6 +6,8 @@ FROM ${KONG_BASE}
 ARG KONG_DEV_FILES
 COPY $KONG_DEV_FILES /kong
 
+# add helper files to workaround some issues
+COPY assets/busted_helper.lua /kong/bin
 
 # add new entrypoint for plugin testing
 COPY assets/test_plugin_entrypoint.sh /kong/bin/test_plugin_entrypoint.sh
@@ -17,7 +19,7 @@ USER root
 # and make the entrypoint executable
 #
 # Note: 'openssl-dev' is added to build the 'cqueue' rock. It provides the
-# headers in the system location for 'make dependencies' to succeed. The 
+# headers in the system location for 'make dependencies' to succeed. The
 # proper thing to do would be the included ones by specifying them like so:
 #   CRYPTO_DIR=/usr/local/kong \
 #   OPENSSL_DIR=/usr/local/kong \
