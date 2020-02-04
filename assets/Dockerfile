@@ -28,7 +28,7 @@ USER root
 # that should be independent of Kong versions.
 RUN apk update \
     && apk add unzip make g++ py-pip jq git bsd-compat-headers m4 openssl-dev \
-    && pip install httpie \
+    && pip install 'httpie<2.0.0'\
     && cd /kong \
     && make dependencies \
     && chmod +x /kong/bin/test_plugin_entrypoint.sh
