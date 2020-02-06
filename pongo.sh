@@ -52,6 +52,8 @@ Actions:
   run           run spec files, accepts Busted options and spec files/folders
                 as arguments, see: '$(basename $0) run -- --help'
 
+  lint          will run the LuaCheck linter
+  
   tail          starts a tail on the specified file. Default file is
                 ./servroot/logs/error.log, an alternate file can be specified
 
@@ -426,6 +428,25 @@ function main {
       -e "KONG_PLUGINS=$PLUGINS" \
       -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
       kong sh
+    ;;
+
+  lint)
+    get_plugin_names
+    get_version
+    docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
+    if [[ ! $? -eq 0 ]]; then
+      msg "Notice: image '$KONG_TEST_IMAGE' not found, auto-building it"
+      build_image
+    fi
+    compose run --rm \
+      --workdir="/kong-plugin" \
+      -e KONG_LICENSE_DATA \
+      -e KONG_LOG_LEVEL \
+      -e KONG_ANONYMOUS_REPORTS \
+      -e "KONG_PG_DATABASE=kong_tests" \
+      -e "KONG_PLUGINS=$PLUGINS" \
+      -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
+      kong luacheck .
     ;;
 
   update)
