@@ -24,6 +24,8 @@ Actions:
   run           run spec files, accepts Busted options and spec files/folders
                 as arguments, see: 'pongo run -- --help'
 
+  lint          will run the LuaCheck linter
+
   tail          starts a tail on the specified file. Default file is
                 ./servroot/logs/error.log, an alternate file can be specified
 
