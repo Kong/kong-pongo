@@ -34,8 +34,8 @@ RUN apk update \
     && chmod +x /kong/bin/test_plugin_entrypoint.sh
 
 
-# make sure OpenResty cmdline 'resty' is in our path, and our busted version
-ENV PATH="/kong/bin:/usr/local/openresty/bin:${PATH}"
+# make sure resty, LuaJIT, and our custom Busted are in our path
+ENV PATH="/kong/bin:/usr/local/openresty/bin:/usr/local/openresty/luajit/bin:${PATH}"
 
 
 WORKDIR /kong
