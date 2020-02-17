@@ -31,6 +31,9 @@ Actions:
 
   shell         get a shell directly on a kong container
 
+  pack          will pack all '*.rockspec' files into '*.rock' files for
+                distribution (see LuaRocks package manager docs)
+
   down          remove all dependency containers
 
   status        show status of the Pongo network, images, and containers

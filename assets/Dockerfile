@@ -12,6 +12,9 @@ COPY assets/busted_helper.lua /kong/bin
 # add new entrypoint for plugin testing
 COPY assets/test_plugin_entrypoint.sh /kong/bin/test_plugin_entrypoint.sh
 
+# add packer script
+COPY assets/pongo_pack /kong/bin/pongo_pack
+
 USER root
 # httpie and jq are genric utilities usable from the shell action.
 # LuaRocks needs unzip to unpack rocks, and dev essentials to build.
