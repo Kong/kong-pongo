@@ -18,6 +18,8 @@ function globals {
   EXTRA_ARGS=()
 
   source ${LOCAL_PATH}/assets/set_variables.sh
+  # resolve a '.x' to a real version; eg. "1.3.0.x" in $KONG_VERSION
+  resolve_version
 
   unset CUSTOM_PLUGINS
   unset PLUGINS
@@ -72,6 +74,7 @@ Actions:
 
 Environment variables:
   KONG_VERSION  the specific Kong version to use when building the test image
+                (note that the patch-version can be 'x' to use latest)
 
   KONG_IMAGE    the base Kong Docker image to use when building the test image
 
@@ -84,7 +87,7 @@ Environment variables:
 
 Example usage:
   $(basename $0) run
-  KONG_VERSION=0.36-1 $(basename $0) run -v -o gtest ./spec/02-access_spec.lua
+  KONG_VERSION=1.3.x $(basename $0) run -v -o gtest ./spec/02-access_spec.lua
   POSTGRES=9.4 KONG_IMAGE=kong-ee $(basename $0) run
   $(basename $0) down
 
