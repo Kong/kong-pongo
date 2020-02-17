@@ -53,3 +53,22 @@ function version_exists {
   done;
   return 1
 }
+
+# resolve the KONG_VERSION in place
+function resolve_version {
+  if [[ "${KONG_VERSION: -1}" == "x" ]]; then
+    local new_version=$KONG_VERSION
+    for entry in ${KONG_VERSIONS[*]}; do
+      if [[ "${KONG_VERSION:0:${#KONG_VERSION}-1}" == "${entry:0:${#entry}-1}" ]]; then
+        # keep replacing, last one wins
+        new_version=$entry
+      fi
+    done;
+    if [[ "$new_version" == "$KONG_VERSION" ]]; then
+      echo "Could not resolve Kong version: $KONG_VERSION"
+    else
+      echo "Resolved Kong version $KONG_VERSION to $new_version"
+      KONG_VERSION=$new_version
+    fi
+  fi
+}

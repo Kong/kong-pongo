@@ -44,6 +44,7 @@ Actions:
 
 Environment variables:
   KONG_VERSION  the specific Kong version to use when building the test image
+                (note that the patch-version can be 'x' to use latest)
 
   KONG_IMAGE    the base Kong Docker image to use when building the test image
 
@@ -56,7 +57,7 @@ Environment variables:
 
 Example usage:
   pongo run
-  KONG_VERSION=0.36-1 pongo run -v -o gtest ./spec/02-access_spec.lua
+  KONG_VERSION=1.3.x pongo run -v -o gtest ./spec/02-access_spec.lua
   POSTGRES=9.4 KONG_IMAGE=kong-ee pongo run
   pongo down
 ```
@@ -106,6 +107,9 @@ pongo run ./spec
 # Run against a specific version of Kong (log into bintray first!) and pass
 # a number of Busted options
 KONG_VERSION=0.36-1 pongo run -v -o gtest ./spec
+
+# Run against the latest patch version of a Kong release using '.x'
+KONG_VERSION=1.2.x pongo run -v -o gtest ./spec
 
 # Run against a local image of Kong
 KONG_IMAGE=kong-ee pongo run ./spec
