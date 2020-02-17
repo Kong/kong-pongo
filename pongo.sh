@@ -59,6 +59,9 @@ Actions:
 
   shell         get a shell directly on a kong container
 
+  pack          will pack all '*.rockspec' files into '*.rock' files for
+                distribution (see LuaRocks package manager docs)
+
   down          remove all dependency containers
 
   status        show status of the Pongo network, images, and containers
@@ -447,6 +450,25 @@ function main {
       -e "KONG_PLUGINS=$PLUGINS" \
       -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
       kong luacheck .
+    ;;
+
+  pack)
+    get_plugin_names
+    get_version
+    docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
+    if [[ ! $? -eq 0 ]]; then
+      msg "Notice: image '$KONG_TEST_IMAGE' not found, auto-building it"
+      build_image
+    fi
+    compose run --rm \
+      --workdir="/kong-plugin" \
+      -e KONG_LICENSE_DATA \
+      -e KONG_LOG_LEVEL \
+      -e KONG_ANONYMOUS_REPORTS \
+      -e "KONG_PG_DATABASE=kong_tests" \
+      -e "KONG_PLUGINS=$PLUGINS" \
+      -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
+      kong pongo_pack
     ;;
 
   update)
