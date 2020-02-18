@@ -7,8 +7,9 @@ function globals {
   DOCKER_FILE=${LOCAL_PATH}/assets/Dockerfile
   DOCKER_COMPOSE_FILE=${LOCAL_PATH}/assets/docker-compose.yml
 
-  NETWORK_NAME=kong-pongo-test-network
-  IMAGE_BASE_NAME=kong-pongo-test
+  PROJECT_NAME=kong-pongo
+  NETWORK_NAME=${PROJECT_NAME}_test-network
+  IMAGE_BASE_NAME=${PROJECT_NAME}-test
   KONG_TEST_PLUGIN_PATH=$(realpath .)
 
   unset ACTION
@@ -51,12 +52,19 @@ Actions:
   run           run spec files, accepts Busted options and spec files/folders
                 as arguments, see: '$(basename $0) run -- --help'
 
+  lint          will run the LuaCheck linter
+  
   tail          starts a tail on the specified file. Default file is
                 ./servroot/logs/error.log, an alternate file can be specified
 
   shell         get a shell directly on a kong container
 
+  pack          will pack all '*.rockspec' files into '*.rock' files for
+                distribution (see LuaRocks package manager docs)
+
   down          remove all dependency containers
+
+  status        show status of the Pongo network, images, and containers
 
   clean / nuke  removes the dependency containers and deletes all test images
 
@@ -85,7 +93,7 @@ EOF
 
 
 #array_contains arr "a b"  && echo yes || echo no
-function array_contains { 
+function array_contains {
   local array="$1[@]"
   local seeking=$2
   local in=1
@@ -165,11 +173,9 @@ function parse_args {
 
 function validate_version {
   local version=$1
-  for entry in ${KONG_VERSIONS[*]}; do
-    if [[ "$version" == "$entry" ]]; then
-      return
-    fi
-  done;
+  if $(version_exists $version); then
+    return
+  fi
   err "Version '$version' is not supported, supported versions are:
   Kong: ${KONG_CE_VERSIONS[@]}
   Kong Enterprise: ${KONG_EE_VERSIONS[@]}
@@ -220,7 +226,7 @@ function compose {
   export NETWORK_NAME
   export KONG_TEST_IMAGE
   export KONG_TEST_PLUGIN_PATH
-  docker-compose -f "$DOCKER_COMPOSE_FILE" "$@"
+  docker-compose -p ${PROJECT_NAME} -f "$DOCKER_COMPOSE_FILE" "$@"
 }
 
 
@@ -307,9 +313,9 @@ function get_plugin_names {
 
 function cleanup {
   compose down
-  docker images --filter=reference='kong-pongo-test:*' --format "found: {{.ID}}" | grep found
+  docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "found: {{.ID}}" | grep found
   if [[ $? -eq 0 ]]; then
-    docker rmi $(docker images --filter=reference='kong-pongo-test:*' --format "{{.ID}}")
+    docker rmi $(docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "{{.ID}}")
   fi
   if [ -d "$LOCAL_PATH/kong" ]; then
     rm -rf "$LOCAL_PATH/kong"
@@ -368,7 +374,7 @@ function main {
     fi
 
     # figure out where in the arguments list the file-list starts
-    local files_start_index=9999
+    local files_start_index=1
     local index=1
     for arg in "${EXTRA_ARGS[@]}"; do
       if [[ ! -f $arg ]] && [[ ! -d $arg ]]; then
@@ -402,7 +408,7 @@ function main {
       -e KONG_LICENSE_DATA \
       -e KONG_TEST_PLUGIN_PATH \
       kong \
-      "/bin/sh" "-c" "bin/busted ${busted_params[*]} ${busted_files[*]}"
+      "/bin/sh" "-c" "bin/busted --helper=bin/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
     ;;
 
   down)
@@ -427,8 +433,62 @@ function main {
       kong sh
     ;;
 
+  lint)
+    get_plugin_names
+    get_version
+    docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
+    if [[ ! $? -eq 0 ]]; then
+      msg "Notice: image '$KONG_TEST_IMAGE' not found, auto-building it"
+      build_image
+    fi
+    compose run --rm \
+      --workdir="/kong-plugin" \
+      -e KONG_LICENSE_DATA \
+      -e KONG_LOG_LEVEL \
+      -e KONG_ANONYMOUS_REPORTS \
+      -e "KONG_PG_DATABASE=kong_tests" \
+      -e "KONG_PLUGINS=$PLUGINS" \
+      -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
+      kong luacheck .
+    ;;
+
+  pack)
+    get_plugin_names
+    get_version
+    docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
+    if [[ ! $? -eq 0 ]]; then
+      msg "Notice: image '$KONG_TEST_IMAGE' not found, auto-building it"
+      build_image
+    fi
+    compose run --rm \
+      --workdir="/kong-plugin" \
+      -e KONG_LICENSE_DATA \
+      -e KONG_LOG_LEVEL \
+      -e KONG_ANONYMOUS_REPORTS \
+      -e "KONG_PG_DATABASE=kong_tests" \
+      -e "KONG_PLUGINS=$PLUGINS" \
+      -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
+      kong pongo_pack
+    ;;
+
   update)
     source ${LOCAL_PATH}/assets/update_versions.sh
+    exit $?
+    ;;
+
+  status)
+    echo Pongo networks:
+    echo ===============
+    docker network ls | grep "${PROJECT_NAME}"
+    echo
+    echo Pongo dependency containers:
+    echo ============================
+    docker ps | grep "${PROJECT_NAME}"
+    echo
+    echo Pongo cached images:
+    echo ====================
+    docker images "${PROJECT_NAME}*"
+    echo
     ;;
 
   clean)

@@ -52,7 +52,11 @@ fi
 
 # perform any custom setup if specified
 if [ -f /kong-plugin/.pongo-setup.sh ]; then
-  source /kong-plugin/.pongo-setup.sh
+  old_entry_pwd=$(pwd)
+  cd /kong-plugin
+  source .pongo-setup.sh
+  cd $old_entry_pwd
+  unset old_entry_pwd
 else
   # if there is a rockspec, then install it first, so we get any required
   # dependencies installed before testing
