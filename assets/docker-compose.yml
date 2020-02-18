@@ -10,6 +10,7 @@ services:
     environment:
       POSTGRES_USER: kong
       POSTGRES_DB: kong_tests
+      POSTGRES_HOST_AUTH_METHOD: trust
     healthcheck:
       interval: 5s
       retries: 10
