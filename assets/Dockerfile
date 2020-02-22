@@ -34,6 +34,7 @@ RUN apk update \
     && pip install 'httpie<2.0.0'\
     && cd /kong \
     && make dependencies \
+    && luarocks install busted-htest \
     && chmod +x /kong/bin/test_plugin_entrypoint.sh
 
 
