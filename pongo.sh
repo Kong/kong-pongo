@@ -230,6 +230,9 @@ function compose {
   export KONG_TEST_IMAGE
   export KONG_TEST_PLUGIN_PATH
   docker-compose -p ${PROJECT_NAME} -f "$DOCKER_COMPOSE_FILE" "$@"
+  if [[ ! $? -eq 0 ]]; then
+    err "failed to run docker-compose command"
+  fi
 }
 
 
