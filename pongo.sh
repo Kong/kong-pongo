@@ -44,7 +44,7 @@ Usage: $(basename $0) action [options...] [--] [action options...]
 Options:
   --no-cassandra     do not start cassandra db
   --no-postgres      do not start postgres db
-  --redis            do start redis db
+  --redis            do start redis db (available at `redis:6379`)
 
 Actions:
   up            start required dependency containers for testing
