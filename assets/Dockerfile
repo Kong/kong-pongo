@@ -17,20 +17,20 @@ COPY assets/pongo_pack /kong/bin/pongo_pack
 
 USER root
 # httpie and jq are genric utilities usable from the shell action.
-# LuaRocks needs unzip to unpack rocks, and dev essentials to build.
+# LuaRocks needs (un)zip to (un)pack rocks, and dev essentials to build.
 # Setup the developemnt dependencies using the make target
 # and make the entrypoint executable
 #
-# Note: 'openssl-dev' is added to build the 'cqueue' rock. It provides the
-# headers in the system location for 'make dependencies' to succeed. The
-# proper thing to do would be the included ones by specifying them like so:
+# Note: 'openssl-dev' (and m4, bsd-headers) is added to build the 'cqueue' rock.
+# It provides the headers in the system location for 'make dependencies' to succeed.
+# The proper thing to do would be the included ones by specifying them like so:
 #   CRYPTO_DIR=/usr/local/kong \
 #   OPENSSL_DIR=/usr/local/kong \
 #   make dependencies
 # But that means hardcoding and that doesn't play well with the nature of Pongo
 # that should be independent of Kong versions.
 RUN apk update \
-    && apk add unzip make g++ py-pip jq git bsd-compat-headers m4 openssl-dev \
+    && apk add zip unzip make g++ py-pip jq git bsd-compat-headers m4 openssl-dev \
     && pip install 'httpie<2.0.0'\
     && cd /kong \
     && make dependencies \
