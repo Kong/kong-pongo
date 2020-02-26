@@ -229,10 +229,11 @@ function compose {
   export NETWORK_NAME
   export KONG_TEST_IMAGE
   export KONG_TEST_PLUGIN_PATH
-  docker-compose -p ${PROJECT_NAME} -f "$DOCKER_COMPOSE_FILE" "$@"
+  docker-compose -v > /dev/null
   if [[ ! $? -eq 0 ]]; then
-    err "failed to run docker-compose command"
+    err "command docker-compose not found"
   fi
+  docker-compose -p ${PROJECT_NAME} -f "$DOCKER_COMPOSE_FILE" "$@"
 }
 
 
