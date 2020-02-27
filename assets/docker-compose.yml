@@ -49,6 +49,15 @@ services:
     networks:
       - kong-plugin-test-network
 
+  squid:
+    image: sameersbn/squid:${SQUID:-3.5.27-2}
+    volumes:
+      - ./squid.conf:/etc/squid/squid.conf
+      - ./squid.passwords:/etc/squid/passwords
+    restart: on-failure
+    networks:
+      - kong-plugin-test-network
+
   kong:
     image: ${KONG_TEST_IMAGE:-ignore_if_not_provided}
     environment:
