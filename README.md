@@ -14,7 +14,8 @@ Usage: pongo action [options...] [--] [action options...]
 Options:
   --no-cassandra     do not start cassandra db
   --no-postgres      do not start postgres db
-  --redis            do start redis db (available at `redis:6379`)
+  --redis            do start redis db (available at 'redis:6379')
+  --squid            do start squid forward-proxy (see readme for info)
 
 Actions:
   up            start required dependency containers for testing
@@ -120,6 +121,49 @@ start the test environment. When done, the test environment can be torn down by:
 
 ```shell
 pongo down
+```
+## Dependencies
+
+### Redis (key-value store)
+
+A Redis instance can be created by specifying the `--redis` flag. The Redis
+instance will be available on `redis:6379` from the tests.
+
+### Squid (forward-proxy)
+
+To test connections through a forward proxy a Squid proxy server can be started
+by specifying the `--squid` flag. From the test environment it will be available
+at `squid:3128`. Essentially it would be configured as these environment variables:
+
+ - `http_proxy=http://squid:3128/`
+ - `https_proxy=http://squid:3128/`
+
+The configuration comes with basic-auth configuration, and a single user:
+
+ - username: `kong`
+ - password: `king`
+
+All access is to be authenticated by the proxy, except for the domain `.mockbin.org`,
+which is white-listed.
+
+Some test instructions to play with the proxy:
+```shell
+# clean environment, start with squid and create a shell
+pongo down
+pongo up --squid --no-postgres --no-cassandra
+pongo shell
+
+# connect to httpbin (http), while authenticating
+http --proxy=http:http://kong:king@squid:3128 --proxy=https:http://kong:king@squid:3128 http://httpbin.org/anything
+
+# https also works
+http --proxy=http:http://kong:king@squid:3128 --proxy=https:http://kong:king@squid:3128 https://httpbin.org/anything
+
+# connect unauthenticated to the whitelisted mockbin.org (http)
+http --proxy=http:http://squid:3128 --proxy=https:http://squid:3128 http://mockbin.org/request
+
+# and here https also works
+http --proxy=http:http://squid:3128 --proxy=https:http://squid:3128 https://mockbin.org/request
 ```
 
 ## Debugging

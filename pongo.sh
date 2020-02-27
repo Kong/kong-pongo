@@ -13,7 +13,7 @@ function globals {
   KONG_TEST_PLUGIN_PATH=$(realpath .)
 
   unset ACTION
-  KONG_DEPS_AVAILABLE=( "postgres" "cassandra" "redis" )
+  KONG_DEPS_AVAILABLE=( "postgres" "cassandra" "redis" "squid")
   KONG_DEPS_START=( "postgres" "cassandra" )
   EXTRA_ARGS=()
 
@@ -63,6 +63,7 @@ Options:
   --no-cassandra     do not start cassandra db
   --no-postgres      do not start postgres db
   --redis            do start redis db (available at 'redis:6379')
+  --squid            do start squid forward-proxy (see readme for info)
 
 Actions:
   up            start required dependency containers for testing
@@ -102,6 +103,7 @@ Environment variables:
   POSTGRES      the version of the Postgres dependency to use (default 9.5)
   CASSANDRA     the version of the Cassandra dependency to use (default 3.9)
   REDIS         the version of the Redis dependency to use (default 5.0.4)
+  SQUID         the version of the Squid dependency to use (default 3.5.27-2)
 
 Example usage:
   $(basename $0) run
