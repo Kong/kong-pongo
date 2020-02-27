@@ -25,6 +25,24 @@ function globals {
   unset PLUGINS
 }
 
+function check_tools {
+
+  docker -v > /dev/null
+  if [[ ! $? -eq 0 ]]; then
+    err "'docker' command not found, please install Docker, and make it available in the path."
+  fi
+
+  docker-compose -v > /dev/null
+  if [[ ! $? -eq 0 ]]; then
+    err "'docker-compose' command not found, please install docker-compose, and make it available in the path."
+  fi
+
+  realpath --version > /dev/null
+  if [[ ! $? -eq 0 ]]; then
+    err "'realpath' command not found, please install it, and make it available in the path (on Mac use Brew to install the 'coreutils' package)."
+  fi
+
+}
 
 function usage {
 cat << EOF
@@ -44,7 +62,7 @@ Usage: $(basename $0) action [options...] [--] [action options...]
 Options:
   --no-cassandra     do not start cassandra db
   --no-postgres      do not start postgres db
-  --redis            do start redis db (available at `redis:6379`)
+  --redis            do start redis db (available at 'redis:6379')
 
 Actions:
   up            start required dependency containers for testing
@@ -229,10 +247,6 @@ function compose {
   export NETWORK_NAME
   export KONG_TEST_IMAGE
   export KONG_TEST_PLUGIN_PATH
-  docker-compose -v > /dev/null
-  if [[ ! $? -eq 0 ]]; then
-    err "command docker-compose not found"
-  fi
   docker-compose -p ${PROJECT_NAME} -f "$DOCKER_COMPOSE_FILE" "$@"
 }
 
@@ -525,5 +539,6 @@ function msg {
 }
 
 
+check_tools
 globals
 main "$@"
