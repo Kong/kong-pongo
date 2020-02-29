@@ -3,6 +3,13 @@
 # this requires LOCAL_PATH to be set to the Pongo directory
 
 
+# read config from Pongo RC file
+if [[ -f ./.pongorc ]]; then
+  IFS=$'\r\n' GLOBIGNORE='*' command eval  'PONGORC_ARGS=($(cat ./.pongorc))'
+fi
+#echo ".pongorc content:   ${PONGORC_ARGS[@]}"
+
+
 # Enterprise versions
 if [[ ! -f $LOCAL_PATH/assets/kong_EE_versions.ver ]]; then
   echo "$LOCAL_PATH/assets/kong_EE_versions.ver file is missing!"

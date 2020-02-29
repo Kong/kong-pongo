@@ -15,6 +15,7 @@ function globals {
   unset ACTION
   KONG_DEPS_AVAILABLE=( "postgres" "cassandra" "redis" "squid")
   KONG_DEPS_START=( "postgres" "cassandra" )
+  RC_COMMANDS=( "run" "up" )
   EXTRA_ARGS=()
 
   source ${LOCAL_PATH}/assets/set_variables.sh
@@ -59,7 +60,7 @@ cat << EOF
 
 Usage: $(basename $0) action [options...] [--] [action options...]
 
-Options:
+Options (can also be added to '.pongorc'):
   --no-cassandra     do not start cassandra db
   --no-postgres      do not start postgres db
   --redis            do start redis db (available at 'redis:6379')
@@ -169,10 +170,34 @@ function handle_dep_arg {
 
 
 function parse_args {
-  local args_done=0
+  # inject the RC file commands into the commandline args
+  local PONGO_ARGS=()
+  # first add the main Pongo command
+  local PONGO_COMMAND=$1
+  PONGO_ARGS+=("$PONGO_COMMAND")
+  shift
+
+  # only add RC file parameters if command allows it
+  for rc_command in ${RC_COMMANDS[*]}; do
+    if [[ "$rc_command" == "$PONGO_COMMAND" ]]; then
+      # add all the Pongo RC args
+      for rc_arg in ${PONGORC_ARGS[*]}; do
+        PONGO_ARGS+=("$rc_arg")
+      done;
+    fi
+  done;
+
+  # add remaining arguments from the command line
   while [[ $# -gt 0 ]]; do
+    PONGO_ARGS+=("$1")
+    shift
+  done
+
+  # parse the arguments
+  local args_done=0
+  for pongo_arg in ${PONGO_ARGS[*]}; do
     if [[ args_done -eq 0 ]]; then
-      case "$1" in
+      case "$pongo_arg" in
         --)
           args_done=1
           ;;
@@ -183,13 +208,12 @@ function parse_args {
           set -x
           ;;
         *)
-          handle_dep_arg "$1" || EXTRA_ARGS+=("$1")
+          handle_dep_arg "$pongo_arg" || EXTRA_ARGS+=("$pongo_arg")
           ;;
       esac
     else
-      EXTRA_ARGS+=("$1")
+      EXTRA_ARGS+=("$pongo_arg")
     fi
-    shift
   done
 }
 

@@ -11,7 +11,7 @@
 
 Usage: pongo action [options...] [--] [action options...]
 
-Options:
+Options (can also be added to '.pongorc'):
   --no-cassandra     do not start cassandra db
   --no-postgres      do not start postgres db
   --redis            do start redis db (available at 'redis:6379')
@@ -122,49 +122,81 @@ start the test environment. When done, the test environment can be torn down by:
 ```shell
 pongo down
 ```
-## Dependencies
 
-### Redis (key-value store)
+## Test dependencies
 
-A Redis instance can be created by specifying the `--redis` flag. The Redis
-instance will be available on `redis:6379` from the tests.
+Pongo can use a set of test dependencies that can be used to test against. Each
+can be enabled/disabled by respectively specifying `--[dependency_name]` or
+`--no-[dependency-name]` as options for the `pongo run` and `pongo build`
+commands. The alternate way of specifying the dependencies is
+by adding them to the `.pongorc` file (see below).
 
-### Squid (forward-proxy)
+The available dependencies are:
 
-To test connections through a forward proxy a Squid proxy server can be started
-by specifying the `--squid` flag. From the test environment it will be available
-at `squid:3128`. Essentially it would be configured as these environment variables:
+* **Postgres** Kong datastore (started by default)
+  - Disable it with `--no-postgres`
+  - The Postgres version is controlled by the `POSTGRES` environment variable
 
- - `http_proxy=http://squid:3128/`
- - `https_proxy=http://squid:3128/`
+* **Cassandra** Kong datastore (started by default)
+  - Disable it with `--no-cassandra`
+  - The Cassandra version is controlled by the `CASSANDRA` environment variable
 
-The configuration comes with basic-auth configuration, and a single user:
+* **Redis** key-value store
+  - Enable it with `--redis`
+  - From within the environment the Redis instance is available at `redis:6379`
+  - The Redis version is controlled by the `REDIS` environment variable
 
- - username: `kong`
- - password: `king`
+* **Squid** (forward-proxy)
+  - Enable it with `--squid`
+  - The Squid version is controlled by the `SQUID` environment variable
+  - From within the environment the Squid instance is available at `squid:3128`. 
+    Essentially it would be configured as these standard environment variables:
 
-All access is to be authenticated by the proxy, except for the domain `.mockbin.org`,
-which is white-listed.
+    - `http_proxy=http://squid:3128/`
+    - `https_proxy=http://squid:3128/`
 
-Some test instructions to play with the proxy:
-```shell
-# clean environment, start with squid and create a shell
-pongo down
-pongo up --squid --no-postgres --no-cassandra
-pongo shell
+    The configuration comes with basic-auth configuration, and a single user:
 
-# connect to httpbin (http), while authenticating
-http --proxy=http:http://kong:king@squid:3128 --proxy=https:http://kong:king@squid:3128 http://httpbin.org/anything
+    - username: `kong`
+    - password: `king`
 
-# https also works
-http --proxy=http:http://kong:king@squid:3128 --proxy=https:http://kong:king@squid:3128 https://httpbin.org/anything
+    All access is to be authenticated by the proxy, except for the domain `.mockbin.org`,
+    which is white-listed.
 
-# connect unauthenticated to the whitelisted mockbin.org (http)
-http --proxy=http:http://squid:3128 --proxy=https:http://squid:3128 http://mockbin.org/request
+    Some test instructions to play with the proxy:
+    ```shell
+    # clean environment, start with squid and create a shell
+    pongo down
+    pongo up --squid --no-postgres --no-cassandra
+    pongo shell
 
-# and here https also works
-http --proxy=http:http://squid:3128 --proxy=https:http://squid:3128 https://mockbin.org/request
-```
+    # connect to httpbin (http), while authenticating
+    http --proxy=http:http://kong:king@squid:3128 --proxy=https:http://kong:king@squid:3128 http://httpbin.org/anything
+
+    # https also works
+    http --proxy=http:http://kong:king@squid:3128 --proxy=https:http://kong:king@squid:3128 https://httpbin.org/anything
+
+    # connect unauthenticated to the whitelisted mockbin.org (http)
+    http --proxy=http:http://squid:3128 --proxy=https:http://squid:3128 http://mockbin.org/request
+
+    # and here https also works
+    http --proxy=http:http://squid:3128 --proxy=https:http://squid:3128 https://mockbin.org/request
+    ```
+
+### Dependency defaults; `.pongorc`
+
+The defaults do not make sense for every type of plugin and some dependencies
+(Cassandra for example) can slow down the tests. So to override the defaults on
+a per project/plugin basis, a `.pongorc` file can be added to the project.
+
+The format of the file is very simple; each line contains 1 commandline option, eg.
+a `.pongorc` file for a plugin that only needs Postgres and Redis:
+
+  ```shell
+  --no-cassandra
+  --redis
+  ```
+
 
 ## Debugging
 
@@ -187,7 +219,7 @@ tail -F ./servroot/logs/error.log
 ## Test initialization
 
 By default when the test container is started, it will look for a `.rockspec`
-file, if it find one, then it will install that rockspec file with the
+file, if it finds one, then it will install that rockspec file with the
 `--deps-only` flag. Meaning it will not install that rock itself, but if it
 depends on any external libraries, those rocks will be installed.
 
