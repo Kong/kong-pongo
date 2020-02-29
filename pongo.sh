@@ -66,31 +66,34 @@ Options (can also be added to '.pongorc'):
   --redis            do start redis db (available at 'redis:6379')
   --squid            do start squid forward-proxy (see readme for info)
 
-Actions:
-  up            start required dependency containers for testing
-
-  build         build the Kong test image
+Project actions:
+  lint          will run the LuaCheck linter
+  
+  pack          will pack all '*.rockspec' files into '*.rock' files for
+                distribution (see LuaRocks package manager docs)
 
   run           run spec files, accepts Busted options and spec files/folders
                 as arguments, see: '$(basename $0) run -- --help'
 
-  lint          will run the LuaCheck linter
-  
+  shell         get a shell directly on a kong container
+
   tail          starts a tail on the specified file. Default file is
                 ./servroot/logs/error.log, an alternate file can be specified
 
-  shell         get a shell directly on a kong container
+Environment actions:
+  build         build the Kong test image
 
-  pack          will pack all '*.rockspec' files into '*.rock' files for
-                distribution (see LuaRocks package manager docs)
+  clean / nuke  removes the dependency containers and deletes all test images
 
   down          remove all dependency containers
 
   status        show status of the Pongo network, images, and containers
 
-  clean / nuke  removes the dependency containers and deletes all test images
+  up            start required dependency containers for testing
 
+Maintenance actions:
   update        update embedded artifacts for building test images
+
 
 Environment variables:
   KONG_VERSION  the specific Kong version to use when building the test image
