@@ -14,7 +14,7 @@ Usage: pongo action [options...] [--] [action options...]
 Options (can also be added to '.pongorc'):
   --no-cassandra     do not start cassandra db
   --no-postgres      do not start postgres db
-  --redis            do start redis db (available at 'redis:6379')
+  --redis            do start redis db (see readme for info)
   --squid            do start squid forward-proxy (see readme for info)
 
 Project actions:
@@ -146,8 +146,15 @@ The available dependencies are:
 
 * **Redis** key-value store
   - Enable it with `--redis`
-  - From within the environment the Redis instance is available at `redis:6379`
   - The Redis version is controlled by the `REDIS` environment variable
+  - From within the environment the Redis instance is available at `redis:6379`,
+    but from the test specs it should be accessed by using the `helpers.redis_host`
+    field, and port `6379`, to keep it portable to other test environments. Example:
+    ```shell
+    local helpers = require "spec.helpers"
+    local redis_host = helpers.redis_host
+    local redis_port = 6379
+    ```
 
 * **Squid** (forward-proxy)
   - Enable it with `--squid`

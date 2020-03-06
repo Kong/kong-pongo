@@ -63,7 +63,7 @@ Usage: $(basename $0) action [options...] [--] [action options...]
 Options (can also be added to '.pongorc'):
   --no-cassandra     do not start cassandra db
   --no-postgres      do not start postgres db
-  --redis            do start redis db (available at 'redis:6379')
+  --redis            do start redis db (see readme for info)
   --squid            do start squid forward-proxy (see readme for info)
 
 Project actions:

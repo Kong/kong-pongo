@@ -27,6 +27,9 @@ export KONG_PREFIX=/kong-plugin/servroot
 # set debug logs; specifically for the 'shell' command, tests already have it
 export KONG_LOG_LEVEL=debug
 
+# export Pongo's redis instance to the Kong test-helpers
+export KONG_SPEC_REDIS_HOST=redis
+
 # export the KONG_ variables also in the KONG_TEST_ range
 if [ -z "$KONG_TEST_LICENSE_DATA" ]; then
   export "KONG_TEST_LICENSE_DATA=$KONG_LICENSE_DATA"
