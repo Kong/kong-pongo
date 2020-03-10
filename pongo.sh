@@ -246,7 +246,25 @@ function get_image {
   if [[ ! $? -eq 0 ]]; then
     docker pull $image
     if [[ ! $? -eq 0 ]]; then
-      err "failed to pull: $image"
+      msg "failed to pull image $image"
+      if $(is_enterprise $KONG_VERSION); then
+        msg "trying to login to Kong docker repo and retry"
+        echo $BINTRAY_APIKEY | docker login -u $BINTRAY_USERNAME --password-stdin kong-docker-kong-enterprise-edition-docker.bintray.io
+        if [[ ! $? -eq 0 ]]; then
+          docker logout kong-docker-kong-enterprise-edition-docker.bintray.io
+          err "
+Failed to log into the Kong docker repo. Make sure to provide the proper credentials
+in the \$BINTRAY_USERNAME and \$BINTRAY_APIKEY environment variables."
+        fi
+        docker pull $image
+        if [[ ! $? -eq 0 ]]; then
+          docker logout kong-docker-kong-enterprise-edition-docker.bintray.io
+          err "failed to pull: $image"
+        fi
+        docker logout kong-docker-kong-enterprise-edition-docker.bintray.io
+      else
+        err "failed to pull: $image"
+      fi
     fi
   fi
 

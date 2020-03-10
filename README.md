@@ -75,9 +75,11 @@ Pongo provides a simple way of testing Kong plugins
 Set up the following when testing against Kong Enterprise:
 
 * Have the Kong Enterprise license key, and set it in `KONG_LICENSE_DATA`.
-* Have a docker image of Kong Enterprise, and set the image name in the
-  environment variable `KONG_IMAGE`, or alternatively log in to Bintray before
-  running Pongo.
+* Set the Bintray credentials (for pulling Kong Enterprise images) in the
+  environment variables `BINTRAY_USERNAME` and `BINTRAY_APIKEY`, or manually
+  log in to the Kong docker repo.
+* If you do not have Bintray credentials, make sure to have a docker image of
+  Kong Enterprise, and set the image name in the environment variable `KONG_IMAGE`.
 
 ## Installation
 
