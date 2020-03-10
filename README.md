@@ -83,6 +83,7 @@ Pongo provides a simple way of testing Kong plugins
  - [Dependency defaults](#dependency-defaults)
  - [Debugging](#debugging)
  - [Test initialization](#test-initialization)
+ - [Setting up CI](#setting-up-ci)
  - [Releasing new Kong versions](#releasing-new-kong-versions)
 
 
@@ -286,6 +287,69 @@ luarocks make
 cd ..
 rm -rf lua-resty-session
 ```
+
+[Back to ToC](#table-of-contents)
+
+## Setting up CI
+
+Pongo is easily added to a CI setup. The examples below will asume Travis-CI, but
+can be easily converted to other engines.
+
+Here's a base setup for an open-source plugin that will test against 2 Kong versions:
+```yaml
+# .travis.yml
+
+dist: bionic
+
+env:
+  matrix:
+  - KONG_VERSION=1.5.x
+  - KONG_VERSION=2.0.x
+
+install:
+- git clone --single-branch https://github.com/Kong/kong-pongo ../kong-pongo
+- "../kong-pongo/pongo.sh up"
+- "../kong-pongo/pongo.sh build"
+
+script:
+- "../kong-pongo/pongo.sh lint"
+- "../kong-pongo/pongo.sh run"
+```
+
+To test against an Enterprise version of Kong you need to add some secrets. The
+environment variables needed are:
+- `KONG_LICENSE_DATA=<your Kong license json>`
+- `BINTRAY_USERNAME=<your Bintray username>`
+- `BINTRAY_APIKEY=<your Bintray API key>`
+
+To create those secrets install the
+[Travis command line utility](https://github.com/travis-ci/travis.rb), and
+follow these steps:
+- Copy the `.travis.yml` file above into your plugin repo
+- Enter the main directory of your plugins repo
+- Add the encrypted values by doing:
+
+  - `travis encrypt --pro --add BINTRAY_USERNAME=<your_user_name_here>`
+  - `travis encrypt --pro --add BINTRAY_APIKEY=<your_api_key_here>`
+  - `travis encrypt --pro --add KONG_LICENSE_DATA='<license_json>'`
+
+Please note the single quotes around the license data in the last one above. Since
+the data is a json snippet, it must be added in single quotes. If you already have
+the license data in an environment variable then the following should work:
+
+  - `travis encrypt --pro --add KONG_LICENSE_DATA="'"$KONG_LICENSE_DATA"'"`
+
+After completing the steps above, the `.travis.yml` file should now be updated and have this section:
+```yaml
+env:
+  global:
+  - secure: Xa6htQZoS/4K...and some more gibberish
+  - secure: o8VSj7hFGm2L...and some more gibberish
+  - secure: nQDng6c5xIBJ...and some more gibberish
+```
+
+Now you can update the `matrix` section and add Kong Enterprise version numbers.
+
 
 [Back to ToC](#table-of-contents)
 
