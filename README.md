@@ -70,6 +70,22 @@ Example usage:
 
 Pongo provides a simple way of testing Kong plugins
 
+## Table of contents
+
+ - [Requirements](#requirements)
+ - [Installation](#installation)
+ - [Do a test run](#do-a-test-run)
+ - [Test dependencies](#test-dependencies)
+    - Postgres (Kong datastore)
+    - Cassandra (Kong datastore)
+    - Redis (key-value store)
+    - Squid (forward-proxy)
+ - [Dependency defaults](#dependency-defaults)
+ - [Debugging](#debugging)
+ - [Test initialization](#test-initialization)
+ - [Releasing new Kong versions](#releasing-new-kong-versions)
+
+
 ## Requirements
 
 Set up the following when testing against Kong Enterprise:
@@ -80,6 +96,8 @@ Set up the following when testing against Kong Enterprise:
   log in to the Kong docker repo.
 * If you do not have Bintray credentials, make sure to have a docker image of
   Kong Enterprise, and set the image name in the environment variable `KONG_IMAGE`.
+
+[Back to ToC](#table-of-contents)
 
 ## Installation
 
@@ -98,6 +116,8 @@ _Notes_:
   ```
   brew install coreutils
   ```
+
+[Back to ToC](#table-of-contents)
 
 ## Do a test run
 
@@ -127,6 +147,8 @@ start the test environment. When done, the test environment can be torn down by:
 ```shell
 pongo down
 ```
+
+[Back to ToC](#table-of-contents)
 
 ## Test dependencies
 
@@ -195,7 +217,9 @@ The available dependencies are:
     http --proxy=http:http://squid:3128 --proxy=https:http://squid:3128 https://mockbin.org/request
     ```
 
-### Dependency defaults; `.pongorc`
+[Back to ToC](#table-of-contents)
+
+### Dependency defaults
 
 The defaults do not make sense for every type of plugin and some dependencies
 (Cassandra for example) can slow down the tests. So to override the defaults on
@@ -209,6 +233,7 @@ a `.pongorc` file for a plugin that only needs Postgres and Redis:
   --redis
   ```
 
+[Back to ToC](#table-of-contents)
 
 ## Debugging
 
@@ -227,6 +252,8 @@ The above would be identical to:
 ```shell
 tail -F ./servroot/logs/error.log
 ```
+
+[Back to ToC](#table-of-contents)
 
 ## Test initialization
 
@@ -260,6 +287,8 @@ cd ..
 rm -rf lua-resty-session
 ```
 
+[Back to ToC](#table-of-contents)
+
 ## Releasing (new Kong versions)
 
 When new Kong versions are released, the test artifacts contained within this
@@ -282,3 +311,5 @@ KONG_CODE_BASE="EE" ADD_KONG_VERSION="1.2.3" \
 ```
 
 The result should be a new PR on Pongo repo.
+
+[Back to ToC](#table-of-contents)
