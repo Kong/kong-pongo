@@ -155,7 +155,7 @@ pongo down
 
 Pongo can use a set of test dependencies that can be used to test against. Each
 can be enabled/disabled by respectively specifying `--[dependency_name]` or
-`--no-[dependency-name]` as options for the `pongo run` and `pongo build`
+`--no-[dependency-name]` as options for the `pongo up` and `pongo run`
 commands. The alternate way of specifying the dependencies is
 by adding them to the `.pongorc` file (see below).
 
@@ -362,7 +362,7 @@ To do so there are some pre-requisites;
 
 - have [hub](https://hub.github.com/) installed and configured
 - on OSX have [coreutils](https://www.gnu.org/software/coreutils/coreutils.html) installed
-- have access to the `kong-pongo` and `kong-ee` repositories on Github
+- have access to the `kong-pongo` (push) and `kong-ee` (read/clone) repositories on Github
 
 Update the version as follows:
 
@@ -374,6 +374,6 @@ KONG_CODE_BASE="EE" ADD_KONG_VERSION="1.2.3" \
   && kong-pongo/assets/add_version.sh $KONG_CODE_BASE $ADD_KONG_VERSION
 ```
 
-The result should be a new PR on Pongo repo.
+The result should be a new PR on the Pongo repo.
 
 [Back to ToC](#table-of-contents)
