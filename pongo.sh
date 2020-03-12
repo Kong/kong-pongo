@@ -15,7 +15,7 @@ function globals {
   unset ACTION
   KONG_DEPS_AVAILABLE=( "postgres" "cassandra" "redis" "squid")
   KONG_DEPS_START=( "postgres" "cassandra" )
-  RC_COMMANDS=( "run" "up" )
+  RC_COMMANDS=( "run" "up" "restart")
   EXTRA_ARGS=()
 
   source ${LOCAL_PATH}/assets/set_variables.sh
@@ -86,6 +86,8 @@ Environment actions:
   clean / nuke  removes the dependency containers and deletes all test images
 
   down          remove all dependency containers
+
+  restart       shortcut, a combination of; down + up
 
   status        show status of the Pongo network, images, and containers
 
@@ -409,6 +411,15 @@ function main {
     compose_up
     ;;
 
+  down)
+    compose down
+    ;;
+
+  restart)
+    compose down
+    compose_up
+    ;;
+
   tail)
     local tail_file="${EXTRA_ARGS[1]}"
     if [[ "$tail_file" == "" ]]; then
@@ -477,10 +488,6 @@ function main {
       -e KONG_TEST_PLUGIN_PATH \
       kong \
       "/bin/sh" "-c" "bin/busted --helper=bin/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
-    ;;
-
-  down)
-    compose down
     ;;
 
   shell)

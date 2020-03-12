@@ -38,6 +38,8 @@ Environment actions:
 
   down          remove all dependency containers
 
+  restart       shortcut, a combination of; down + up
+
   status        show status of the Pongo network, images, and containers
 
   up            start required dependency containers for testing
