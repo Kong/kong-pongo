@@ -13,6 +13,7 @@ function globals {
   KONG_TEST_PLUGIN_PATH=$(realpath .)
 
   unset ACTION
+  FORCE_BUILD=false
   KONG_DEPS_AVAILABLE=( "postgres" "cassandra" "redis" "squid")
   KONG_DEPS_START=( "postgres" "cassandra" )
   RC_COMMANDS=( "run" "up" "restart")
@@ -81,7 +82,7 @@ Project actions:
                 ./servroot/logs/error.log, an alternate file can be specified
 
 Environment actions:
-  build         build the Kong test image
+  build         build the Kong test image, add '--force' to rebuild images
 
   clean / nuke  removes the dependency containers and deletes all test images
 
@@ -351,12 +352,24 @@ function ensure_available {
 function build_image {
   get_version
   validate_version $VERSION
+
+  docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
+  if [[ $? -eq 0 ]]; then
+    msg "Notice: image '$KONG_TEST_IMAGE' already exists"
+    if [ "$FORCE_BUILD" = false ] ; then
+      msg "Notice: use 'build --force' to rebuild"
+      return 0
+    fi
+    msg "Notice: rebuilding..."
+  fi
+
   docker build \
     -f "$DOCKER_FILE" \
     --build-arg KONG_BASE="$KONG_IMAGE" \
     --build-arg KONG_DEV_FILES="./kong-versions/$VERSION/kong" \
     --tag "$KONG_TEST_IMAGE" \
     "$LOCAL_PATH" || err "Error: failed to build test environment"
+
 }
 
 
@@ -404,6 +417,9 @@ function main {
   case "$ACTION" in
 
   build)
+    if [[ "${EXTRA_ARGS[1]}" == "--force" ]]; then
+      FORCE_BUILD=true
+    fi
     build_image
     ;;
 

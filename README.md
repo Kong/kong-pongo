@@ -32,7 +32,7 @@ Project actions:
                 ./servroot/logs/error.log, an alternate file can be specified
 
 Environment actions:
-  build         build the Kong test image
+  build         build the Kong test image, add '--force' to rebuild images
 
   clean / nuke  removes the dependency containers and deletes all test images
 
