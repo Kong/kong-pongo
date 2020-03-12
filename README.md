@@ -303,10 +303,12 @@ Here's a base setup for an open-source plugin that will test against 2 Kong vers
 
 dist: bionic
 
-env:
-  matrix:
-  - KONG_VERSION=1.5.x
-  - KONG_VERSION=2.0.x
+jobs:
+  include:
+  - name: Kong CE 2.0.x
+    env: KONG_VERSION=2.0.x
+  - name: Kong CE 1.5.x
+    env: KONG_VERSION=1.5.x
 
 install:
 - git clone --single-branch https://github.com/Kong/kong-pongo ../kong-pongo
@@ -350,7 +352,7 @@ env:
   - secure: nQDng6c5xIBJ...and some more gibberish
 ```
 
-Now you can update the `matrix` section and add Kong Enterprise version numbers.
+Now you can update the `jobs` section and add Kong Enterprise version numbers.
 
 
 [Back to ToC](#table-of-contents)
