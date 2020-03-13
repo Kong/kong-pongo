@@ -57,6 +57,11 @@ services:
     volumes:
       - ./squid.conf:/etc/squid/squid.conf
       - ./squid.passwords:/etc/squid/passwords
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test: ["CMD", "kill", "-0", "1"]
+      timeout: 10s
     restart: on-failure
     stop_signal: SIGKILL
     networks:
