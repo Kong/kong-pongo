@@ -20,9 +20,10 @@ services:
       - --dbname=kong_tests
       - --username=kong
       timeout: 10s
+    restart: on-failure
+    stop_signal: SIGKILL
     networks:
       - kong-plugin-test-network
-    restart: on-failure
 
   cassandra:
     image: cassandra:${CASSANDRA:-3.9}
@@ -34,9 +35,10 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10
+    restart: on-failure
+    stop_signal: SIGKILL
     networks:
       - kong-plugin-test-network
-    restart: on-failure
 
   redis:
     image: redis:${REDIS:-5.0.4}-alpine
@@ -46,6 +48,7 @@ services:
       timeout: 10s
       retries: 10
     restart: on-failure
+    stop_signal: SIGKILL
     networks:
       - kong-plugin-test-network
 
@@ -55,6 +58,7 @@ services:
       - ./squid.conf:/etc/squid/squid.conf
       - ./squid.passwords:/etc/squid/passwords
     restart: on-failure
+    stop_signal: SIGKILL
     networks:
       - kong-plugin-test-network
 
