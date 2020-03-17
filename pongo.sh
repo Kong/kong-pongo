@@ -44,6 +44,11 @@ function check_tools {
     err "'realpath' command not found, please install it, and make it available in the path (on Mac use Brew to install the 'coreutils' package)."
   fi
 
+  curl -V > /dev/null
+  if [[ ! $? -eq 0 ]]; then
+    err "'curl' command not found, please install it, and make it available in the path."
+  fi
+
 }
 
 function usage {
@@ -275,6 +280,31 @@ in the \$BINTRAY_USERNAME and \$BINTRAY_APIKEY environment variables."
 }
 
 
+function get_license {
+  if $(is_enterprise $KONG_VERSION); then
+    if [[ -z $KONG_LICENSE_DATA ]]; then
+      # Enterprise version, but no license data available, try and get the license data
+      if [[ "$BINTRAY_USERNAME" == "" ]]; then
+        msg "[WARNING] BINTRAY_USERNAME is not set, might not be able to download the license!"
+      fi
+      if [[ "$BINTRAY_APIKEY" == "" ]]; then
+        msg "[WARNING] BINTRAY_APIKEY is not set, might not be able to download the license!"
+      fi
+      if [[ "$BINTRAY_REPO" == "" ]]; then
+        msg "[WARNING] BINTRAY_REPO is not set, might not be able to download the license!"
+      fi
+      export KONG_LICENSE_DATA=$(curl -s -L -u"$BINTRAY_USERNAME:$BINTRAY_APIKEY" "https://kong.bintray.com/$BINTRAY_REPO/license.json")
+      if [[ ! $KONG_LICENSE_DATA == *"signature"* || ! $KONG_LICENSE_DATA == *"payload"* ]]; then
+        # the check above is a bit lame, but the best we can do without requiring
+        # yet more additional dependenies like jq or similar.
+        msg "[WARNING] failed to download the Kong Enterprise license file!
+          $KONG_LICENSE_DATA"
+      fi
+    fi
+  fi
+}
+
+
 function get_version {
   local cmd=(
     '/bin/sh' '-c'
@@ -288,7 +318,12 @@ function get_version {
     get_image
   fi
 
+  get_license
+
   VERSION=$(docker run --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "${cmd[@]}")
+  if [[ ! $? -eq 0 ]]; then
+    err "failed to read version from Kong image: $KONG_IMAGE"
+  fi
   KONG_TEST_IMAGE=$IMAGE_BASE_NAME:$VERSION
 }
 
