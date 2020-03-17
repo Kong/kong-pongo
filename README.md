@@ -86,6 +86,7 @@ Pongo provides a simple way of testing Kong plugins
  - [Debugging](#debugging)
  - [Test initialization](#test-initialization)
  - [Setting up CI](#setting-up-ci)
+ - [Setting up CI with Kong Enterprise](#setting-up-ci-with-kong-enterprise)
  - [Releasing new Kong versions](#releasing-new-kong-versions)
 
 
@@ -93,12 +94,17 @@ Pongo provides a simple way of testing Kong plugins
 
 Set up the following when testing against Kong Enterprise:
 
-* Have the Kong Enterprise license key, and set it in `KONG_LICENSE_DATA`.
 * Set the Bintray credentials (for pulling Kong Enterprise images) in the
   environment variables `BINTRAY_USERNAME` and `BINTRAY_APIKEY`, or manually
   log in to the Kong docker repo.
+* Have the Kong Enterprise license key, and set it in `KONG_LICENSE_DATA`,
+  alternatively set variable `BINTRAY_REPO` to your repository name (in addition
+  to `BINTRAY_USERNAME` and `BINTRAY_APIKEY`) to allow Pongo to download the
+  license file automatically.
 * If you do not have Bintray credentials, make sure to have a docker image of
   Kong Enterprise, and set the image name in the environment variable `KONG_IMAGE`.
+
+See [Setting up CI](#setting-up-ci) for some Bintray environment variable examples.
 
 [Back to ToC](#table-of-contents)
 
@@ -320,13 +326,32 @@ script:
 - "../kong-pongo/pongo.sh run"
 ```
 
-To test against an Enterprise version of Kong you need to add some secrets. The
-environment variables needed are:
-- `KONG_LICENSE_DATA=<your Kong license json>`
+[Back to ToC](#table-of-contents)
+
+## Setting up CI with Kong Enterprise
+
+To test against an Enterprise version of Kong the same base setup can be used, but
+some secrets need to be added. With the secrets in place Pongo will be able to
+download the proper Kong Enterprise images and the required license keys.
+
+The environment variables needed are:
 - `BINTRAY_USERNAME=<your Bintray username>`
 - `BINTRAY_APIKEY=<your Bintray API key>`
+- `BINTRAY_REPO=<your Kong Bintray repo name>`
 
-To create those secrets install the
+Typically they would look something like this:
+- `BINTRAY_USERNAME=thijs-schreijer@kong`
+- `BINTRAY_APIKEY=Xa6htQZoS/4Ko8VSj7hFGm2LnQDng6c5xIBJ`
+- `BINTRAY_REPO=pongo`
+
+To test the values try the following command, if succesful it will display
+your license key:
+```
+$ curl -L -u"$BINTRAY_USERNAME:$BINTRAY_APIKEY" "https://kong.bintray.com/$BINTRAY_REPO/license.json"
+```
+
+Once the test command is succesful you can add the secrets to the Travis-CI
+configuration. To add those secrets install the
 [Travis command line utility](https://github.com/travis-ci/travis.rb), and
 follow these steps:
 - Copy the `.travis.yml` file above into your plugin repo
@@ -335,15 +360,11 @@ follow these steps:
 
   - `travis encrypt --pro BINTRAY_USERNAME=<your_user_name_here> --add`
   - `travis encrypt --pro BINTRAY_APIKEY=<your_api_key_here> --add`
-  - `travis encrypt --pro KONG_LICENSE_DATA='<license_json>' --add`
+  - `travis encrypt --pro BINTRAY_REPO=<your_Bintray_repo_name_here> --add`
 
-Please note the single quotes around the license data in the last one above. Since
-the data is a json snippet, it must be added in single quotes. If you already have
-the license data in an environment variable then the following should work:
+After completing the steps above, the `.travis.yml` file should now be updated
+and have this additional section:
 
-  - `travis encrypt --pro KONG_LICENSE_DATA="'"$KONG_LICENSE_DATA"'" --add`
-
-After completing the steps above, the `.travis.yml` file should now be updated and have this section:
 ```yaml
 env:
   global:
