@@ -16,7 +16,7 @@ function globals {
   FORCE_BUILD=false
   KONG_DEPS_AVAILABLE=( "postgres" "cassandra" "redis" "squid")
   KONG_DEPS_START=( "postgres" "cassandra" )
-  RC_COMMANDS=( "run" "up" "restart")
+  RC_COMMANDS=( "run" "up" "restart" )
   EXTRA_ARGS=()
 
   source ${LOCAL_PATH}/assets/set_variables.sh
@@ -243,35 +243,57 @@ If the '$version' is valid but not listed, you can try to update Pongo first, an
 
 
 function get_image {
+  # Checks if an image based on $KONG_VERSION is available, if not it will try to
+  # download the image. This might include logging into bintray to get an Enterprise
+  # version image.
+  # NOTE: the image is a plain Kong image, not a development/Pongo one.
+  # Result: $KONG_IMAGE will be set to an image based on the requested version
   local image
-  if $(is_enterprise $KONG_VERSION); then
-    image=kong-docker-kong-enterprise-edition-docker.bintray.io/kong-enterprise-edition:$KONG_VERSION-alpine
-  else
-    image=kong:$KONG_VERSION-alpine
-  fi
+  if $(is_nightly $KONG_VERSION); then
+    # go and pull the nightly image here
+    if [[ "$KONG_VERSION" == "$NIGHTLY_CE" ]]; then
+      echo "===================================================================="
+      echo "================= IMPLEMENT FETCHING CE NIGHTLY ===================="
+      echo "===================================================================="
+      image="point to pulled nightly CE image..."
+    else
+      echo "===================================================================="
+      echo "================= IMPLEMENT FETCHING EE NIGHTLY ===================="
+      echo "===================================================================="
+      image="point to pulled nightly EE image..."
+    fi
 
-  docker inspect --type=image $image &> /dev/null
-  if [[ ! $? -eq 0 ]]; then
-    docker pull $image
+  else
+    # regular Kong release, fetch the OSS or Enterprise version if needed
+    if $(is_enterprise $KONG_VERSION); then
+      image=kong-docker-kong-enterprise-edition-docker.bintray.io/kong-enterprise-edition:$KONG_VERSION-alpine
+    else
+      image=kong:$KONG_VERSION-alpine
+    fi
+
+    docker inspect --type=image $image &> /dev/null
     if [[ ! $? -eq 0 ]]; then
-      msg "failed to pull image $image"
-      if $(is_enterprise $KONG_VERSION); then
-        msg "trying to login to Kong docker repo and retry"
-        echo $BINTRAY_APIKEY | docker login -u $BINTRAY_USERNAME --password-stdin kong-docker-kong-enterprise-edition-docker.bintray.io
-        if [[ ! $? -eq 0 ]]; then
-          docker logout kong-docker-kong-enterprise-edition-docker.bintray.io
-          err "
+      docker pull $image
+      if [[ ! $? -eq 0 ]]; then
+        msg "failed to pull image $image"
+        if $(is_enterprise $KONG_VERSION); then
+          msg "trying to login to Kong docker repo and retry"
+          echo $BINTRAY_APIKEY | docker login -u $BINTRAY_USERNAME --password-stdin kong-docker-kong-enterprise-edition-docker.bintray.io
+          if [[ ! $? -eq 0 ]]; then
+            docker logout kong-docker-kong-enterprise-edition-docker.bintray.io
+            err "
 Failed to log into the Kong docker repo. Make sure to provide the proper credentials
 in the \$BINTRAY_USERNAME and \$BINTRAY_APIKEY environment variables."
-        fi
-        docker pull $image
-        if [[ ! $? -eq 0 ]]; then
+          fi
+          docker pull $image
+          if [[ ! $? -eq 0 ]]; then
+            docker logout kong-docker-kong-enterprise-edition-docker.bintray.io
+            err "failed to pull: $image"
+          fi
           docker logout kong-docker-kong-enterprise-edition-docker.bintray.io
+        else
           err "failed to pull: $image"
         fi
-        docker logout kong-docker-kong-enterprise-edition-docker.bintray.io
-      else
-        err "failed to pull: $image"
       fi
     fi
   fi
@@ -281,6 +303,10 @@ in the \$BINTRAY_USERNAME and \$BINTRAY_APIKEY environment variables."
 
 
 function get_license {
+  # If $KONG_VERSION is recognized as an Enterprise version and no license data
+  # has been set in $KONG_LICENSE_DATA yet, then it will log into Bintray and
+  # get the required license.
+  # Result: $KONG_LICENSE_DATA will be set if it is needed
   if $(is_enterprise $KONG_VERSION); then
     if [[ -z $KONG_LICENSE_DATA ]]; then
       # Enterprise version, but no license data available, try and get the license data
@@ -306,6 +332,12 @@ function get_license {
 
 
 function get_version {
+  # if $KONG_IMAGE is not yet set, it will get the image (see get_image).
+  # Then it will read the Kong version from the image (by executing "kong version")
+  #
+  # Result: $VERSION will be read from the image, and $KONG_TEST_IMAGE will be set.
+  # NOTE1: $KONG_TEST_IMAGE is only a name, the image might not have been created yet
+  # NOTE2: if it is a nightly, then $VERSION will be a commit-id
   if [[ -z $KONG_IMAGE ]]; then
     if [[ -z $KONG_VERSION ]]; then
       KONG_VERSION=$KONG_DEFAULT_VERSION
@@ -316,20 +348,33 @@ function get_version {
 
   get_license
 
-  local cmd=(
-    '/bin/sh' '-c' '/usr/local/openresty/luajit/bin/luajit -e "
-       local command = [[kong version]]
-       local version_output = io.popen(command):read()
+  if $(is_nightly $KONG_VERSION); then
+    # it's a nightly; get the commit-id from the image
+    VERSION=$(docker inspect \
+       --format "{{ index .Config.Labels \"org.opencontainers.image.revision\"}}" \
+       "$KONG_IMAGE")
+    if [[ ! $? -eq 0 ]]; then
+      err "failed to read commit-id from Kong image: $KONG_IMAGE"
+    fi
 
-       local version_pattern = [[([%d%.%-]+)]]
-       local parsed_version = version_output:match(version_pattern)
+  else
+    # regular Kong version, so extract the Kong version number
+    local cmd=(
+      '/bin/sh' '-c' '/usr/local/openresty/luajit/bin/luajit -e "
+        local command = [[kong version]]
+        local version_output = io.popen(command):read()
 
-       io.stdout:write(parsed_version)
-    "')
-  VERSION=$(docker run --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "${cmd[@]}")
-  if [[ ! $? -eq 0 ]]; then
-    err "failed to read version from Kong image: $KONG_IMAGE"
+        local version_pattern = [[([%d%.%-]+)]]
+        local parsed_version = version_output:match(version_pattern)
+
+        io.stdout:write(parsed_version)
+      "')
+    VERSION=$(docker run --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "${cmd[@]}")
+    if [[ ! $? -eq 0 ]]; then
+      err "failed to read version from Kong image: $KONG_IMAGE"
+    fi
   fi
+
   KONG_TEST_IMAGE=$IMAGE_BASE_NAME:$VERSION
 }
 
@@ -390,9 +435,22 @@ function ensure_available {
   done;
 }
 
+
 function build_image {
+  # if $KONG_TEST_IMAGE doesn't exist yet (or if forced), it will build that
+  # image. This essentially comes down to:
+  # 1. take $KONG_IMAGE as base image
+  # 2. inject dev files based on $VERSION
+  # 3. do a 'make dev' and then some (see the Dockerfile)
+  # 4. Tag the result as $KONG_TEST_IMAGE
   get_version
-  validate_version $VERSION
+  if $(is_nightly $KONG_VERSION); then
+    # in a nightly then $VERSION is a commit id
+    validate_version $KONG_VERSION
+  else
+    # regular version or an image provided, check $VERSION extracted from the image
+    validate_version $VERSION
+  fi
 
   docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
   if [[ $? -eq 0 ]]; then
@@ -404,13 +462,21 @@ function build_image {
     msg "Notice: rebuilding..."
   fi
 
+  if $(is_nightly $KONG_VERSION); then
+    # nightly; we must fetch the related development files dynamically in this case
+    echo "===================================================================="
+    echo "================= IMPLEMENT FETCHING DEV FILES ====================="
+    source ${LOCAL_PATH}/assets/update_versions.sh
+    update_nightly $KONG_VERSION $VERSION
+    echo "===================================================================="
+  fi
+
   docker build \
     -f "$DOCKER_FILE" \
     --build-arg KONG_BASE="$KONG_IMAGE" \
     --build-arg KONG_DEV_FILES="./kong-versions/$VERSION/kong" \
     --tag "$KONG_TEST_IMAGE" \
     "$LOCAL_PATH" || err "Error: failed to build test environment"
-
 }
 
 
@@ -612,6 +678,7 @@ function main {
 
   update)
     source ${LOCAL_PATH}/assets/update_versions.sh
+    update_artifacts
     exit $?
     ;;
 

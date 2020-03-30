@@ -85,6 +85,7 @@ fi
 
 # add the artifacts and the second commit
 source ${LOCAL_PATH}/assets/update_versions.sh
+update_artifacts
 
 if [[ ! "$?" == "99" ]]; then
   echo "Nothing was updated? nothing to commit. Please check the version"
