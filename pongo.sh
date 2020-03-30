@@ -306,10 +306,6 @@ function get_license {
 
 
 function get_version {
-  local cmd=(
-    '/bin/sh' '-c'
-    "/usr/local/openresty/luajit/bin/luajit -e \"io.stdout:write(io.popen([[kong version]]):read():match([[([%d%.%-]+)]]))\""
-  )
   if [[ -z $KONG_IMAGE ]]; then
     if [[ -z $KONG_VERSION ]]; then
       KONG_VERSION=$KONG_DEFAULT_VERSION
@@ -320,6 +316,16 @@ function get_version {
 
   get_license
 
+  local cmd=(
+    '/bin/sh' '-c' '/usr/local/openresty/luajit/bin/luajit -e "
+       local command = [[kong version]]
+       local version_output = io.popen(command):read()
+
+       local version_pattern = [[([%d%.%-]+)]]
+       local parsed_version = version_output:match(version_pattern)
+
+       io.stdout:write(parsed_version)
+    "')
   VERSION=$(docker run --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "${cmd[@]}")
   if [[ ! $? -eq 0 ]]; then
     err "failed to read version from Kong image: $KONG_IMAGE"
