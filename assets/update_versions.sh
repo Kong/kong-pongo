@@ -2,14 +2,6 @@
 # USAGE: this script gathers the development files from the Kong-EE source
 # repository. After a new version has been released, add it to the list above
 # run this script and commit the new files located in "./kong-versions".
-#
-# As such this can only be done if you have access to the Kong source repo.
-# If you do not have access, then there is no use in running this script.
-#
-# The exit code is:
-#  -  0 on success
-#  -  1 on error
-#  - 99 if new files were checked out and need to be committed
 
 
 function update_repo {
@@ -19,7 +11,13 @@ function update_repo {
     pushd $LOCAL_PATH > /dev/null
 
     if [ ! -d "./$repo_name" ]; then
-        git clone -q https://github.com/kong/$repo_name.git
+        local repo_url
+        if [[ "$GITHUB_TOKEN" == "" ]]; then
+            repo_url=https://github.com/kong/$repo_name.git
+        else
+            repo_url=https://$GITHUB_TOKEN:@github.com/kong/$repo_name.git
+        fi
+        git clone -q $repo_url
         if [ ! $? -eq 0 ]; then
             echo "Error: cannot update git repo $repo_name, make sure you're authorized and connected!"
             exit 1
@@ -63,10 +61,17 @@ function clean_artifacts {
 
 function update_single_version_artifacts {
     # MUST be in the proper git repo before calling!
-    # pass in a version tag, or a commit id
+    # pass in a version tag, and optionally a commit id.
+    # tag is used for creating directory names etc.
+    # commit id defaults to the tag if omitted
     local VERSION=$1
+    local COMMIT=$2
 
-    git checkout -q $VERSION
+    if [[ "$COMMIT" == "" ]]; then
+      COMMIT=$VERSION
+    fi
+
+    git checkout -q $COMMIT
     if [ ! $? -eq 0 ]; then
         echo "Warning: skipping unknown version $VERSION"
     else
@@ -112,6 +117,10 @@ function update_single_version_artifacts {
 }
 
 
+# The exit code is:
+#  -  0 on success
+#  -  1 on error
+#  - 99 if new files were checked out and need to be committed
 function update_artifacts {
     # removes and recreates all required test artifacts.
     pushd $LOCAL_PATH > /dev/null
@@ -167,7 +176,8 @@ function update_nightly {
 
     # enter repo and update files for requested commit
     echo "Preparing development files for/at $COMMIT"
+    clean_artifacts $VERSION
     pushd $LOCAL_PATH/$repo > /dev/null
-    update_single_version_artifacts $COMMIT
+    update_single_version_artifacts $VERSION $COMMIT
     popd > /dev/null
 }

@@ -12,6 +12,10 @@ function globals {
   IMAGE_BASE_NAME=${PROJECT_NAME}-test
   KONG_TEST_PLUGIN_PATH=$(realpath .)
 
+  NIGHTLY_EE_DOCKER_REPO="docker.io"
+  NIGHTLY_EE_TAG="mashape/kong-enterprise:dev-master"
+  NIGHTLY_CE_TAG="mashape/kong:dev-master"
+
   unset ACTION
   FORCE_BUILD=false
   KONG_DEPS_AVAILABLE=( "postgres" "cassandra" "redis" "squid")
@@ -252,15 +256,31 @@ function get_image {
   if $(is_nightly $KONG_VERSION); then
     # go and pull the nightly image here
     if [[ "$KONG_VERSION" == "$NIGHTLY_CE" ]]; then
-      echo "===================================================================="
-      echo "================= IMPLEMENT FETCHING CE NIGHTLY ===================="
-      echo "===================================================================="
-      image="point to pulled nightly CE image..."
+      image=$NIGHTLY_CE_TAG
+      docker pull $image
+      if [[ ! $? -eq 0 ]]; then
+        err "failed to pull the Kong CE nightly image $image"
+      fi
+
     else
-      echo "===================================================================="
-      echo "================= IMPLEMENT FETCHING EE NIGHTLY ===================="
-      echo "===================================================================="
-      image="point to pulled nightly EE image..."
+      image=$NIGHTLY_EE_TAG
+      docker pull $image
+      if [[ ! $? -eq 0 ]]; then
+        msg "failed to pull the Kong Enterprise nightly image, retrying with login..."
+        echo $NIGHTLY_EE_APIKEY | docker login -u $NIGHTLY_EE_USER --password-stdin $NIGHTLY_EE_DOCKER_REPO
+        if [[ ! $? -eq 0 ]]; then
+          docker logout $NIGHTLY_EE_DOCKER_REPO
+          err "
+Failed to log into the nightly Kong Enterprise docker repo. Make sure to provide the
+proper credentials in the \$NIGHTLY_EE_USER and \$NIGHTLY_EE_APIKEY environment variables."
+        fi
+        docker pull $image
+        if [[ ! $? -eq 0 ]]; then
+          docker logout $NIGHTLY_EE_DOCKER_REPO
+          err "failed to pull: $image"
+        fi
+        docker logout $NIGHTLY_EE_DOCKER_REPO
+      fi
     fi
 
   else
@@ -354,7 +374,10 @@ function get_version {
        --format "{{ index .Config.Labels \"org.opencontainers.image.revision\"}}" \
        "$KONG_IMAGE")
     if [[ ! $? -eq 0 ]]; then
-      err "failed to read commit-id from Kong image: $KONG_IMAGE"
+      err "failed to read commit-id from Kong image: $KONG_IMAGE, label: org.opencontainers.image.revision"
+    fi
+    if [[ "$VERSION" == "" ]]; then
+      err "Got an empty commit-id from Kong image: $KONG_IMAGE, label: org.opencontainers.image.revision"
     fi
 
   else
@@ -464,11 +487,8 @@ function build_image {
 
   if $(is_nightly $KONG_VERSION); then
     # nightly; we must fetch the related development files dynamically in this case
-    echo "===================================================================="
-    echo "================= IMPLEMENT FETCHING DEV FILES ====================="
     source ${LOCAL_PATH}/assets/update_versions.sh
     update_nightly $KONG_VERSION $VERSION
-    echo "===================================================================="
   fi
 
   docker build \
@@ -622,10 +642,10 @@ function main {
       build_image
     fi
     local shellprompt
-    if $(is_enterprise $VERSION); then
-      shellprompt="Kong-E-$VERSION"
+    if $(is_enterprise $KONG_VERSION); then
+      shellprompt="Kong-E-$KONG_VERSION"
     else
-      shellprompt="Kong-$VERSION"
+      shellprompt="Kong-$KONG_VERSION"
     fi
     compose run --rm \
       -e KONG_LICENSE_DATA \
