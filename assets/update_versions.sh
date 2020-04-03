@@ -2,24 +2,22 @@
 # USAGE: this script gathers the development files from the Kong-EE source
 # repository. After a new version has been released, add it to the list above
 # run this script and commit the new files located in "./kong-versions".
-#
-# As such this can only be done if you have access to the Kong source repo.
-# If you do not have access, then there is no use in running this script.
-#
-# The exit code is:
-#  -  0 on success
-#  -  1 on error
-#  - 99 if new files were checked out and need to be committed
-
-# switch to Pongo directory, since we need to run and update there
-pushd $LOCAL_PATH > /dev/null
 
 
 function update_repo {
+    # updates the passed in repo name to the latest master
     local repo_name=$1
 
+    pushd $LOCAL_PATH > /dev/null
+
     if [ ! -d "./$repo_name" ]; then
-        git clone -q https://github.com/kong/$repo_name.git
+        local repo_url
+        if [[ "$GITHUB_TOKEN" == "" ]]; then
+            repo_url=https://github.com/kong/$repo_name.git
+        else
+            repo_url=https://$GITHUB_TOKEN:@github.com/kong/$repo_name.git
+        fi
+        git clone -q $repo_url
         if [ ! $? -eq 0 ]; then
             echo "Error: cannot update git repo $repo_name, make sure you're authorized and connected!"
             exit 1
@@ -35,29 +33,45 @@ function update_repo {
         echo "Warning: cannot pull latest changes for $repo_name, make sure you're authorized and connected!"
     fi
     popd > /dev/null
+    popd > /dev/null
 }
 
 
-echo "Cloning kong repository..."
-update_repo kong
-echo "Cloning kong-ee repository..."
-update_repo kong-ee
+function update_all_repos {
+    for REPO in kong kong-ee ; do
+        echo "Cloning $REPO repository..."
+        update_repo $REPO
+    done;
+}
 
-# clean artifacts
-rm -rf ./kong-versions
-mkdir ./kong-versions
 
-echo "copying files ..."
-for VERSION in ${KONG_VERSIONS[*]}; do
-    if $(is_enterprise $VERSION); then
-        pushd ./kong-ee > /dev/null
-        echo "Enterprise $VERSION"
+function clean_artifacts {
+    local VERSION=$1
+
+    if [[ "$VERSION" == "" ]]; then
+        # clean all artifacts
+        rm -rf $LOCAL_PATH/kong-versions
+        mkdir $LOCAL_PATH/kong-versions
     else
-        pushd ./kong > /dev/null
-        echo "Open source $VERSION"
+        # clean a single version/commit
+        rm -rf $LOCAL_PATH/kong-versions/$VERSION
+    fi
+}
+
+
+function update_single_version_artifacts {
+    # MUST be in the proper git repo before calling!
+    # pass in a version tag, and optionally a commit id.
+    # tag is used for creating directory names etc.
+    # commit id defaults to the tag if omitted
+    local VERSION=$1
+    local COMMIT=$2
+
+    if [[ "$COMMIT" == "" ]]; then
+      COMMIT=$VERSION
     fi
 
-    git checkout -q $VERSION
+    git checkout -q $COMMIT
     if [ ! $? -eq 0 ]; then
         echo "Warning: skipping unknown version $VERSION"
     else
@@ -100,17 +114,70 @@ for VERSION in ${KONG_VERSIONS[*]}; do
             cat ../assets/Makefile-addition >> ../kong-versions/$VERSION/kong/Makefile
         fi
     fi
-    popd > /dev/null
-done;
+}
 
-# check wether updates were made
-if [[ ! -z $(git status -s) ]]; then
-    echo "Files were added/changed, please commit the changes:"
-    echo "    git add kong-versions/"
-    echo "    git commit"
-    return 99
-else
+
+# The exit code is:
+#  -  0 on success
+#  -  1 on error
+#  - 99 if new files were checked out and need to be committed
+function update_artifacts {
+    # removes and recreates all required test artifacts.
+    pushd $LOCAL_PATH > /dev/null
+
+    update_all_repos
+    clean_artifacts
+
+    echo "copying files ..."
+    for VERSION in ${KONG_VERSIONS[*]}; do
+        if $(is_enterprise $VERSION); then
+            pushd ./kong-ee > /dev/null
+            echo "Enterprise $VERSION"
+        else
+            pushd ./kong > /dev/null
+            echo "Open source $VERSION"
+        fi
+
+        update_single_version_artifacts $VERSION
+
+        popd > /dev/null
+    done;
+
+    # check wether updates were made
+    if [[ ! -z $(git status -s) ]]; then
+        echo "Files were added/changed, please commit the changes:"
+        echo "    git add kong-versions/"
+        echo "    git commit"
+        popd > /dev/null
+        return 99
+    fi
+
     echo "No new files were added"
-fi
+    popd > /dev/null
+    return 0
+}
 
-return 0
+function update_nightly {
+    # $1 must be the requested version: the "NIGHTLY" special cases
+    # $2 must be the commit id
+    VERSION=$1
+    COMMIT=$2
+
+    local repo
+    if $(is_enterprise $VERSION); then
+      repo=kong-ee
+    else
+      repo=kong
+    fi
+
+    # update the repo to latest master
+    echo "Cloning/updating $repo repository..."
+    update_repo $repo
+
+    # enter repo and update files for requested commit
+    echo "Preparing development files for/at $COMMIT"
+    clean_artifacts $VERSION
+    pushd $LOCAL_PATH/$repo > /dev/null
+    update_single_version_artifacts $VERSION $COMMIT
+    popd > /dev/null
+}

@@ -2,6 +2,9 @@
 
 # this requires LOCAL_PATH to be set to the Pongo directory
 
+# special case accepted version identifiers
+NIGHTLY_CE=nightly
+NIGHTLY_EE=nightly-ee
 
 # read config from Pongo RC file
 if [[ -f ./.pongorc ]]; then
@@ -43,7 +46,17 @@ KONG_DEFAULT_VERSION="${KONG_CE_VERSIONS[ ${#KONG_CE_VERSIONS[@]}-1 ]}"
 
 function is_enterprise {
   local check_version=$1 
-  for VERSION in ${KONG_EE_VERSIONS[*]}; do
+  for VERSION in ${KONG_EE_VERSIONS[*]} $NIGHTLY_EE; do
+    if [[ "$VERSION" == "$check_version" ]]; then
+      return 0
+    fi
+  done;
+  return 1
+}
+
+function is_nightly {
+  local check_version=$1
+  for VERSION in $NIGHTLY_CE $NIGHTLY_EE; do
     if [[ "$VERSION" == "$check_version" ]]; then
       return 0
     fi
@@ -53,7 +66,7 @@ function is_enterprise {
 
 function version_exists {
   local version=$1
-  for entry in ${KONG_VERSIONS[*]}; do
+  for entry in ${KONG_VERSIONS[*]} $NIGHTLY_CE $NIGHTLY_EE ; do
     if [[ "$version" == "$entry" ]]; then
       return 0
     fi
