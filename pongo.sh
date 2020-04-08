@@ -3,19 +3,34 @@
 # use the "--debug" flag to debug this script; setting the "set -x" option
 
 function globals {
+  # Project related global variables
   LOCAL_PATH=$(dirname "$(realpath "$0")")
   DOCKER_FILE=${LOCAL_PATH}/assets/Dockerfile
   DOCKER_COMPOSE_FILE=${LOCAL_PATH}/assets/docker-compose.yml
-
   PROJECT_NAME=kong-pongo
   NETWORK_NAME=${PROJECT_NAME}_test-network
   IMAGE_BASE_NAME=${PROJECT_NAME}-test
   KONG_TEST_PLUGIN_PATH=$(realpath .)
 
+  # Kong Enterprise images repo (tag is build as $PREFIX$VERSION$POSTFIX).
+  # Set credentials in $BINTRAY_APIKEY and $BINTRAY_USERNAME
+  KONG_EE_REPO="kong-docker-kong-enterprise-edition-docker.bintray.io"
+  KONG_EE_TAG_PREFIX="kong-docker-kong-enterprise-edition-docker.bintray.io/kong-enterprise-edition:"
+  KONG_EE_TAG_POSTFIX="-alpine"
+
+  # Kong OSS images repo (tag is build as $PREFIX$VERSION$POSTFIX)
+  KONG_OSS_TAG_PREFIX="kong:"
+  KONG_OSS_TAG_POSTFIX="-alpine"
+
+  # Nightly EE images, these require to additionally set the credentials
+  # in $NIGHTLY_EE_APIKEY and $NIGHTLY_EE_USER
   NIGHTLY_EE_DOCKER_REPO="docker.io"
   NIGHTLY_EE_TAG="mashape/kong-enterprise:dev-master"
-  NIGHTLY_CE_TAG="mashape/kong:dev-master"
 
+  # Nightly CE images, these are public, no credentials needed
+  NIGHTLY_CE_TAG="kong/kong:latest"
+
+  # Commandline related variables
   unset ACTION
   FORCE_BUILD=false
   KONG_DEPS_AVAILABLE=( "postgres" "cassandra" "redis" "squid")
@@ -256,6 +271,7 @@ function get_image {
   if $(is_nightly $KONG_VERSION); then
     # go and pull the nightly image here
     if [[ "$KONG_VERSION" == "$NIGHTLY_CE" ]]; then
+      # pull the Opensource Nightly image
       image=$NIGHTLY_CE_TAG
       docker pull $image
       if [[ ! $? -eq 0 ]]; then
@@ -263,6 +279,7 @@ function get_image {
       fi
 
     else
+      # pull the Enterprise nightly image
       image=$NIGHTLY_EE_TAG
       docker pull $image
       if [[ ! $? -eq 0 ]]; then
@@ -286,9 +303,9 @@ proper credentials in the \$NIGHTLY_EE_USER and \$NIGHTLY_EE_APIKEY environment 
   else
     # regular Kong release, fetch the OSS or Enterprise version if needed
     if $(is_enterprise $KONG_VERSION); then
-      image=kong-docker-kong-enterprise-edition-docker.bintray.io/kong-enterprise-edition:$KONG_VERSION-alpine
+      image=$KONG_EE_TAG_PREFIX$KONG_VERSION$KONG_EE_TAG_POSTFIX
     else
-      image=kong:$KONG_VERSION-alpine
+      image=$KONG_OSS_TAG_PREFIX$KONG_VERSION$KONG_OSS_TAG_POSTFIX
     fi
 
     docker inspect --type=image $image &> /dev/null
@@ -298,19 +315,19 @@ proper credentials in the \$NIGHTLY_EE_USER and \$NIGHTLY_EE_APIKEY environment 
         msg "failed to pull image $image"
         if $(is_enterprise $KONG_VERSION); then
           msg "trying to login to Kong docker repo and retry"
-          echo $BINTRAY_APIKEY | docker login -u $BINTRAY_USERNAME --password-stdin kong-docker-kong-enterprise-edition-docker.bintray.io
+          echo $BINTRAY_APIKEY | docker login -u $BINTRAY_USERNAME --password-stdin $KONG_EE_REPO
           if [[ ! $? -eq 0 ]]; then
-            docker logout kong-docker-kong-enterprise-edition-docker.bintray.io
+            docker logout $KONG_EE_REPO
             err "
 Failed to log into the Kong docker repo. Make sure to provide the proper credentials
 in the \$BINTRAY_USERNAME and \$BINTRAY_APIKEY environment variables."
           fi
           docker pull $image
           if [[ ! $? -eq 0 ]]; then
-            docker logout kong-docker-kong-enterprise-edition-docker.bintray.io
+            docker logout $KONG_EE_REPO
             err "failed to pull: $image"
           fi
-          docker logout kong-docker-kong-enterprise-edition-docker.bintray.io
+          docker logout $KONG_EE_REPO
         else
           err "failed to pull: $image"
         fi
