@@ -12,17 +12,20 @@ function globals {
   IMAGE_BASE_NAME=${PROJECT_NAME}-test
   KONG_TEST_PLUGIN_PATH=$(realpath .)
 
-  # Kong Enterprise images repo (tag is build as $PREFIX$VERSION$POSTFIX).
+  # regular Kong Enterprise images repo (tag is build as $PREFIX$VERSION$POSTFIX).
   # Set credentials in $BINTRAY_APIKEY and $BINTRAY_USERNAME
   KONG_EE_REPO="kong-docker-kong-enterprise-edition-docker.bintray.io"
   KONG_EE_TAG_PREFIX="kong-docker-kong-enterprise-edition-docker.bintray.io/kong-enterprise-edition:"
   KONG_EE_TAG_POSTFIX="-alpine"
 
-  # Kong OSS images repo (tag is build as $PREFIX$VERSION$POSTFIX)
+  # regular Kong CE images repo (tag is build as $PREFIX$VERSION$POSTFIX)
   KONG_OSS_TAG_PREFIX="kong:"
   KONG_OSS_TAG_POSTFIX="-alpine"
+  # unoffical Kong CE images repo, the fallback
+  KONG_OSS_TAG_FALLBACK_PREFIX="kong/kong:"
+  KONG_OSS_TAG_FALLBACK_POSTFIX=
 
-  # Nightly EE images, these require to additionally set the credentials
+  # Nightly EE images repo, these require to additionally set the credentials
   # in $NIGHTLY_EE_APIKEY and $NIGHTLY_EE_USER
   NIGHTLY_EE_DOCKER_REPO="docker.io"
   NIGHTLY_EE_TAG="mashape/kong-enterprise:dev-master"
@@ -93,7 +96,7 @@ Options (can also be added to '.pongorc'):
 
 Project actions:
   lint          will run the LuaCheck linter
-  
+
   pack          will pack all '*.rockspec' files into '*.rock' files for
                 distribution (see LuaRocks package manager docs)
 
@@ -314,6 +317,7 @@ proper credentials in the \$NIGHTLY_EE_USER and \$NIGHTLY_EE_APIKEY environment 
       if [[ ! $? -eq 0 ]]; then
         msg "failed to pull image $image"
         if $(is_enterprise $KONG_VERSION); then
+          # failed to pull Enterprise, so login and retry
           msg "trying to login to Kong docker repo and retry"
           echo $BINTRAY_APIKEY | docker login -u $BINTRAY_USERNAME --password-stdin $KONG_EE_REPO
           if [[ ! $? -eq 0 ]]; then
@@ -329,7 +333,17 @@ in the \$BINTRAY_USERNAME and \$BINTRAY_APIKEY environment variables."
           fi
           docker logout $KONG_EE_REPO
         else
-          err "failed to pull: $image"
+          # failed to pull CE image, so try the fallback
+          # NOTE: new releases take a while (days) to become available in the
+          # official docker hub repo. Hence we fall back on the unofficial Kong
+          # repo that is immediately available for each release. This will
+          # prevent any CI from failing in the mean time.
+          msg "failed to pull: $image from the official repo, retrying unofficial..."
+          image=$KONG_OSS_TAG_FALLBACK_PREFIX$KONG_VERSION$KONG_OSS_TAG_FALLBACK_POSTFIX
+          docker pull $image
+          if [[ ! $? -eq 0 ]]; then
+            err "failed to pull: $image"
+          fi
         fi
       fi
     fi
