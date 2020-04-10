@@ -56,6 +56,10 @@ Environment variables:
 
   KONG_LICENSE_DATA
                 set this variable with the Kong Enterprise license data
+  KONG_PLUGINS_DIR
+                the path to plugins' directories (default ./kong/plugins),
+                pongo will set all custom plugins which match $KONG_PLUGINS_DIR/*/handler.lua
+                or $KONG_PLUGINS_DIR/handler.lua
 
   POSTGRES      the version of the Postgres dependency to use (default 9.5)
   CASSANDRA     the version of the Cassandra dependency to use (default 3.9)

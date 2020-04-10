@@ -11,6 +11,7 @@ function globals {
   NETWORK_NAME=${PROJECT_NAME}_test-network
   IMAGE_BASE_NAME=${PROJECT_NAME}-test
   KONG_TEST_PLUGIN_PATH=$(realpath .)
+  KONG_DEFAULT_PLUGINS_DIR="./kong/plugins"
 
   # regular Kong Enterprise images repo (tag is build as $PREFIX$VERSION$POSTFIX).
   # Set credentials in $BINTRAY_APIKEY and $BINTRAY_USERNAME
@@ -531,19 +532,29 @@ function build_image {
 }
 
 
+function set_custom_plugins {
+  if [[ -f $1 ]]; then
+    if [[ "$CUSTOM_PLUGINS" == "" ]]; then
+      CUSTOM_PLUGINS=$2
+    else
+      CUSTOM_PLUGINS=$CUSTOM_PLUGINS,$2
+    fi
+  fi
+}
+
+
 function get_plugin_names {
-  if [[ -d ./kong/plugins/ ]]; then
-    for dir in $(find ./kong/plugins -maxdepth 1 -mindepth 1 -type d); do
+  if [[ -z $KONG_PLUGINS_DIR ]]; then
+    KONG_PLUGINS_DIR=$KONG_DEFAULT_PLUGINS_DIR
+  fi
+  if [[ -d $KONG_PLUGINS_DIR ]]; then
+    for dir in $(find $KONG_PLUGINS_DIR/ -maxdepth 1 -mindepth 1 -type d); do
       dir=${dir##*/}    # grab everything after the final "/"
-      if [[ -f ./kong/plugins/$dir/handler.lua ]]; then
-        if [[ "$CUSTOM_PLUGINS" == "" ]]; then
-          CUSTOM_PLUGINS=$dir
-        else
-          CUSTOM_PLUGINS=$CUSTOM_PLUGINS,$dir
-        fi
-      fi
+      set_custom_plugins $KONG_PLUGINS_DIR/$dir/handler.lua $dir
     done
   fi
+  # Also look for handler.lua in $KONG_PLUGINS_DIR
+  set_custom_plugins $KONG_PLUGINS_DIR/handler.lua $(basename "$(realpath $KONG_PLUGINS_DIR)")
   if [[ "$CUSTOM_PLUGINS" == "" ]]; then
     PLUGINS=bundled
   else
