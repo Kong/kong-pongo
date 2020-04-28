@@ -286,7 +286,7 @@ function get_image {
       image=$NIGHTLY_EE_TAG
       docker pull $image
       if [[ ! $? -eq 0 ]]; then
-        msg "failed to pull the Kong Enterprise nightly image, retrying with login..."
+        warn "failed to pull the Kong Enterprise nightly image, retrying with login..."
         echo $NIGHTLY_EE_APIKEY | docker login -u $NIGHTLY_EE_USER --password-stdin $NIGHTLY_EE_DOCKER_REPO
         if [[ ! $? -eq 0 ]]; then
           docker logout $NIGHTLY_EE_DOCKER_REPO
@@ -315,7 +315,7 @@ proper credentials in the \$NIGHTLY_EE_USER and \$NIGHTLY_EE_APIKEY environment 
     if [[ ! $? -eq 0 ]]; then
       docker pull $image
       if [[ ! $? -eq 0 ]]; then
-        msg "failed to pull image $image"
+        warn "failed to pull image $image"
         if $(is_enterprise $KONG_VERSION); then
           # failed to pull Enterprise, so login and retry
           msg "trying to login to Kong docker repo and retry"
@@ -362,19 +362,19 @@ function get_license {
     if [[ -z $KONG_LICENSE_DATA ]]; then
       # Enterprise version, but no license data available, try and get the license data
       if [[ "$BINTRAY_USERNAME" == "" ]]; then
-        msg "[WARNING] BINTRAY_USERNAME is not set, might not be able to download the license!"
+        warn "BINTRAY_USERNAME is not set, might not be able to download the license!"
       fi
       if [[ "$BINTRAY_APIKEY" == "" ]]; then
-        msg "[WARNING] BINTRAY_APIKEY is not set, might not be able to download the license!"
+        warn "BINTRAY_APIKEY is not set, might not be able to download the license!"
       fi
       if [[ "$BINTRAY_REPO" == "" ]]; then
-        msg "[WARNING] BINTRAY_REPO is not set, might not be able to download the license!"
+        warn "BINTRAY_REPO is not set, might not be able to download the license!"
       fi
       export KONG_LICENSE_DATA=$(curl -s -L -u"$BINTRAY_USERNAME:$BINTRAY_APIKEY" "https://kong.bintray.com/$BINTRAY_REPO/license.json")
       if [[ ! $KONG_LICENSE_DATA == *"signature"* || ! $KONG_LICENSE_DATA == *"payload"* ]]; then
         # the check above is a bit lame, but the best we can do without requiring
         # yet more additional dependenies like jq or similar.
-        msg "[WARNING] failed to download the Kong Enterprise license file!
+        warn "failed to download the Kong Enterprise license file!
           $KONG_LICENSE_DATA"
       fi
     fi
@@ -480,7 +480,7 @@ function compose_up {
 function ensure_available {
   compose ps | grep "Up (health" &> /dev/null
   if [[ ! $? -eq 0 ]]; then
-    msg "Notice: auto-starting the test environment, use the 'down' action to stop it"
+    msg "auto-starting the test environment, use the 'down' action to stop it"
     compose_up
   fi
 
@@ -508,12 +508,12 @@ function build_image {
 
   docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
   if [[ $? -eq 0 ]]; then
-    msg "Notice: image '$KONG_TEST_IMAGE' already exists"
+    msg "image '$KONG_TEST_IMAGE' already exists"
     if [ "$FORCE_BUILD" = false ] ; then
-      msg "Notice: use 'build --force' to rebuild"
+      msg "use 'build --force' to rebuild"
       return 0
     fi
-    msg "Notice: rebuilding..."
+    msg "rebuilding..."
   fi
 
   if $(is_nightly $KONG_VERSION); then
@@ -528,6 +528,8 @@ function build_image {
     --build-arg KONG_DEV_FILES="./kong-versions/$VERSION/kong" \
     --tag "$KONG_TEST_IMAGE" \
     "$LOCAL_PATH" || err "Error: failed to build test environment"
+
+  msg "image '$KONG_TEST_IMAGE' successfully build"
 }
 
 
@@ -622,7 +624,7 @@ function main {
 
     docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
     if [[ ! $? -eq 0 ]]; then
-      msg "Notice: image '$KONG_TEST_IMAGE' not found, auto-building it"
+      msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
       build_image
     fi
 
@@ -669,7 +671,7 @@ function main {
     get_version
     docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
     if [[ ! $? -eq 0 ]]; then
-      msg "Notice: image '$KONG_TEST_IMAGE' not found, auto-building it"
+      msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
       build_image
     fi
 
@@ -707,7 +709,7 @@ function main {
     get_version
     docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
     if [[ ! $? -eq 0 ]]; then
-      msg "Notice: image '$KONG_TEST_IMAGE' not found, auto-building it"
+      msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
       build_image
     fi
     compose run --rm \
@@ -726,7 +728,7 @@ function main {
     get_version
     docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
     if [[ ! $? -eq 0 ]]; then
-      msg "Notice: image '$KONG_TEST_IMAGE' not found, auto-building it"
+      msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
       build_image
     fi
     compose run --rm \
@@ -774,17 +776,6 @@ function main {
     exit 1
     ;;
   esac
-}
-
-
-function err {
-  >&2 echo "$@"
-  exit 1
-}
-
-
-function msg {
-  >&2 echo "$@"
 }
 
 
