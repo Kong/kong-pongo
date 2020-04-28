@@ -672,12 +672,21 @@ function main {
       msg "Notice: image '$KONG_TEST_IMAGE' not found, auto-building it"
       build_image
     fi
+
     local shellprompt
     if $(is_enterprise $KONG_VERSION); then
       shellprompt="Kong-E-$KONG_VERSION"
     else
       shellprompt="Kong-$KONG_VERSION"
     fi
+
+    local cleanup
+    if [ -d "./servroot" ]; then
+      cleanup=false
+    else
+      cleanup=true
+    fi
+
     compose run --rm \
       -e KONG_LICENSE_DATA \
       -e KONG_LOG_LEVEL \
@@ -687,6 +696,10 @@ function main {
       -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
       -e "PS1=\[\e[00m\]\[\033[1;34m\]["$shellprompt":\[\033[1;92m\]\w\[\033[1;34m\]]#\[\033[00m\] " \
       kong sh
+
+    if [[ "$cleanup" == "true" ]]; then
+      rm -rf "./servroot"
+    fi
     ;;
 
   lint)
