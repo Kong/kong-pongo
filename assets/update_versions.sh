@@ -19,8 +19,7 @@ function update_repo {
         fi
         git clone -q $repo_url
         if [ ! $? -eq 0 ]; then
-            echo "Error: cannot update git repo $repo_name, make sure you're authorized and connected!"
-            exit 1
+            err "cannot update git repo $repo_name, make sure you're authorized and connected!"
         fi
     fi
 
@@ -30,7 +29,7 @@ function update_repo {
     git pull -q
 
     if [ ! $? -eq 0 ]; then
-        echo "Warning: cannot pull latest changes for $repo_name, make sure you're authorized and connected!"
+        warn "cannot pull latest changes for $repo_name, make sure you're authorized and connected!"
     fi
     popd > /dev/null
     popd > /dev/null
@@ -39,7 +38,7 @@ function update_repo {
 
 function update_all_repos {
     for REPO in kong kong-ee ; do
-        echo "Cloning $REPO repository..."
+        msg "Cloning $REPO repository..."
         update_repo $REPO
     done;
 }
@@ -73,7 +72,7 @@ function update_single_version_artifacts {
 
     git checkout -q $COMMIT
     if [ ! $? -eq 0 ]; then
-        echo "Warning: skipping unknown version $VERSION"
+        warn "skipping unknown version $VERSION"
     else
         mkdir ../kong-versions/$VERSION
         mkdir ../kong-versions/$VERSION/kong
@@ -86,21 +85,21 @@ function update_single_version_artifacts {
             (spec/[0-9]*)
                 # These we skip
                 ;;
-            (*) 
+            (*)
                 # everything else we copy
                 cp -R "$fname" ../kong-versions/$VERSION/kong/spec/
                 ;;
             esac
         done
 
-        if [[ -d spec-ee ]]; then 
+        if [[ -d spec-ee ]]; then
             mkdir ../kong-versions/$VERSION/kong/spec-ee
             for fname in spec-ee/*; do
                 case $fname in
                 (spec-ee/[0-9]*)
                     # These we skip
                     ;;
-                (*) 
+                (*)
                     # everything else we copy
                     cp -R "$fname" ../kong-versions/$VERSION/kong/spec-ee/
                     ;;
@@ -128,14 +127,14 @@ function update_artifacts {
     update_all_repos
     clean_artifacts
 
-    echo "copying files ..."
+    msg "copying files ..."
     for VERSION in ${KONG_VERSIONS[*]}; do
         if $(is_enterprise $VERSION); then
             pushd ./kong-ee > /dev/null
-            echo "Enterprise $VERSION"
+            msg "Enterprise $VERSION"
         else
             pushd ./kong > /dev/null
-            echo "Open source $VERSION"
+            msg "Open source $VERSION"
         fi
 
         update_single_version_artifacts $VERSION
@@ -145,14 +144,14 @@ function update_artifacts {
 
     # check wether updates were made
     if [[ ! -z $(git status -s) ]]; then
-        echo "Files were added/changed, please commit the changes:"
-        echo "    git add kong-versions/"
-        echo "    git commit"
+        msg "Files were added/changed, please commit the changes:"
+        msg "    git add kong-versions/"
+        msg "    git commit"
         popd > /dev/null
         return 99
     fi
 
-    echo "No new files were added"
+    msg "No new files were added"
     popd > /dev/null
     return 0
 }
@@ -171,11 +170,11 @@ function update_nightly {
     fi
 
     # update the repo to latest master
-    echo "Cloning/updating $repo repository..."
+    msg "Cloning/updating $repo repository..."
     update_repo $repo
 
     # enter repo and update files for requested commit
-    echo "Preparing development files for/at $COMMIT"
+    msg "Preparing development files for/at $COMMIT"
     clean_artifacts $VERSION
     pushd $LOCAL_PATH/$repo > /dev/null
     update_single_version_artifacts $VERSION $COMMIT

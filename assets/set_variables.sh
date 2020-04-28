@@ -6,6 +6,22 @@
 NIGHTLY_CE=nightly
 NIGHTLY_EE=nightly-ee
 
+function err {
+  >&2 echo -e "\033[0;31m[pongo-ERROR] $@\033[0m"
+  exit 1
+}
+
+
+function warn {
+  >&2 echo -e "\033[0;33m[pongo-WARN] $@\033[0m"
+}
+
+
+function msg {
+  >&2 echo -e "\033[0;36m[pongo-INFO] $@\033[0m"
+}
+
+
 # read config from Pongo RC file
 if [[ -f ./.pongorc ]]; then
   IFS=$'\r\n' GLOBIGNORE='*' command eval  'PONGORC_ARGS=($(cat ./.pongorc))'
@@ -15,8 +31,7 @@ fi
 
 # Enterprise versions
 if [[ ! -f $LOCAL_PATH/assets/kong_EE_versions.ver ]]; then
-  echo "$LOCAL_PATH/assets/kong_EE_versions.ver file is missing!"
-  exit 1
+  err "$LOCAL_PATH/assets/kong_EE_versions.ver file is missing!"
 fi
 IFS=$'\r\n' GLOBIGNORE='*' command eval  'KONG_EE_VERSIONS=($(cat $LOCAL_PATH/assets/kong_EE_versions.ver))'
 #echo "Current list:   ${KONG_EE_VERSIONS[@]}"
@@ -24,8 +39,7 @@ IFS=$'\r\n' GLOBIGNORE='*' command eval  'KONG_EE_VERSIONS=($(cat $LOCAL_PATH/as
 
 # Open source versions
 if [[ ! -f $LOCAL_PATH/assets/kong_CE_versions.ver ]]; then
-  echo "$LOCAL_PATH/assets/kong_CE_versions.ver file is missing!"
-  exit 1
+  err "$LOCAL_PATH/assets/kong_CE_versions.ver file is missing!"
 fi
 IFS=$'\r\n' GLOBIGNORE='*' command eval  'KONG_CE_VERSIONS=($(cat $LOCAL_PATH/assets/kong_CE_versions.ver))'
 #echo "Current list:   ${KONG_CE_VERSIONS[@]}"
@@ -45,7 +59,7 @@ KONG_DEFAULT_VERSION="${KONG_CE_VERSIONS[ ${#KONG_CE_VERSIONS[@]}-1 ]}"
 
 
 function is_enterprise {
-  local check_version=$1 
+  local check_version=$1
   for VERSION in ${KONG_EE_VERSIONS[*]} $NIGHTLY_EE; do
     if [[ "$VERSION" == "$check_version" ]]; then
       return 0
@@ -85,9 +99,9 @@ function resolve_version {
       fi
     done;
     if [[ "$new_version" == "$KONG_VERSION" ]]; then
-      echo "Could not resolve Kong version: $KONG_VERSION"
+      warn "Could not resolve Kong version: $KONG_VERSION"
     else
-      echo "Resolved Kong version $KONG_VERSION to $new_version"
+      msg "Resolved Kong version $KONG_VERSION to $new_version"
       KONG_VERSION=$new_version
     fi
   fi
