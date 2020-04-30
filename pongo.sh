@@ -27,8 +27,8 @@ function globals {
 
   # Nightly EE images repo, these require to additionally set the credentials
   # in $NIGHTLY_EE_APIKEY and $NIGHTLY_EE_USER
-  NIGHTLY_EE_DOCKER_REPO="docker.io"
-  NIGHTLY_EE_TAG="mashape/kong-enterprise:dev-master"
+  NIGHTLY_EE_DOCKER_REPO="registry.kongcloud.io"
+  NIGHTLY_EE_TAG="registry.kongcloud.io/kong-ee-dev-master:latest"
 
   # Nightly CE images, these are public, no credentials needed
   NIGHTLY_CE_TAG="kong/kong:latest"
