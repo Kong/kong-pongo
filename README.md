@@ -19,7 +19,7 @@ Options (can also be added to '.pongorc'):
 
 Project actions:
   lint          will run the LuaCheck linter
-  
+
   pack          will pack all '*.rockspec' files into '*.rock' files for
                 distribution (see LuaRocks package manager docs)
 
@@ -86,7 +86,9 @@ Pongo provides a simple way of testing Kong plugins
  - [Debugging](#debugging)
  - [Test initialization](#test-initialization)
  - [Setting up CI](#setting-up-ci)
- - [Setting up CI with Kong Enterprise](#setting-up-ci-with-kong-enterprise)
+     - [CI against nightly builds](#ci-against-nightly-builds)
+     - [CI with Kong Enterprise](#ci-with-kong-enterprise)
+     - [CI with Kong Enterprise nightly](#ci-with-kong-enterprise-nightly)
  - [Releasing new Kong versions](#releasing-new-kong-versions)
 
 
@@ -118,7 +120,7 @@ mkdir -p ~/.local/bin
 ln -s $(realpath kong-pongo/pongo.sh) ~/.local/bin/pongo
 ```
 
-_Notes_: 
+_Notes_:
 * you need `~/.local/bin` on your `$PATH`
 * for MacOS you need the [`coreutils`](https://www.gnu.org/software/coreutils/coreutils.html)
   to be installed. This is easiest via the [Homebrew package manager](https://brew.sh/) by doing:
@@ -192,7 +194,7 @@ The available dependencies are:
 * **Squid** (forward-proxy)
   - Enable it with `--squid`
   - The Squid version is controlled by the `SQUID` environment variable
-  - From within the environment the Squid instance is available at `squid:3128`. 
+  - From within the environment the Squid instance is available at `squid:3128`.
     Essentially it would be configured as these standard environment variables:
 
     - `http_proxy=http://squid:3128/`
@@ -328,7 +330,25 @@ script:
 
 [Back to ToC](#table-of-contents)
 
-## Setting up CI with Kong Enterprise
+### CI against nightly builds
+
+__**This is not yet available!!**__
+
+To test against nightly builds, the CRON option for Travis-CI should be configured.
+This will trigger a daily test-run.
+
+In the test matrix add a job with `KONG_VERSION=nightly`, like this:
+
+```yaml
+jobs:
+  include:
+  - name: Kong nightly master-branch
+    env: KONG_VERSION=nightly
+```
+
+[Back to ToC](#table-of-contents)
+
+### CI with Kong Enterprise
 
 To test against an Enterprise version of Kong the same base setup can be used, but
 some secrets need to be added. With the secrets in place Pongo will be able to
@@ -375,6 +395,30 @@ env:
 
 Now you can update the `jobs` section and add Kong Enterprise version numbers.
 
+[Back to ToC](#table-of-contents)
+
+### CI with Kong Enterprise nightly
+
+**NOTE: this is NOT publicly available, only Kong internal**
+
+This build will also require a CRON job to build on a daily basis, but also
+requires additional credentials to access the Kong Enterprise master image.
+To build against the nightly Enterprise master, the version can be specified as
+`nightly-ee`, as given in this example:
+
+```yaml
+jobs:
+  include:
+  - name: Kong Enterprise nightly master-branch
+    env: KONG_VERSION=nightly-ee
+```
+
+For this to work the following variables must be present:
+- `NIGHTLY_EE_USER=<internal Kong username>`
+- `NIGHTLY_EE_APIKEY=<the API key>`
+
+At least the api-key must be encrypted as a secret. Follow the instructions above
+to encrypt and add them to the `.travis.yml` file.
 
 [Back to ToC](#table-of-contents)
 
