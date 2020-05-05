@@ -33,7 +33,7 @@ RUN apk update \
     && apk add zip unzip make g++ py-pip jq git bsd-compat-headers m4 openssl-dev \
     && pip install 'httpie<2.0.0'\
     && cd /kong \
-    && make dependencies \
+    && make dev \
     && luarocks install busted-htest \
     && chmod +x /kong/bin/test_plugin_entrypoint.sh
 
