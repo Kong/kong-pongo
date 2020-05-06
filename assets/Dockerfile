@@ -30,7 +30,7 @@ USER root
 # But that means hardcoding and that doesn't play well with the nature of Pongo
 # that should be independent of Kong versions.
 RUN apk update \
-    && apk add zip unzip make g++ py-pip jq git bsd-compat-headers m4 openssl-dev \
+    && apk add zip unzip make g++ py-pip jq git bsd-compat-headers m4 openssl-dev curl \
     && pip install 'httpie<2.0.0'\
     && cd /kong \
     && make dependencies \
