@@ -168,7 +168,7 @@ Pongo can use a set of test dependencies that can be used to test against. Each
 can be enabled/disabled by respectively specifying `--[dependency_name]` or
 `--no-[dependency-name]` as options for the `pongo up` and `pongo run`
 commands. The alternate way of specifying the dependencies is
-by adding them to the `.pongorc` file (see below).
+by adding them to the `.pongorc`/`.pongo/pongorc` file (see below).
 
 The available dependencies are:
 
@@ -235,10 +235,11 @@ The available dependencies are:
 
 The defaults do not make sense for every type of plugin and some dependencies
 (Cassandra for example) can slow down the tests. So to override the defaults on
-a per project/plugin basis, a `.pongorc` file can be added to the project.
+a per project/plugin basis, a `.pongorc` or `.pongo/pongorc` file can be added
+to the project.
 
 The format of the file is very simple; each line contains 1 commandline option, eg.
-a `.pongorc` file for a plugin that only needs Postgres and Redis:
+a `.pongorc`/`.pongo/pongorc` file for a plugin that only needs Postgres and Redis:
 
   ```shell
   --no-cassandra
@@ -341,10 +342,11 @@ depends on any external libraries, those rocks will be installed.
 For example; the Kong plugin `session` relies on the `lua-resty-session` rock.
 So by default it will install that dependency before starting the tests.
 
-An alternate way is to provide a `.pongo-setup.sh` file. If that file is present
-then that file will be executed (using `source`), instead of the default behaviour.
+An alternate way is to provide a `.pongo-setup.sh` or `.pongo/pongo-setup.sh` file.
+If that file is present then that file will be executed (using `source`), instead
+of the default behaviour.
 
-For example, the following `.pongo-setup.sh` file will install a specific
+For example, the following file will install a specific
 development branch of `lua-resty-session` instead of the one specified in
 the rockspec:
 

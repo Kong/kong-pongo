@@ -12,6 +12,13 @@ function globals {
   SERVICE_NETWORK_NAME=${PROJECT_NAME}
   IMAGE_BASE_NAME=${PROJECT_NAME}-test
   KONG_TEST_PLUGIN_PATH=$(realpath .)
+  if [[ -f "$KONG_TEST_PLUGIN_PATH/.pongorc" ]]; then
+    PONGORC_FILE=".pongorc"
+  elif [[ -f "$KONG_TEST_PLUGIN_PATH/.pongo/pongorc" ]]; then
+    PONGORC_FILE=".pongo/pongorc"
+  else
+    PONGORC_FILE=".pongorc"
+  fi
 
   # regular Kong Enterprise images repo (tag is build as $PREFIX$VERSION$POSTFIX).
   # Set credentials in $BINTRAY_APIKEY and $BINTRAY_USERNAME
@@ -90,7 +97,7 @@ cat << EOF
 
 Usage: $(basename $0) action [options...] [--] [action options...]
 
-Options (can also be added to '.pongorc'):
+Options (can also be added to '$PONGORC_FILE'):
   --no-cassandra     do not start cassandra db
   --no-postgres      do not start postgres db
   --redis            do start redis db (see readme for info)
@@ -182,7 +189,7 @@ function read_rc_dependencies {
     elif [[ "--" == "${rc_arg:0:2}" ]]; then
       rc_arg="${rc_arg:2}"
     else
-      err "not a proper '.pongorc' entry: $rc_arg, name must be prefixed with '--' or '--no-'"
+      err "not a proper '$PONGORC_FILE' entry: $rc_arg, name must be prefixed with '--' or '--no-'"
     fi
     add_custom_dependency $rc_arg
   done;
@@ -190,9 +197,12 @@ function read_rc_dependencies {
   #msg "all deps: ${KONG_DEPS_AVAILABLE[@]}"
   for dependency in ${KONG_DEPS_CUSTOM[*]}; do
     local dcyml
-    dcyml=".pongo-$dependency.yml"
-    if ! [[ -f "$dcyml" ]]; then
-      err "docker-compose file './$dcyml' not found for custom local dependency '$dependency' (specified in '.pongorc')"
+    if [[ -f ".pongo-$dependency.yml" ]]; then
+      dcyml=".pongo-$dependency.yml"
+    elif [[ -f ".pongo/pongo-$dependency.yml" ]]; then
+      dcyml=".pongo/pongo-$dependency.yml"
+    else
+      err "docker-compose file '.pongo-$dependency.yml' or '.pongo/pongo-$dependency.yml' not found for custom local dependency '$dependency' (specified in '$PONGORC_FILE')"
     fi
     DOCKER_COMPOSE_FILES="$DOCKER_COMPOSE_FILES -f $KONG_TEST_PLUGIN_PATH/$dcyml"
     #msg "compose files: $DOCKER_COMPOSE_FILES"
