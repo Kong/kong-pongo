@@ -6,9 +6,10 @@ function globals {
   # Project related global variables
   LOCAL_PATH=$(dirname "$(realpath "$0")")
   DOCKER_FILE=${LOCAL_PATH}/assets/Dockerfile
-  DOCKER_COMPOSE_FILE=${LOCAL_PATH}/assets/docker-compose.yml
+  DOCKER_COMPOSE_FILES="-f ${LOCAL_PATH}/assets/docker-compose.yml"
   PROJECT_NAME=kong-pongo
-  NETWORK_NAME=${PROJECT_NAME}_test-network
+  NETWORK_NAME=pongo-test-network
+  SERVICE_NETWORK_NAME=${PROJECT_NAME}
   IMAGE_BASE_NAME=${PROJECT_NAME}-test
   KONG_TEST_PLUGIN_PATH=$(realpath .)
 
@@ -38,6 +39,7 @@ function globals {
   FORCE_BUILD=false
   KONG_DEPS_AVAILABLE=( "postgres" "cassandra" "redis" "squid")
   KONG_DEPS_START=( "postgres" "cassandra" )
+  KONG_DEPS_CUSTOM=()
   RC_COMMANDS=( "run" "up" "restart" )
   EXTRA_ARGS=()
 
@@ -164,13 +166,47 @@ function array_contains {
 }
 
 
-function add_dependency {
+function add_custom_dependency {
+  local to_add=$1
+  if ! $(array_contains KONG_DEPS_AVAILABLE "$to_add"); then
+    KONG_DEPS_AVAILABLE+=("$to_add")
+    KONG_DEPS_CUSTOM+=("$to_add")
+  fi
+}
+
+
+function read_rc_dependencies {
+  for rc_arg in ${PONGORC_ARGS[*]}; do
+    if [[ "--no-" == "${rc_arg:0:5}" ]]; then
+      rc_arg="${rc_arg:5}"
+    elif [[ "--" == "${rc_arg:0:2}" ]]; then
+      rc_arg="${rc_arg:2}"
+    else
+      err "not a proper '.pongorc' entry: $rc_arg, name must be prefixed with '--' or '--no-'"
+    fi
+    add_custom_dependency $rc_arg
+  done;
+  #msg "custom deps: ${KONG_DEPS_CUSTOM[@]}"
+  #msg "all deps: ${KONG_DEPS_AVAILABLE[@]}"
+  for dependency in ${KONG_DEPS_CUSTOM[*]}; do
+    local dcyml
+    dcyml=".pongo-$dependency.yml"
+    if ! [[ -f "$dcyml" ]]; then
+      err "docker-compose file './$dcyml' not found for custom local dependency '$dependency' (specified in '.pongorc')"
+    fi
+    DOCKER_COMPOSE_FILES="$DOCKER_COMPOSE_FILES -f $KONG_TEST_PLUGIN_PATH/$dcyml"
+    #msg "compose files: $DOCKER_COMPOSE_FILES"
+  done;
+}
+
+
+function add_dependency_start {
   local to_add=$1
   array_contains KONG_DEPS_START "$to_add" && return || KONG_DEPS_START+=("$to_add")
 }
 
 
-function remove_dependency {
+function remove_dependency_start {
   local to_remove=$1
   local new_array=()
   for dependency in ${KONG_DEPS_START[*]}; do
@@ -187,12 +223,12 @@ function handle_dep_arg {
   local is_dep=1
   for dependency in ${KONG_DEPS_AVAILABLE[*]}; do
     if [[ "--$dependency" == "$arg" ]]; then
-      add_dependency "$dependency"
+      add_dependency_start "$dependency"
       is_dep=0
       break
     fi
     if [[ "--no-$dependency" == "$arg" ]]; then
-      remove_dependency "$dependency"
+      remove_dependency_start "$dependency"
       is_dep=0
       break
     fi
@@ -203,6 +239,7 @@ function handle_dep_arg {
 
 
 function parse_args {
+  read_rc_dependencies
   # inject the RC file commands into the commandline args
   local PONGO_ARGS=()
   # first add the main Pongo command
@@ -435,9 +472,10 @@ function get_version {
 
 function compose {
   export NETWORK_NAME
+  export SERVICE_NETWORK_NAME
   export KONG_TEST_IMAGE
   export KONG_TEST_PLUGIN_PATH
-  docker-compose -p ${PROJECT_NAME} -f "$DOCKER_COMPOSE_FILE" "$@"
+  docker-compose -p ${PROJECT_NAME} ${DOCKER_COMPOSE_FILES} "$@"
 }
 
 
@@ -752,6 +790,16 @@ function main {
     echo Pongo networks:
     echo ===============
     docker network ls | grep "${PROJECT_NAME}"
+    echo
+    echo Pongo available dependencies:
+    echo =============================
+    for dep_name in ${KONG_DEPS_AVAILABLE[*]}; do
+      if $(array_contains KONG_DEPS_CUSTOM "$dep_name"); then
+        echo "$dep_name (custom to local plugin)"
+      else
+        echo "$dep_name"
+      fi
+    done;
     echo
     echo Pongo dependency containers:
     echo ============================

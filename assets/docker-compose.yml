@@ -1,8 +1,8 @@
 version: '3.5'
 
 networks:
-  kong-plugin-test-network:
-    name: ${NETWORK_NAME}
+  pongo-test-network:
+    name: ${SERVICE_NETWORK_NAME}
 
 services:
   postgres:
@@ -23,7 +23,7 @@ services:
     restart: on-failure
     stop_signal: SIGKILL
     networks:
-      - kong-plugin-test-network
+      - ${NETWORK_NAME}
 
   cassandra:
     image: cassandra:${CASSANDRA:-3.9}
@@ -38,7 +38,7 @@ services:
     restart: on-failure
     stop_signal: SIGKILL
     networks:
-      - kong-plugin-test-network
+      - ${NETWORK_NAME}
 
   redis:
     image: redis:${REDIS:-5.0.4}-alpine
@@ -50,7 +50,7 @@ services:
     restart: on-failure
     stop_signal: SIGKILL
     networks:
-      - kong-plugin-test-network
+      - ${NETWORK_NAME}
 
   squid:
     image: sameersbn/squid:${SQUID:-3.5.27-2}
@@ -65,7 +65,7 @@ services:
     restart: on-failure
     stop_signal: SIGKILL
     networks:
-      - kong-plugin-test-network
+      - ${NETWORK_NAME}
 
   kong:
     image: ${KONG_TEST_IMAGE:-ignore_if_not_provided}
@@ -73,6 +73,6 @@ services:
       - KONG_CASSANDRA_CONTACT_POINTS=cassandra
       - KONG_PG_HOST=postgres
     networks:
-      - kong-plugin-test-network
+      - ${NETWORK_NAME}
     volumes:
       - ${KONG_TEST_PLUGIN_PATH}:/kong-plugin

@@ -82,7 +82,8 @@ Pongo provides a simple way of testing Kong plugins
     - Cassandra (Kong datastore)
     - Redis (key-value store)
     - Squid (forward-proxy)
- - [Dependency defaults](#dependency-defaults)
+    - [Dependency defaults](#dependency-defaults)
+    - [Custom local dependencies](#custom-local-dependencies)
  - [Debugging](#debugging)
  - [Test initialization](#test-initialization)
  - [Setting up CI](#setting-up-ci)
@@ -243,6 +244,70 @@ a `.pongorc` file for a plugin that only needs Postgres and Redis:
   --no-cassandra
   --redis
   ```
+
+[Back to ToC](#table-of-contents)
+
+### Custom local dependencies
+
+If the included dependencies are not enough for testing a plugin, then Pongo allows
+you to specify your own dependencies.
+To create a custom local dependency you must add its name to the `pongorc` file
+(either `.pongorc` or `.pongo/pongorc`).
+An example defining 2 extra dependencies; `zipkin`, and `myservice`:
+
+  ```shell
+  --no-cassandra
+  --redis
+  --zipkin
+  --no-myservice
+  ```
+
+This defines both services, with `zipkin` being started by default and `myservice`
+only when specifying it like this;
+
+  ```
+  pongo up --myservice
+  ```
+
+This only defines the dependency, but it also needs a configuration. The
+configuration is a `docker-compose` file specific for each dependency. So taking
+the above `zipkin` example we create a file named `.pongo-zipkin.yml` or
+`.pongo/pongo-zipkin.yml`.
+
+  ```yml
+  version: '3.5'
+
+  services:
+    zipkin:
+      image: openzipkin/zipkin:${ZIPKIN:-2.19}
+      healthcheck:
+        interval: 5s
+        retries: 10
+        test:
+        - CMD
+        - curl
+        - localhost:9411/health
+        timeout: 10s
+      restart: on-failure
+      stop_signal: SIGKILL
+      networks:
+        - ${NETWORK_NAME}
+  ```
+
+The components of the file:
+
+  - service name: this must be the dependency name as defined, in this case `zipkin`
+  - `image` is required, the environment variable `ZIPKIN` to override the default
+    version `2.19` is optional
+  - `healthcheck` is also required because Pongo uses the health-status to determine
+    whether a dependency is ready and the test run can be started.
+  - `networks` should be included and left as-is to include the dependency in the
+    network with the other containers.
+
+Some helpfull examples:
+  - Dependencies requiring configuration files: see `squid` in the main [Pongo
+    docker-compose file](https://github.com/Kong/kong-pongo/blob/master/assets/docker-compose.yml).
+  - A custom dependency example: see the [Zipkin plugin](https://github.com/Kong/kong-plugin-zipkin)
 
 [Back to ToC](#table-of-contents)
 
