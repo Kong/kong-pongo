@@ -603,7 +603,7 @@ function get_plugin_names {
 
 
 function cleanup {
-  compose down
+  compose down --remove-orphans
   docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "found: {{.ID}}" | grep found
   if [[ $? -eq 0 ]]; then
     docker rmi $(docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "{{.ID}}")
@@ -636,11 +636,11 @@ function main {
     ;;
 
   down)
-    compose down
+    compose down --remove-orphans
     ;;
 
   restart)
-    compose down
+    compose down --remove-orphans
     compose_up
     ;;
 
