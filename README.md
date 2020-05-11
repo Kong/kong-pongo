@@ -11,7 +11,7 @@
 
 Usage: pongo action [options...] [--] [action options...]
 
-Options (can also be added to '.pongorc'):
+Options (can also be added to '.pongo/pongorc'):
   --no-cassandra     do not start cassandra db
   --no-postgres      do not start postgres db
   --redis            do start redis db (see readme for info)
@@ -168,7 +168,7 @@ Pongo can use a set of test dependencies that can be used to test against. Each
 can be enabled/disabled by respectively specifying `--[dependency_name]` or
 `--no-[dependency-name]` as options for the `pongo up` and `pongo run`
 commands. The alternate way of specifying the dependencies is
-by adding them to the `.pongorc`/`.pongo/pongorc` file (see below).
+by adding them to the `.pongo/pongorc` file (see below).
 
 The available dependencies are:
 
@@ -235,11 +235,11 @@ The available dependencies are:
 
 The defaults do not make sense for every type of plugin and some dependencies
 (Cassandra for example) can slow down the tests. So to override the defaults on
-a per project/plugin basis, a `.pongorc` or `.pongo/pongorc` file can be added
+a per project/plugin basis, a `.pongo/pongorc` file can be added
 to the project.
 
 The format of the file is very simple; each line contains 1 commandline option, eg.
-a `.pongorc`/`.pongo/pongorc` file for a plugin that only needs Postgres and Redis:
+a `.pongo/pongorc` file for a plugin that only needs Postgres and Redis:
 
   ```shell
   --no-cassandra
@@ -252,8 +252,7 @@ a `.pongorc`/`.pongo/pongorc` file for a plugin that only needs Postgres and Red
 
 If the included dependencies are not enough for testing a plugin, then Pongo allows
 you to specify your own dependencies.
-To create a custom local dependency you must add its name to the `pongorc` file
-(either `.pongorc` or `.pongo/pongorc`).
+To create a custom local dependency you must add its name to the `.pongo/pongorc` file
 An example defining 2 extra dependencies; `zipkin`, and `myservice`:
 
   ```shell
@@ -272,8 +271,7 @@ only when specifying it like this;
 
 This only defines the dependency, but it also needs a configuration. The
 configuration is a `docker-compose` file specific for each dependency. So taking
-the above `zipkin` example we create a file named `.pongo-zipkin.yml` or
-`.pongo/pongo-zipkin.yml`.
+the above `zipkin` example we create a file named `.pongo/zipkin.yml`.
 
   ```yml
   version: '3.5'
@@ -297,6 +295,7 @@ the above `zipkin` example we create a file named `.pongo-zipkin.yml` or
 
 The components of the file:
 
+  - file name: based on the dependency name; `./pongo/<dep-name>.yml`
   - service name: this must be the dependency name as defined, in this case `zipkin`
   - `image` is required, the environment variable `ZIPKIN` to override the default
     version `2.19` is optional
@@ -342,7 +341,7 @@ depends on any external libraries, those rocks will be installed.
 For example; the Kong plugin `session` relies on the `lua-resty-session` rock.
 So by default it will install that dependency before starting the tests.
 
-An alternate way is to provide a `.pongo-setup.sh` or `.pongo/pongo-setup.sh` file.
+An alternate way is to provide a `.pongo/pongo-setup.sh` file.
 If that file is present then that file will be executed (using `source`), instead
 of the default behaviour.
 

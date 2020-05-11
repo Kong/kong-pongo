@@ -54,10 +54,11 @@ fi
 
 
 # perform any custom setup if specified
-if [ -f /kong-plugin/.pongo-setup.sh ]; then
-  pongo_setup=/kong-plugin/.pongo-setup.sh
-elif [ -f /kong-plugin/.pongo/pongo-setup.sh ]; then
+if [ -f /kong-plugin/.pongo/pongo-setup.sh ]; then
   pongo_setup=/kong-plugin/.pongo/pongo-setup.sh
+elif [ -f /kong-plugin/.pongo-setup.sh ]; then
+  # for backward compatibility
+  pongo_setup=/kong-plugin/.pongo-setup.sh
 else
   pongo_setup=none
 fi
