@@ -11,7 +11,7 @@
 
 Usage: pongo action [options...] [--] [action options...]
 
-Options (can also be added to '.pongorc'):
+Options (can also be added to '.pongo/pongorc'):
   --no-cassandra     do not start cassandra db
   --no-postgres      do not start postgres db
   --redis            do start redis db (see readme for info)
@@ -82,7 +82,8 @@ Pongo provides a simple way of testing Kong plugins
     - Cassandra (Kong datastore)
     - Redis (key-value store)
     - Squid (forward-proxy)
- - [Dependency defaults](#dependency-defaults)
+    - [Dependency defaults](#dependency-defaults)
+    - [Custom local dependencies](#custom-local-dependencies)
  - [Debugging](#debugging)
  - [Test initialization](#test-initialization)
  - [Setting up CI](#setting-up-ci)
@@ -167,7 +168,7 @@ Pongo can use a set of test dependencies that can be used to test against. Each
 can be enabled/disabled by respectively specifying `--[dependency_name]` or
 `--no-[dependency-name]` as options for the `pongo up` and `pongo run`
 commands. The alternate way of specifying the dependencies is
-by adding them to the `.pongorc` file (see below).
+by adding them to the `.pongo/pongorc` file (see below).
 
 The available dependencies are:
 
@@ -234,15 +235,79 @@ The available dependencies are:
 
 The defaults do not make sense for every type of plugin and some dependencies
 (Cassandra for example) can slow down the tests. So to override the defaults on
-a per project/plugin basis, a `.pongorc` file can be added to the project.
+a per project/plugin basis, a `.pongo/pongorc` file can be added
+to the project.
 
 The format of the file is very simple; each line contains 1 commandline option, eg.
-a `.pongorc` file for a plugin that only needs Postgres and Redis:
+a `.pongo/pongorc` file for a plugin that only needs Postgres and Redis:
 
   ```shell
   --no-cassandra
   --redis
   ```
+
+[Back to ToC](#table-of-contents)
+
+### Custom local dependencies
+
+If the included dependencies are not enough for testing a plugin, then Pongo allows
+you to specify your own dependencies.
+To create a custom local dependency you must add its name to the `.pongo/pongorc` file
+An example defining 2 extra dependencies; `zipkin`, and `myservice`:
+
+  ```shell
+  --no-cassandra
+  --redis
+  --zipkin
+  --no-myservice
+  ```
+
+This defines both services, with `zipkin` being started by default and `myservice`
+only when specifying it like this;
+
+  ```
+  pongo up --myservice
+  ```
+
+This only defines the dependency, but it also needs a configuration. The
+configuration is a `docker-compose` file specific for each dependency. So taking
+the above `zipkin` example we create a file named `.pongo/zipkin.yml`.
+
+  ```yml
+  version: '3.5'
+
+  services:
+    zipkin:
+      image: openzipkin/zipkin:${ZIPKIN:-2.19}
+      healthcheck:
+        interval: 5s
+        retries: 10
+        test:
+        - CMD
+        - curl
+        - localhost:9411/health
+        timeout: 10s
+      restart: on-failure
+      stop_signal: SIGKILL
+      networks:
+        - ${NETWORK_NAME}
+  ```
+
+The components of the file:
+
+  - file name: based on the dependency name; `./pongo/<dep-name>.yml`
+  - service name: this must be the dependency name as defined, in this case `zipkin`
+  - `image` is required, the environment variable `ZIPKIN` to override the default
+    version `2.19` is optional
+  - `healthcheck` is also required because Pongo uses the health-status to determine
+    whether a dependency is ready and the test run can be started.
+  - `networks` should be included and left as-is to include the dependency in the
+    network with the other containers.
+
+Some helpfull examples:
+  - Dependencies requiring configuration files: see `squid` in the main [Pongo
+    docker-compose file](https://github.com/Kong/kong-pongo/blob/master/assets/docker-compose.yml).
+  - A custom dependency example: see the [Zipkin plugin](https://github.com/Kong/kong-plugin-zipkin)
 
 [Back to ToC](#table-of-contents)
 
@@ -276,10 +341,11 @@ depends on any external libraries, those rocks will be installed.
 For example; the Kong plugin `session` relies on the `lua-resty-session` rock.
 So by default it will install that dependency before starting the tests.
 
-An alternate way is to provide a `.pongo-setup.sh` file. If that file is present
-then that file will be executed (using `source`), instead of the default behaviour.
+An alternate way is to provide a `.pongo/pongo-setup.sh` file.
+If that file is present then that file will be executed (using `source`), instead
+of the default behaviour.
 
-For example, the following `.pongo-setup.sh` file will install a specific
+For example, the following file will install a specific
 development branch of `lua-resty-session` instead of the one specified in
 the rockspec:
 

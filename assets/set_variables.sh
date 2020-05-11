@@ -23,8 +23,8 @@ function msg {
 
 
 # read config from Pongo RC file
-if [[ -f ./.pongorc ]]; then
-  IFS=$'\r\n' GLOBIGNORE='*' command eval  'PONGORC_ARGS=($(cat ./.pongorc))'
+if [[ -f $PONGORC_FILE ]]; then
+  IFS=$'\r\n' GLOBIGNORE='*' command eval  'PONGORC_ARGS=($(cat $PONGORC_FILE))'
 fi
 #echo ".pongorc content:   ${PONGORC_ARGS[@]}"
 
