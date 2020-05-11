@@ -436,11 +436,10 @@ To do so there are some pre-requisites;
 Update the version as follows:
 
 ```shell
-# The code-base is either "EE" (Enterprise) or "CE" (Opensource)
+# The code-base (1st argument) is either "EE" (Enterprise) or "CE" (Opensource)
+# 2nd argument is the version to add.
 
-KONG_CODE_BASE="EE" ADD_KONG_VERSION="1.2.3" \
-  && git clone http://github.com/Kong/kong-pongo.git \
-  && kong-pongo/assets/add_version.sh $KONG_CODE_BASE $ADD_KONG_VERSION
+assets/add_version.sh "EE" "1.2.3"
 ```
 
 The result should be a new PR on the Pongo repo.
