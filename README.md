@@ -504,8 +504,14 @@ Update the version as follows:
 ```shell
 # The code-base (1st argument) is either "EE" (Enterprise) or "CE" (Opensource)
 # 2nd argument is the version to add.
+# 3rd argument makes it a test run if given
 
-assets/add_version.sh "EE" "1.2.3"
+assets/add_version.sh "EE" "1.2.3" "test"
+```
+
+Here's an all-in-one command, edit the parameters as needed;
+```
+git clone --single-branch https://github.com/Kong/kong-pongo $TMPDIR/kong-pongo && $TMPDIR/kong-pongo/assets/add_version.sh "EE" "1.2.3" "test"; rm -rf $TMPDIR/kong-pongo
 ```
 
 The result should be a new PR on the Pongo repo.
