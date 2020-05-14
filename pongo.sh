@@ -45,7 +45,7 @@ function globals {
   # Commandline related variables
   unset ACTION
   FORCE_BUILD=false
-  KONG_DEPS_AVAILABLE=( "postgres" "cassandra" "redis" "squid")
+  KONG_DEPS_AVAILABLE=( "postgres" "cassandra" "redis" "squid" "grpcbin")
   KONG_DEPS_START=( "postgres" "cassandra" )
   KONG_DEPS_CUSTOM=()
   RC_COMMANDS=( "run" "up" "restart" )

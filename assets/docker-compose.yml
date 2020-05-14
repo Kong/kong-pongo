@@ -67,6 +67,21 @@ services:
     networks:
       - ${NETWORK_NAME}
 
+  grpcbin:
+    image: moul/grpcbin:latest
+    ports:
+      - "15002:9000"
+      - "15003:9001"
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test: ["CMD", "kill", "-0", "1"]
+      timeout: 10s
+    restart: on-failure
+    stop_signal: SIGKILL
+    networks:
+      - ${NETWORK_NAME}
+
   kong:
     image: ${KONG_TEST_IMAGE:-ignore_if_not_provided}
     environment:
