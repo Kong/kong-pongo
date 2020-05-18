@@ -492,7 +492,15 @@ function compose {
 function healthy {
   local iid=$1
   [[ -z $iid ]] && return 1
-  docker inspect "$iid" | grep healthy &> /dev/null
+  local state=$(docker inspect "$iid")
+
+  echo "$state" | grep \"Health\" &> /dev/null
+  if [[ ! $? -eq 0 ]]; then
+    # no healthcheck defined, assume healthy
+    return 0
+  fi
+
+  echo "$state" | grep \"healthy\" &> /dev/null
   return $?
 }
 
