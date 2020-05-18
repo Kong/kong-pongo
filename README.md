@@ -294,7 +294,7 @@ the above `zipkin` example we create a file named `.pongo/zipkin.yml`.
         retries: 10
         test:
         - CMD
-        - curl
+        - wget
         - localhost:9411/health
         timeout: 10s
       restart: on-failure
@@ -309,7 +309,7 @@ The components of the file:
   - service name: this must be the dependency name as defined, in this case `zipkin`
   - `image` is required, the environment variable `ZIPKIN` to override the default
     version `2.19` is optional
-  - `healthcheck` is also required because Pongo uses the health-status to determine
+  - `healthcheck` if available then Pongo uses the health-status to determine
     whether a dependency is ready and the test run can be started.
   - `networks` should be included and left as-is to include the dependency in the
     network with the other containers.
