@@ -168,8 +168,8 @@ pongo down
 
 Pongo can use a set of test dependencies that can be used to test against. Each
 can be enabled/disabled by respectively specifying `--[dependency_name]` or
-`--no-[dependency-name]` as options for the `pongo up` and `pongo run`
-commands. The alternate way of specifying the dependencies is
+`--no-[dependency-name]` as options for the `pongo up`, `pongo restart`, and
+`pongo run` commands. The alternate way of specifying the dependencies is
 by adding them to the `.pongo/pongorc` file (see below).
 
 The available dependencies are:
