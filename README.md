@@ -14,6 +14,7 @@ Usage: pongo action [options...] [--] [action options...]
 Options (can also be added to '.pongo/pongorc'):
   --no-cassandra     do not start cassandra db
   --no-postgres      do not start postgres db
+  --grpcbin          do start grpcbin (see readme for info)
   --redis            do start redis db (see readme for info)
   --squid            do start squid forward-proxy (see readme for info)
 
@@ -80,6 +81,7 @@ Pongo provides a simple way of testing Kong plugins
  - [Test dependencies](#test-dependencies)
     - Postgres (Kong datastore)
     - Cassandra (Kong datastore)
+    - grpcbin (mock grpc backend)
     - Redis (key-value store)
     - Squid (forward-proxy)
     - [Dependency defaults](#dependency-defaults)
@@ -179,6 +181,14 @@ The available dependencies are:
 * **Cassandra** Kong datastore (started by default)
   - Disable it with `--no-cassandra`
   - The Cassandra version is controlled by the `CASSANDRA` environment variable
+
+* **grpcbin** mock grpc backend
+  - Enable it with `--grpcbin`
+  - The engine is [moul/grpcbin](https://github.com/moul/grpcbin) (but hosted on
+    different ports)
+  - From within the environment it is available at:
+      * `grpcbin:15002` grpc over http
+      * `grpcbin:15003` grpc over http+tls
 
 * **Redis** key-value store
   - Enable it with `--redis`
