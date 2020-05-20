@@ -339,6 +339,27 @@ The above would be identical to:
 tail -F ./servroot/logs/error.log
 ```
 
+The above does not work in a CI environment. So how to get access to the logs in
+that case?
+
+From the default `.travis.yml` (see [chapter on CI](#setting-up-ci)), change the
+basic lines to run the commands as follows, from;
+
+    script:
+    - "../kong-pongo/pongo.sh lint"
+    - "../kong-pongo/pongo.sh run"
+
+to;
+
+    script:
+    - "../kong-pongo/pongo.sh lint"
+    - "KONG_TEST_DONT_CLEAN=true ../kong-pongo/pongo.sh run"
+    - "cat servroot/logs/error.log"
+
+Setting the `KONG_TEST_DONT_CLEAN` variable will instruct Kong to not clean up
+the working directory in between tests. And the final `cat` command will output
+the log to the Travis console.
+
 [Back to ToC](#table-of-contents)
 
 ## Test initialization
