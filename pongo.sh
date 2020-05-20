@@ -717,6 +717,7 @@ function main {
 
     compose run --rm \
       -e KONG_LICENSE_DATA \
+      -e KONG_TEST_DONT_CLEAN \
       -e KONG_TEST_PLUGIN_PATH \
       kong \
       "/bin/sh" "-c" "bin/busted --helper=bin/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
