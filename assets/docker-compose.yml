@@ -69,9 +69,6 @@ services:
 
   grpcbin:
     image: moul/grpcbin:latest
-    ports:
-      - "15002:9000"
-      - "15003:9001"
     healthcheck:
       interval: 5s
       retries: 10

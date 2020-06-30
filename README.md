@@ -184,11 +184,10 @@ The available dependencies are:
 
 * **grpcbin** mock grpc backend
   - Enable it with `--grpcbin`
-  - The engine is [moul/grpcbin](https://github.com/moul/grpcbin) (but hosted on
-    different ports)
+  - The engine is [moul/grpcbin](https://github.com/moul/grpcbin)
   - From within the environment it is available at:
-      * `grpcbin:15002` grpc over http
-      * `grpcbin:15003` grpc over http+tls
+      * `grpcbin:9000` grpc over http
+      * `grpcbin:9001` grpc over http+tls
 
 * **Redis** key-value store
   - Enable it with `--redis`
