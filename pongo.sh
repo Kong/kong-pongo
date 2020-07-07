@@ -60,27 +60,36 @@ function globals {
 }
 
 function check_tools {
+  local missing=false
 
-  docker -v > /dev/null
+  docker -v > /dev/null 2>&1
   if [[ ! $? -eq 0 ]]; then
-    err "'docker' command not found, please install Docker, and make it available in the path."
+    >&2 echo "'docker' command not found, please install Docker, and make it available in the path."
+    missing=true
   fi
 
-  docker-compose -v > /dev/null
+  docker-compose -v > /dev/null 2>&1
   if [[ ! $? -eq 0 ]]; then
-    err "'docker-compose' command not found, please install docker-compose, and make it available in the path."
+    >&2 echo "'docker-compose' command not found, please install docker-compose, and make it available in the path."
+    missing=true
   fi
 
-  realpath --version > /dev/null
+  realpath --version > /dev/null 2>&1
   if [[ ! $? -eq 0 ]]; then
-    err "'realpath' command not found, please install it, and make it available in the path (on Mac use Brew to install the 'coreutils' package)."
+    >&2 echo "'realpath' command not found, please install it, and make it available in the path (on Mac use Brew to install the 'coreutils' package)."
+    missing=true
   fi
 
-  curl -V > /dev/null
+  curl -V > /dev/null 2>&1
   if [[ ! $? -eq 0 ]]; then
-    err "'curl' command not found, please install it, and make it available in the path."
+    >&2 echo "'curl' command not found, please install it, and make it available in the path."
+    missing=true
   fi
 
+  if [[ "$missing" == "true" ]]; then
+    >&2 echo -e "\033[0;31m[pongo-ERROR] the above dependencies are missing, install and retry.\033[0m"
+    exit 1
+  fi
 }
 
 function usage {
