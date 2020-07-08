@@ -87,4 +87,4 @@ services:
     networks:
       - ${NETWORK_NAME}
     volumes:
-      - ${KONG_TEST_PLUGIN_PATH}:/kong-plugin
+      - ${PONGO_WD}:/kong-plugin

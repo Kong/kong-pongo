@@ -93,6 +93,7 @@ Pongo provides a simple way of testing Kong plugins
      - [CI against nightly builds](#ci-against-nightly-builds)
      - [CI with Kong Enterprise](#ci-with-kong-enterprise)
      - [CI with Kong Enterprise nightly](#ci-with-kong-enterprise-nightly)
+ - [Running Pongo in Docker](#running-pongo-in-docker)
  - [Releasing new Kong versions](#releasing-new-kong-versions)
 
 
@@ -555,6 +556,88 @@ For this to work the following variables must be present:
 
 At least the api-key must be encrypted as a secret. Follow the instructions above
 to encrypt and add them to the `.travis.yml` file.
+
+[Back to ToC](#table-of-contents)
+
+## Running Pongo in Docker
+
+Pongo relies on Docker and Docker-compose to recreate environments and test
+setups. So what if your environment is running Pongo itself in a Docker
+container?
+
+[Docker-in-Docker has some serious issues when used in CI](http://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/)
+(as it was intended for Docker development only).
+The proposed solution in that blog post actually works with Pongo. By starting
+the container running Pongo with the
+
+    -v /var/run/docker.sock:/var/run/docker.sock
+
+option, the container will get control over the Docker deamon on the host. The
+means that the test environment spun up by Pongo will not run inside the Pongo
+container (as children) but along side the Pongo container (as siblings).
+To share the plugin code and tests with the (sibling) test container Pongo will
+need a shared working directory on the host. This working directory must be
+mapped to `/pongo_wd` on the container running Pongo.
+
+So combined the container running Pongo must be started like so:
+
+    docker run -it \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      -v /some/pongo/working/dir:/pongo_wd \
+      ubuntu /bin/bash
+
+_**WARNING**: make sure to read up on the security consequences this has! You are allowing a Docker container to control the Docker deamon on the host!_
+
+[Back to ToC](#table-of-contents)
+
+### A walkthrough
+
+1. Start a container to run Pongo;
+
+        docker run -it --rm \
+          -v /var/run/docker.sock:/var/run/docker.sock \
+          -v /some/pongo/working/dir:/pongo_wd \
+          ubuntu /bin/bash
+
+1. Prepare the container; install dependencies and Pongo
+
+        apt update
+        apt install -y git curl docker-compose
+
+        cd ~
+        git clone https://github.com/Kong/kong-pongo.git
+        mkdir -p ~/.local/bin
+        ln -s $(realpath ./kong-pongo/pongo.sh) ~/.local/bin/pongo
+        export PATH=$PATH:~/.local/bin
+
+1. Clone the plugin to test
+
+    IMPORTANT: this is shared, and hence MUST be in `/pongo_wd`, since that
+    is mapped to the provided working directory on the host.
+
+        cd /pongo_wd
+        git clone https://github.com/Kong/kong-plugin.git
+        cd kong-plugin
+
+1. Run Pongo
+
+    Since we share the docker environment/daemon with the host, we first restart
+    to make sure the environment is clean (`restart`). And then we run the tests
+    (`lint` and `run`).
+
+        pongo restart
+        pongo lint
+        pongo run
+
+1. Cleanup and exit
+
+    The test environment runs on the host docker environment/daemon, so when
+    this Pongo container exits we do not want anything to be left behind on the
+    host, hence we shutdown the environment explicitly.
+
+        pongo down
+        exit
+
 
 [Back to ToC](#table-of-contents)
 
