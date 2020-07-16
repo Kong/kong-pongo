@@ -78,6 +78,7 @@ Pongo provides a simple way of testing Kong plugins
  - [Requirements](#requirements)
  - [Installation](#installation)
  - [Do a test run](#do-a-test-run)
+ - [Pongo on Windows](#pongo-on-windows)
  - [Test dependencies](#test-dependencies)
     - Postgres (Kong datastore)
     - Cassandra (Kong datastore)
@@ -161,6 +162,45 @@ start the test environment. When done, the test environment can be torn down by:
 ```shell
 pongo down
 ```
+
+[Back to ToC](#table-of-contents)
+
+## Pongo on Windows
+
+To run Pongo on Windows you can use [WSL2](https://docs.microsoft.com/windows/wsl/)
+(Windows Subsystem for Linux).
+
+* install WSL2
+* install Docker for Windows
+* from the Microsoft Store install Debian (search for `wsl`)
+* start Debian (should be in your start menu)
+* now from the prompt install Pongo and some dependencies;
+
+      sudo apt update
+      sudo apt install git curl coreutils
+
+      cd ~
+      git clone git@github.com:Kong/kong-pongo.git
+      mkdir -p ~/.local/bin
+      ln -s $(realpath kong-pongo/pongo.sh) ~/.local/bin/pongo
+      PATH=$PATH:~/.local/bin
+
+* Open Docker for Windows and open the settings
+* under "General" enable using the WSL2 engine
+* under "Resources - WSL integration" enable integration with the Debian package
+
+You can now edit your code with your favorite Windows IDE or editor and then run
+the tests with Pongo.
+
+To give this a try using the template plugin;
+
+* download or clone `https://github.com/Kong/kong-plugin.git` (assuming this to
+  land in `C:\users\tieske\code\kong-plugin`)
+* start Debian and at the prompt do:
+
+      cd /mnt/c/users/tieske/code/kong-plugin
+      pongo run
+
 
 [Back to ToC](#table-of-contents)
 
