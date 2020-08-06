@@ -196,7 +196,7 @@ Environment variables:
 Example usage:
   $(basename $0) run
   KONG_VERSION=1.3.x $(basename $0) run -v -o gtest ./spec/02-access_spec.lua
-  POSTGRES=9.4 KONG_IMAGE=kong-ee $(basename $0) run
+  POSTGRES=10 KONG_IMAGE=kong-ee $(basename $0) run
   $(basename $0) down
 
 EOF
