@@ -20,7 +20,7 @@ Options (can also be added to '.pongo/pongorc'):
 
 Project actions:
   init          initializes the current plugin directory with some default
-                configuration files if not already there
+                configuration files if not already there (not required)
 
   lint          will run the LuaCheck linter
 

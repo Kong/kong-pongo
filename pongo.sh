@@ -150,7 +150,7 @@ Options (can also be added to '.pongo/pongorc'):
 
 Project actions:
   init          initializes the current plugin directory with some default
-                configuration files if not already there
+                configuration files if not already there (not required)
 
   lint          will run the LuaCheck linter
 
@@ -741,6 +741,24 @@ function initialize_repo {
       fi
     done;
     msg "added '.pongo/pongorc' config file for Pongo test dependencies"
+  fi
+
+  if [ ! -f ".gitignore" ]; then
+    touch .gitignore
+  fi
+  if grep --quiet ^servroot$ .gitignore ; then
+    msg "'.gitignore' already ignores 'servroot'"
+  else
+    echo "# servroot typically is the Kong working directory for tests" >> .gitignore
+    echo "servroot" >> .gitignore
+    msg "added 'servroot' to '.gitignore'"
+  fi
+  if grep --quiet ^[*][.]rock$ .gitignore ; then
+    msg "'.gitignore' already ignores '*.rock'"
+  else
+    echo "# exclude generated packed rocks" >> .gitignore
+    echo "*.rock" >> .gitignore
+    msg "added '*.rock' to '.gitignore'"
   fi
 }
 
