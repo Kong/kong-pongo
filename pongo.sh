@@ -149,6 +149,9 @@ Options (can also be added to '.pongo/pongorc'):
   --squid            do start squid forward-proxy (see readme for info)
 
 Project actions:
+  init          initializes the current plugin directory with some default
+                configuration files if not already there (not required)
+
   lint          will run the LuaCheck linter
 
   pack          will pack all '*.rockspec' files into '*.rock' files for
@@ -668,6 +671,98 @@ function cleanup {
 }
 
 
+function initialize_repo {
+  local pluginname
+  # derive pluginname
+  if [[ -d ./kong/plugins/ ]]; then
+    for dir in $(find ./kong/plugins -maxdepth 1 -mindepth 1 -type d); do
+      dir=${dir##*/}    # grab everything after the final "/"
+      msg "found plugin directory: ./kong/plugins/$dir"
+      if [[ "$pluginname" == "" ]]; then
+        # found a name
+        pluginname=$dir
+      elif [[ ! "$pluginname" == "@" ]]; then
+        # found multiple names
+        pluginname="@"
+      fi
+    done
+  fi
+  if [[ "$pluginname" == "" ]]; then
+    msg "no plugin-code folders found, e.g. './kong/plugins/<plugin_name>'"
+  fi
+
+  if [[ "$pluginname" == "" ]]; then
+    local dirname=$(basename -- $(pwd))
+    if [[ "kong-plugin-" == "${dirname:0:12}" ]]; then
+      pluginname=${dirname#"kong-plugin-"}
+      msg "found current working directory; ./kong-plugin-$pluginname"
+    fi
+  fi
+
+  if [[ "$pluginname" == "" ]]; then
+    msg "current working dir has no plugin name, e.g. 'kong-plugin-<plugin_name>'"
+    err "could not detect current working dir to be a kong-plugin dir."
+  fi
+
+  if [ -f ".busted" ]; then
+    msg "'.busted' config file already present"
+  else
+    cp "$LOCAL_PATH/assets/init.busted" .busted
+    msg "added '.busted' config file for the Busted test framework"
+  fi
+
+  if [ -f ".editorconfig" ]; then
+    msg "'.editorconfig' config file already present"
+  else
+    cp "$LOCAL_PATH/assets/init.editorconfig" .editorconfig
+    msg "added '.editorconfig' config file with editor defaults and style items"
+  fi
+
+  if [ -f ".luacheckrc" ]; then
+    msg "'.luacheckrc' config file already present"
+  else
+    cp "$LOCAL_PATH/assets/init.luacheckrc" .luacheckrc
+    msg "added '.luacheckrc' config file for the LuaCheck linter"
+  fi
+
+  if [ -f ".pongo/pongorc" ]; then
+    msg "'.pongo/pongorc' config file already present"
+  else
+    if [ ! -d ".pongo" ]; then
+      mkdir .pongo
+    fi
+    touch .pongo/pongorc
+
+    for dep_name in ${KONG_DEPS_AVAILABLE[*]}; do
+      if $(array_contains KONG_DEPS_START "$dep_name"); then
+        echo "--$dep_name" >> .pongo/pongorc
+      #else
+      #  echo "--no-$dep_name" >> .pongo/pongorc
+      fi
+    done;
+    msg "added '.pongo/pongorc' config file for Pongo test dependencies"
+  fi
+
+  if [ ! -f ".gitignore" ]; then
+    touch .gitignore
+  fi
+  if grep --quiet ^servroot$ .gitignore ; then
+    msg "'.gitignore' already ignores 'servroot'"
+  else
+    echo "# servroot typically is the Kong working directory for tests" >> .gitignore
+    echo "servroot" >> .gitignore
+    msg "added 'servroot' to '.gitignore'"
+  fi
+  if grep --quiet ^[*][.]rock$ .gitignore ; then
+    msg "'.gitignore' already ignores '*.rock'"
+  else
+    echo "# exclude generated packed rocks" >> .gitignore
+    echo "*.rock" >> .gitignore
+    msg "added '*.rock' to '.gitignore'"
+  fi
+}
+
+
 function main {
   parse_args "$@"
 
@@ -874,6 +969,10 @@ function main {
     echo ====================
     docker images "${PROJECT_NAME}*"
     echo
+    ;;
+
+  init)
+    initialize_repo
     ;;
 
   clean)

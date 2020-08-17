@@ -19,6 +19,9 @@ Options (can also be added to '.pongo/pongorc'):
   --squid            do start squid forward-proxy (see readme for info)
 
 Project actions:
+  init          initializes the current plugin directory with some default
+                configuration files if not already there (not required)
+
   lint          will run the LuaCheck linter
 
   pack          will pack all '*.rockspec' files into '*.rock' files for
