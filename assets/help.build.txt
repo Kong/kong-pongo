@@ -1,0 +1,22 @@
+Usage: pongo build [--force]
+
+This will build a Kong test image if it does not already exist. To force a
+rebuild of an image use the '--force' flag.
+
+The base image used to build the test image can be specified using the
+following 2 environment variables:
+
+  KONG_VERSION  the specific Kong version to use when building the test image
+                (note that the patch-version can be 'x' to use latest).
+                2 special case; 'nightly' and 'nightly-ee' can be specified to
+                use the nightly builds.
+
+  KONG_IMAGE    the base Kong Docker image to use when building the test image
+
+If neither is specified it will default to the latest Kong open source version.
+
+
+Example usage:
+  KONG_VERSION=1.3.x pongo build --force
+  KONG_VERSION=nightly-ee pongo build
+  KONG_IMAGE=custom-kong-ee pongo build

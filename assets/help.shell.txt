@@ -1,0 +1,15 @@
+Usage: pongo shell [command]
+
+Starts a shell or runs a command in a Pongo test container. The test container
+will automatically be build if not available, but the environment will not be
+automatically started.
+
+Environment variables:
+  See variables at 'pongo build' for building the test-image (the Kong version
+  to open the shell in)
+
+
+Example usage:
+  pongo shell
+  KONG_VERSION=2.1.x pongo shell kong version
+  pongo up && pongo shell kong migrations bootstrap

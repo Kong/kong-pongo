@@ -1,0 +1,11 @@
+Usage: pongo restart
+
+This is a shortcut to 'pongo down && pongo up'. It will stop and restart the
+environment.
+
+Environment variables:
+  it uses the same environment variables as 'pongo up'.
+
+
+Example usage:
+  pongo restart

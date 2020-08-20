@@ -1,0 +1,13 @@
+Usage: pongo tail [logfile]
+
+Will start a tail on the specified file. The default file is
+'./servroot/logs/error.log'. If the file does not exist, it will wait for 5
+minutes for the file to appear.
+
+When doing a test run this command can be used to tail the log file to check
+for any errors or debug information in a second terminal.
+
+
+Example usage:
+  pongo tail
+  pongo tail ./servroot/logs/access.log

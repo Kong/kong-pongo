@@ -1,0 +1,38 @@
+Usage: pongo up [options...]
+
+Starts the docker-compose environment with required dependency containers for
+testing.
+
+The dependecies can be specified using their name and prefixes by either '--'
+or '--no-'. The only 2 dependencies started by default are 'postgres' and
+'cassandra'. The defaults for a repository can be set by specifying them in the
+'.pongo/pongorc' configuration file (one option per line, including the '--'
+and '--no-' prefixes).
+
+Custom (plugin specific) dependencies can be specified by providing a
+docker-compose yaml file in '.pongo'. For an example see:
+https://github.com/Kong/kong-plugin-zipkin/blob/master/.pongo/zipkin.yml
+
+Check the output of 'pongo status' for the dependencies available in the current
+repository (custom dependencies must be listed in '.pongo/pongorc' to be shown).
+
+
+Default available dependencies:
+  --no-cassandra     do not start cassandra db
+  --no-postgres      do not start postgres db
+  --grpcbin          do start grpcbin (see readme for info)
+  --redis            do start redis db (see readme for info)
+  --squid            do start squid forward-proxy (see readme for info)
+
+
+Environment variables:
+  POSTGRES      the version of the Postgres dependency to use (default 9.5)
+  CASSANDRA     the version of the Cassandra dependency to use (default 3.9)
+  REDIS         the version of the Redis dependency to use (default 5.0.4)
+  SQUID         the version of the Squid dependency to use (default 3.5.27-2)
+Custom dependencies may have their own variables.
+
+
+Example usage:
+  pongo up
+  pongo up --no-cassandra --customdependency
