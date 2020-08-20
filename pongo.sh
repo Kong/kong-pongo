@@ -125,84 +125,42 @@ function check_docker {
   fi
 }
 
+function logo {
+local BLUE='\033[0;36m'
+local BROWN='\033[1;33m'
+echo -e "${BLUE}"
+echo -e "                ${BROWN}/~\\ ${BLUE}"
+echo -e "  ______       ${BROWN}C oo${BLUE}"
+echo -e "  | ___ \      ${BROWN}_( ^)${BLUE}"
+echo -e "  | |_/ /__  _${BROWN}/${BLUE}__ ${BROWN}~\ ${BLUE}__   ___"
+echo -e "  |  __/ _ \| '_ \ ${BROWN}/${BLUE} _\` |/ _ \\"
+echo -e "  | | | (_) | | | | (_| | (_) |"
+echo -e "  \_|  \___/|_| |_|\__, |\___/"
+echo -e "                    __/ |"
+echo -e "                   |___/"
+echo -e "\033[0m"
+}
+
 
 function usage {
-cat << EOF
-
-                /~\\
-  ______       C oo
-  | ___ \      _( ^)
-  | |_/ /__  _/__ ~\ __   ___
-  |  __/ _ \| '_ \ / _\` |/ _ \\
-  | | | (_) | | | | (_| | (_) |
-  \_|  \___/|_| |_|\__, |\___/
-                    __/ |
-                   |___/
-
-Usage: $(basename $0) action [options...] [--] [action options...]
-
-Options (can also be added to '.pongo/pongorc'):
-  --no-cassandra     do not start cassandra db
-  --no-postgres      do not start postgres db
-  --grpcbin          do start grpcbin (see readme for info)
-  --redis            do start redis db (see readme for info)
-  --squid            do start squid forward-proxy (see readme for info)
-
-Project actions:
-  init          initializes the current plugin directory with some default
-                configuration files if not already there (not required)
-
-  lint          will run the LuaCheck linter
-
-  pack          will pack all '*.rockspec' files into '*.rock' files for
-                distribution (see LuaRocks package manager docs)
-
-  run           run spec files, accepts Busted options and spec files/folders
-                as arguments, see: '$(basename $0) run -- --help'
-
-  shell         get a shell directly on a kong container
-
-  tail          starts a tail on the specified file. Default file is
-                ./servroot/logs/error.log, an alternate file can be specified
-
-Environment actions:
-  build         build the Kong test image, add '--force' to rebuild images
-
-  clean / nuke  removes the dependency containers and deletes all test images
-
-  down          remove all dependency containers
-
-  restart       shortcut, a combination of; down + up
-
-  status        show status of the Pongo network, images, and containers
-
-  up            start required dependency containers for testing
-
-Maintenance actions:
-  update        update embedded artifacts for building test images
-
-
-Environment variables:
-  KONG_VERSION  the specific Kong version to use when building the test image
-                (note that the patch-version can be 'x' to use latest)
-
-  KONG_IMAGE    the base Kong Docker image to use when building the test image
-
-  KONG_LICENSE_DATA
-                set this variable with the Kong Enterprise license data
-
-  POSTGRES      the version of the Postgres dependency to use (default 9.5)
-  CASSANDRA     the version of the Cassandra dependency to use (default 3.9)
-  REDIS         the version of the Redis dependency to use (default 5.0.4)
-  SQUID         the version of the Squid dependency to use (default 3.5.27-2)
-
-Example usage:
-  $(basename $0) run
-  KONG_VERSION=1.3.x $(basename $0) run -v -o gtest ./spec/02-access_spec.lua
-  POSTGRES=10 KONG_IMAGE=kong-ee $(basename $0) run
-  $(basename $0) down
-
-EOF
+  case "$1" in
+    pongo|init|lint|pack|run|shell|tail|build|nuke|clean|down|restart|status|up|update)
+      logo
+      if [ -f "$LOCAL_PATH/assets/help.$1.txt" ]; then
+        cat "$LOCAL_PATH/assets/help.$1.txt"
+      else
+        echo "Help for the '$1' command is not yet available"
+      fi
+      echo ""
+      exit 0
+      ;;
+    *)
+      logo
+      cat "$LOCAL_PATH/assets/help.pongo.txt"
+      echo ""
+      exit 1
+      ;;
+  esac
 }
 
 
@@ -303,6 +261,14 @@ function parse_args {
   PONGO_ARGS+=("$PONGO_COMMAND")
   shift
 
+  # check for help
+  if [ "$PONGO_COMMAND" == "--help" ] || [ "$PONGO_COMMAND" == "-h" ] || [ "$PONGO_COMMAND" == "" ]; then
+    usage pongo
+  fi
+  if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
+    usage $PONGO_COMMAND
+  fi
+
   # only add RC file parameters if command allows it
   for rc_command in ${RC_COMMANDS[*]}; do
     if [[ "$rc_command" == "$PONGO_COMMAND" ]]; then
@@ -312,12 +278,6 @@ function parse_args {
       done;
     fi
   done;
-
-  # check for help
-  if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
-    usage
-    exit 0
-  fi
 
   # add remaining arguments from the command line
   while [[ $# -gt 0 ]]; do
@@ -906,9 +866,13 @@ function main {
       -e "PS1=\[\e[00m\]\[\033[1;34m\]["$shellprompt":\[\033[1;92m\]\w\[\033[1;34m\]]#\[\033[00m\] " \
       kong $exec_cmd
 
+    local result=$?
+
     if [[ "$cleanup" == "true" ]]; then
       rm -rf "./servroot"
     fi
+
+    exit $result
     ;;
 
   lint)
@@ -996,7 +960,6 @@ function main {
 
   *)
     usage
-    exit 1
     ;;
   esac
 }

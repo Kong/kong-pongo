@@ -1,0 +1,26 @@
+Usage: pongo init
+
+Initializes the current plugin directory with some default configuration files
+if not already there. It is not required to run 'pongo init' on a plugin to be
+able to use Pongo.
+
+When run it will validate that the directory is a plugin, when either;
+ - there is a sub-directory './kong/plugins/<xyz>', or
+ - the current directory is named 'kong-plugin-<xyz>'
+
+The files added (if not there):
+ - '.busted' with default settings for the test Busted framework
+ - '.luacheckrc' with sanity checks for the Lua source code using the 'luacheck'
+   linter through 'pongo lint'.
+ - '.editorconfig' containing default editor settings
+ - '.gitignore'
+
+If the '.gitignore' file already exists it will add the following entries:
+ - 'servroot' which is the working directory/prefix when running tests
+ - '*.rock' the binary rock format created by LuaRocks and/or 'pongo pack'
+
+
+Example usage:
+  mkdir kong-plugin-awesome
+  cd kong-plugin-awesome
+  pongo init

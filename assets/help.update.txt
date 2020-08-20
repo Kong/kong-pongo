@@ -1,0 +1,9 @@
+Usage: pongo update
+
+This will update the embedded artifacts for building test images. This is not
+necessary for any user to use. It is only used when new Kong versions are
+released. Users should pull the latest Pongo repo instead to update.
+
+
+Example usage:
+  do not use

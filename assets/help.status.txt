@@ -1,0 +1,13 @@
+Usage: pongo status
+
+Will list:
+ - the Pongo network
+ - available dependencies
+ - currently running dependency containers
+ - cached test-images previously build
+
+NOTE: custom dependencies must be listed in '.pongo/pongorc' to be shown
+
+
+Example usage:
+  pongo status

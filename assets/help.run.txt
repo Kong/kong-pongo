@@ -1,0 +1,46 @@
+Usage: pongo run [options...] [--] [busted options...]
+
+This will start a test run. If an environment is running it will use that, if
+not, it will automatically start the environment (and automatically build the
+Kong test images in the process).
+
+Options (see 'pongo up' for details):
+  --no-cassandra     do not start cassandra db
+  --no-postgres      do not start postgres db
+  --grpcbin          do start grpcbin
+  etc.
+
+Busted options:
+  The defaults in '.busted' (see 'pongo init' on how to generate it) will be
+  used, but can be overridden by the options on the command line. The '--'
+  commandline separator is not required but might prevent collissions for
+  similar named 'busted' and 'pongo' options.
+  Use 'pongo run -- --help' to get the busted commandline help.
+
+  NOTE: the filepaths specified will automatically be converted to the same
+  path, but mounted inside the container, eg:
+
+     pongo run -- ./spec/01-schema_spec.lua
+
+  would run inside the container as:
+
+     busted /kong-plugin/spec/01-schema_spec.lua
+
+  So the paths in the test output need to be converted back to the original
+  files.
+  The default is set to './spec' and cannot be overridden using the '.busted'
+  configuration file.
+
+Environment variables:
+  See variables at 'pongo up' for auto starting the environment (not used when
+  an environment is already running)
+
+  See variables at 'pongo build' for building the test-image (the Kong version
+  to test against)
+
+
+Example usage:
+  pongo run
+  KONG_VERSION=nightly pongo run
+  KONG_VERSION=1.3.x pongo run -v -o TAP ./spec/02-access_spec.lua
+  POSTGRES=10 KONG_IMAGE=kong-ee pongo run

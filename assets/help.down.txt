@@ -1,0 +1,8 @@
+Usage: pongo down
+
+This will stop the environment and remove all dependency containers (eg.
+postgres, etc.). This also means that any state in those containers is lost.
+
+
+Example usage:
+  pongo down
