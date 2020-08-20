@@ -313,6 +313,12 @@ function parse_args {
     fi
   done;
 
+  # check for help
+  if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
+    usage
+    exit 0
+  fi
+
   # add remaining arguments from the command line
   while [[ $# -gt 0 ]]; do
     PONGO_ARGS+=("$1")
@@ -326,9 +332,6 @@ function parse_args {
       case "$pongo_arg" in
         --)
           args_done=1
-          ;;
-        --help|-h)
-          usage; exit 0
           ;;
         --debug)
           set -x
@@ -350,8 +353,8 @@ function validate_version {
     return
   fi
   err "Version '$version' is not supported, supported versions are:
-  Kong: ${KONG_CE_VERSIONS[@]}
-  Kong Enterprise: ${KONG_EE_VERSIONS[@]}
+  Kong: ${KONG_CE_VERSIONS[@]} (nightly)
+  Kong Enterprise: ${KONG_EE_VERSIONS[@]} (nightly-ee)
 
 If the '$version' is valid but not listed, you can try to update Pongo first, and then retry."
 }
@@ -582,7 +585,7 @@ function compose_up {
 function ensure_available {
   compose ps | grep "Up (health" &> /dev/null
   if [[ ! $? -eq 0 ]]; then
-    msg "auto-starting the test environment, use the 'down' action to stop it"
+    msg "auto-starting the test environment, use the 'pongo down' action to stop it"
     compose_up
   fi
 
@@ -612,7 +615,7 @@ function build_image {
   if [[ $? -eq 0 ]]; then
     msg "image '$KONG_TEST_IMAGE' already exists"
     if [ "$FORCE_BUILD" = false ] ; then
-      msg "use 'build --force' to rebuild"
+      msg "use 'pongo build --force' to rebuild"
       return 0
     fi
     msg "rebuilding..."
@@ -624,6 +627,7 @@ function build_image {
     update_nightly $KONG_VERSION $VERSION
   fi
 
+  msg "starting build of image '$KONG_TEST_IMAGE'"
   docker build \
     -f "$DOCKER_FILE" \
     --build-arg KONG_BASE="$KONG_IMAGE" \
