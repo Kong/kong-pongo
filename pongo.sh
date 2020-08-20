@@ -889,6 +889,13 @@ function main {
       cleanup=true
     fi
 
+    local exec_cmd
+    if [[ "${EXTRA_ARGS[@]}" == "" ]]; then
+      exec_cmd=sh
+    else
+      exec_cmd="${EXTRA_ARGS[@]}"
+    fi
+
     compose run --rm \
       -e KONG_LICENSE_DATA \
       -e KONG_LOG_LEVEL \
@@ -897,7 +904,7 @@ function main {
       -e "KONG_PLUGINS=$PLUGINS" \
       -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
       -e "PS1=\[\e[00m\]\[\033[1;34m\]["$shellprompt":\[\033[1;92m\]\w\[\033[1;34m\]]#\[\033[00m\] " \
-      kong sh
+      kong $exec_cmd
 
     if [[ "$cleanup" == "true" ]]; then
       rm -rf "./servroot"
