@@ -102,8 +102,8 @@ update_artifacts
 if [[ ! "$?" == "99" ]]; then
   warn "Nothing was updated? nothing to commit. Please check the version"
   warn "you have added to be a valid one."
-  git checkout $PREVIOUS_BRANCH
-  git branch -D $BRANCH_NAME
+  git checkout $PREVIOUS_BRANCH &> /dev/null
+  git branch -D $BRANCH_NAME &> /dev/null
   exit 1
 fi
 
@@ -115,15 +115,24 @@ else
   git commit -q --message="chore(version) added Kong Enterprise version $ADD_VERSION artifacts"
 fi
 
-# push to remote anmd create a PR
+# push to remote and create a PR
 if [[ "$DRY_RUN" == "" ]]; then
   git push --set-upstream origin $BRANCH_NAME
+  if [[ ! $? -eq 0 ]]; then
+    git checkout $PREVIOUS_BRANCH &> /dev/null
+    err "Failed to push the branch '$BRANCH_NAME' to the remote git repo"
+  fi
 else
   warn "[TEST-RUN skipping] git push --set-upstream origin $BRANCH_NAME"
 fi
 msg "Now creating a Github pull-request:"
 if [[ "$DRY_RUN" == "" ]]; then
   hub pull-request --no-edit
+  if [[ ! $? -eq 0 ]]; then
+    git checkout $PREVIOUS_BRANCH &> /dev/null
+    git branch -D $BRANCH_NAME &> /dev/null
+    err "Failed to create a PR from the '$BRANCH_NAME' branch"
+  fi
 else
   warn "[TEST-RUN skipping] hub pull-request --no-edit"
 fi
@@ -133,6 +142,7 @@ msg "with the following commits:"
 git log --oneline -2
 echo
 git checkout $PREVIOUS_BRANCH &> /dev/null
+git branch -D $BRANCH_NAME &> /dev/null
 msg "done. Goto https://github.com/kong/kong-pongo/pulls to checkout the new PR."
 if [[ ! "$DRY_RUN" == "" ]]; then
   warn "test-run completed, nothing was written! re-run without 'test' to push the changes."
