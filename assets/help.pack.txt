@@ -1,62 +1,14 @@
-Usage: pongo <action> [options...] [--] [action options...]
+Usage: pongo pack
 
-Options (can also be added to '.pongo/pongorc'):
-  --no-cassandra     do not start cassandra db
-  --no-postgres      do not start postgres db
-  --grpcbin          do start grpcbin (see readme for info)
-  --redis            do start redis db (see readme for info)
-  --squid            do start squid forward-proxy (see readme for info)
+This will pack all '*.rockspec' files into '*.rock' files for distribution.
 
-Project actions:
-  init          initializes the current plugin directory with some default
-                configuration files if not already there (not required)
+LuaRocks is the package manager for Lua modules and is also used by (and
+shipped with) Kong. To package a plugin for distribution the package needs to
+be specifed using a 'rockspec' file (see LuaRocks documentation or other
+Kong-plugins for details).
 
-  lint          will run the LuaCheck linter
+On any Kong system 'luarocks install <rockname.rock>' should install the plugin.
 
-  pack          will pack all '*.rockspec' files into '*.rock' files for
-                distribution (see LuaRocks package manager docs)
-
-  run           run spec files, accepts Busted options and spec files/folders
-                as arguments, see: 'pongo run -- --help'
-
-  shell         get a shell directly on a kong container
-
-  tail          starts a tail on the specified file. Default file is
-                ./servroot/logs/error.log, an alternate file can be specified
-
-Environment actions:
-  build         build the Kong test image, add '--force' to rebuild images
-
-  clean / nuke  removes the dependency containers and deletes all test images
-
-  down          remove all dependency containers
-
-  restart       shortcut, a combination of; down + up
-
-  status        show status of the Pongo network, images, and containers
-
-  up            start required dependency containers for testing
-
-Maintenance actions:
-  update        update embedded artifacts for building test images
-
-
-Environment variables:
-  KONG_VERSION  the specific Kong version to use when building the test image
-                (note that the patch-version can be 'x' to use latest)
-
-  KONG_IMAGE    the base Kong Docker image to use when building the test image
-
-  KONG_LICENSE_DATA
-                set this variable with the Kong Enterprise license data
-
-  POSTGRES      the version of the Postgres dependency to use (default 9.5)
-  CASSANDRA     the version of the Cassandra dependency to use (default 3.9)
-  REDIS         the version of the Redis dependency to use (default 5.0.4)
-  SQUID         the version of the Squid dependency to use (default 3.5.27-2)
 
 Example usage:
-  pongo run
-  KONG_VERSION=1.3.x pongo run -v -o gtest ./spec/02-access_spec.lua
-  POSTGRES=10 KONG_IMAGE=kong-ee pongo run
-  pongo down
+  pongo pack
