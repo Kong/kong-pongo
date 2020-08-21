@@ -12,10 +12,14 @@ function update_repo {
 
     if [ ! -d "./$repo_name" ]; then
         local repo_url
-        if [[ "$GITHUB_TOKEN" == "" ]]; then
+
+        # trim any whitespace from the token, just in case
+        local token=${GITHUB_TOKEN// /}
+
+        if [[ "$token" == "" ]]; then
             repo_url=https://github.com/kong/$repo_name.git
         else
-            repo_url=https://$GITHUB_TOKEN:@github.com/kong/$repo_name.git
+            repo_url=https://$token:@github.com/kong/$repo_name.git
         fi
         git clone -q $repo_url
         if [ ! $? -eq 0 ]; then
