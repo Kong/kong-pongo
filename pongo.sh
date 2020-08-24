@@ -849,17 +849,18 @@ function main {
       cleanup=true
     fi
 
-    local exec_cmd
-    if [[ "${EXTRA_ARGS[@]}" == "" ]]; then
-      exec_cmd=sh
-    else
-      exec_cmd="${EXTRA_ARGS[@]}"
+    local exec_cmd="${EXTRA_ARGS[@]}"
+    local suppress_kong_version="true"
+    if [[ "$exec_cmd" == "" ]]; then
+      exec_cmd="sh"
+      suppress_kong_version="false"
     fi
 
     compose run --rm \
       -e KONG_LICENSE_DATA \
       -e KONG_LOG_LEVEL \
       -e KONG_ANONYMOUS_REPORTS \
+      -e "SUPPRESS_KONG_VERSION=$suppress_kong_version" \
       -e "KONG_PG_DATABASE=kong_tests" \
       -e "KONG_PLUGINS=$PLUGINS" \
       -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \

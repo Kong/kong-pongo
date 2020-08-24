@@ -76,5 +76,8 @@ fi
 unset pongo_setup
 
 
-echo "Kong version: $(kong version)"
+if [ ! "$SUPPRESS_KONG_VERSION" == "true" ]; then
+  echo "Kong version: $(kong version)"
+fi
+
 exec "$@"
