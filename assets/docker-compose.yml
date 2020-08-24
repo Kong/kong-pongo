@@ -55,8 +55,8 @@ services:
   squid:
     image: sameersbn/squid:${SQUID:-3.5.27-2}
     volumes:
-      - ./squid.conf:/etc/squid/squid.conf
-      - ./squid.passwords:/etc/squid/passwords
+      - ./squid/squid.conf:/etc/squid/squid.conf
+      - ./squid/passwords:/etc/squid/passwords
     healthcheck:
       interval: 5s
       retries: 10

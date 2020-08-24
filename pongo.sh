@@ -146,8 +146,8 @@ function usage {
   case "$1" in
     pongo|init|lint|pack|run|shell|tail|build|nuke|clean|down|restart|status|up|update)
       logo
-      if [ -f "$LOCAL_PATH/assets/help.$1.txt" ]; then
-        cat "$LOCAL_PATH/assets/help.$1.txt"
+      if [ -f "$LOCAL_PATH/assets/help/$1.txt" ]; then
+        cat "$LOCAL_PATH/assets/help/$1.txt"
       else
         echo "Help for the '$1' command is not yet available"
       fi
@@ -156,7 +156,7 @@ function usage {
       ;;
     *)
       logo
-      cat "$LOCAL_PATH/assets/help.pongo.txt"
+      cat "$LOCAL_PATH/assets/help/pongo.txt"
       echo ""
       exit 1
       ;;
@@ -671,21 +671,21 @@ function initialize_repo {
   if [ -f ".busted" ]; then
     msg "'.busted' config file already present"
   else
-    cp "$LOCAL_PATH/assets/init.busted" .busted
+    cp "$LOCAL_PATH/assets/init/busted" .busted
     msg "added '.busted' config file for the Busted test framework"
   fi
 
   if [ -f ".editorconfig" ]; then
     msg "'.editorconfig' config file already present"
   else
-    cp "$LOCAL_PATH/assets/init.editorconfig" .editorconfig
+    cp "$LOCAL_PATH/assets/init/editorconfig" .editorconfig
     msg "added '.editorconfig' config file with editor defaults and style items"
   fi
 
   if [ -f ".luacheckrc" ]; then
     msg "'.luacheckrc' config file already present"
   else
-    cp "$LOCAL_PATH/assets/init.luacheckrc" .luacheckrc
+    cp "$LOCAL_PATH/assets/init/luacheckrc" .luacheckrc
     msg "added '.luacheckrc' config file for the LuaCheck linter"
   fi
 
