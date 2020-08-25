@@ -426,7 +426,10 @@ function get_license {
       if [[ "$BINTRAY_REPO" == "" ]]; then
         warn "BINTRAY_REPO is not set, might not be able to download the license!"
       fi
-      export KONG_LICENSE_DATA=$(curl -s -L -u"$BINTRAY_USERNAME:$BINTRAY_APIKEY" "https://kong.bintray.com/$BINTRAY_REPO/license.json")
+      if [[ "$BINTRAY_LICENSE_FILE" == "" ]]; then
+        warn "BINTRAY_LICENSE_FILE is not set, might not be able to download the license!"
+      fi
+      export KONG_LICENSE_DATA=$(curl -s -L -u"$BINTRAY_USERNAME:$BINTRAY_APIKEY" "https://kong.bintray.com/$BINTRAY_REPO/$BINTRAY_LICENSE_FILE")
       if [[ ! $KONG_LICENSE_DATA == *"signature"* || ! $KONG_LICENSE_DATA == *"payload"* ]]; then
         # the check above is a bit lame, but the best we can do without requiring
         # yet more additional dependenies like jq or similar.

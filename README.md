@@ -108,7 +108,8 @@ Set up the following when testing against Kong Enterprise:
   environment variables `BINTRAY_USERNAME` and `BINTRAY_APIKEY`, or manually
   log in to the Kong docker repo.
 * Have the Kong Enterprise license key, and set it in `KONG_LICENSE_DATA`,
-  alternatively set variable `BINTRAY_REPO` to your repository name (in addition
+  alternatively set variable `BINTRAY_REPO` to your repository name and 
+  'BINTRAY_LICENSE_FILE' to to the file name of your licenses json (in addition
   to `BINTRAY_USERNAME` and `BINTRAY_APIKEY`) to allow Pongo to download the
   license file automatically.
 * If you do not have Bintray credentials, make sure to have a docker image of
