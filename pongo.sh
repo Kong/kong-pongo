@@ -851,9 +851,21 @@ function main {
 
     local exec_cmd="${EXTRA_ARGS[@]}"
     local suppress_kong_version="true"
+    local script_mount=""
     if [[ "$exec_cmd" == "" ]]; then
+      # no args, so plain shell
       exec_cmd="sh"
       suppress_kong_version="false"
+    elif [[ "${exec_cmd:0:1}" == "@" ]]; then
+      # a script file as argument
+      local script=${EXTRA_ARGS[1]}
+      script=${script:1}
+      script=$(realpath "$script")
+      if [ ! -f "$script" ]; then
+        err "Not a valid script filename: $script"
+      fi
+      script_mount="-v $script:/kong/bin/shell_script.sh"
+      exec_cmd="sh /kong/bin/shell_script.sh"
     fi
 
     compose run --rm \
@@ -864,6 +876,7 @@ function main {
       -e "KONG_PG_DATABASE=kong_tests" \
       -e "KONG_PLUGINS=$PLUGINS" \
       -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
+      $script_mount \
       -e "PS1=\[\e[00m\]\[\033[1;34m\]["$shellprompt":\[\033[1;92m\]\w\[\033[1;34m\]]#\[\033[00m\] " \
       kong $exec_cmd
 

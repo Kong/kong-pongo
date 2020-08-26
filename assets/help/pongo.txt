@@ -19,7 +19,7 @@ Project actions:
   run           run spec files, accepts Busted options and spec files/folders
                 as arguments, see: 'pongo run -- --help'
 
-  shell         get a shell directly on a kong container
+  shell         get a shell or run a command directly on a kong container
 
   tail          starts a tail on the specified file. Default file is
                 ./servroot/logs/error.log, an alternate file can be specified
