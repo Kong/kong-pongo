@@ -7,4 +7,7 @@ install:
 	fi
 
 lint:
-	bash -c 'shopt -s globstar nullglob; shellcheck **/*.{sh,ksh,bash}'
+	bash -c 'shopt -s globstar nullglob &> /dev/null; shellcheck **/*.{sh,ksh,bash}'
+
+test:
+	assets/ci/test.sh --suite "Pongo test suite"
