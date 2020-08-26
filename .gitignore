@@ -3,3 +3,6 @@ kong/*
 kong-versions/nightly-ee/*
 kong-versions/nightly/*
 servroot
+kong
+kong-ee
+

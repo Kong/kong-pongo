@@ -4,6 +4,9 @@ Starts a shell or runs a command in a Pongo test container. The test container
 will automatically be build if not available, but the environment will not be
 automatically started.
 
+If the command is preceeded by '@' then it is interpreted as a script that will
+be executed inside the container as: "/bin/sh /kong/bin/shell_script.sh".
+
 Environment variables:
   See variables at 'pongo build' for building the test-image (the Kong version
   to open the shell in)
@@ -11,5 +14,6 @@ Environment variables:
 
 Example usage:
   pongo shell
+  pongo shell @./scripts/myscript.sh
   KONG_VERSION=2.1.x pongo shell kong version
   pongo up && pongo shell kong migrations bootstrap
