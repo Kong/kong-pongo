@@ -52,7 +52,7 @@ function globals {
   RC_COMMANDS=( "run" "up" "restart" )
   EXTRA_ARGS=()
 
-  # shellcheck source=./assets/set_variables.sh
+  # shellcheck disable=SC1090  # do not follow source
   source "${LOCAL_PATH}/assets/set_variables.sh"
   # resolve a '.x' to a real version; eg. "1.3.0.x" in $KONG_VERSION
   resolve_version
@@ -504,7 +504,7 @@ function compose {
   export SERVICE_NETWORK_NAME
   export KONG_TEST_IMAGE
   export PONGO_WD
-  # s hellcheck disable=SC2086  # we need DOCKER_COMPOSE_FILES to be word-split here
+  # shellcheck disable=SC2086  # we need DOCKER_COMPOSE_FILES to be word-split here
   docker-compose -p "${PROJECT_NAME}" ${DOCKER_COMPOSE_FILES} "$@"
 }
 
@@ -597,7 +597,7 @@ function build_image {
 
   if is_nightly "$KONG_VERSION"; then
     # nightly; we must fetch the related development files dynamically in this case
-    # shellcheck source=./assets/update_versions.sh
+    # shellcheck disable=SC1090  # do not follow source
     source "${LOCAL_PATH}/assets/update_versions.sh"
     update_nightly "$KONG_VERSION" "$VERSION"
   fi
@@ -954,7 +954,7 @@ function main {
     ;;
 
   update)
-    # shellcheck source=./assets/update_versions.sh
+    # shellcheck disable=SC1090  # do not follow source
     source "${LOCAL_PATH}/assets/update_versions.sh"
     update_artifacts
     exit $?

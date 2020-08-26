@@ -7,7 +7,7 @@ DRY_RUN=$3
 LOCAL_PATH=$(dirname "$(realpath "$0")")/..
 
 # load variables
-# shellcheck source=./assets/set_variables.sh
+# shellcheck disable=SC1090  # do not follow source
 source "${LOCAL_PATH}/assets/set_variables.sh"
 
 
@@ -80,7 +80,7 @@ fi
 mv "${VERSIONS_FILE}_tmp" "$VERSIONS_FILE"
 
 # reload variables to add the new version to our array
-# shellcheck source=./assets/set_variables.sh
+# shellcheck disable=SC1090  # do not follow source
 source "${LOCAL_PATH}/assets/set_variables.sh"
 
 # add the first commit with just the added version
@@ -98,7 +98,7 @@ else
 fi
 
 # add the artifacts and the second commit
-# shellcheck source=./assets/update_versions.sh
+# shellcheck disable=SC1090  # do not follow source
 source "${LOCAL_PATH}/assets/update_versions.sh"
 update_artifacts
 

@@ -1,0 +1,27 @@
+dist: bionic
+
+jobs:
+  include:
+  - name: pongo shell
+    env: TEST_SCRIPT=assets/ci/pongo_shell.test.sh
+  - name: pongo build
+    env: TEST_SCRIPT=assets/ci/pongo_build.test.sh
+
+env:
+  global:
+  # for Enterprise images
+  - BINTRAY_USERNAME=kong-automation@kong
+  - BINTRAY_REPO=kong
+  - secure: L4coZ1yUrZtKW6UTArgAFQZSEfIsWuetK4GdoWzYHFwuVHvytZfjtOtEHqeju1zZCigGhcnaz5cbSzpe/uMdCLyPwhmzHY8OVcq5LqYVSGrfiDqravgjK9CJoyKdazy8V2sk96LwgroOkbnpKcXzv9nvRXfKglBmwLUjNeikSOCxUlUGcf9k/JeVVXM08Nm7b8VVALMN4JzwROziAUIEJ8flC3Gmwd8rFsQzvCjwZjQLSIXnujQYZQFe6YjKSWvNqnQmZMRtycF4enHXLeWbrL/UQaaUm9lwBoofCA1wqoNVGt1hf1TK5yqP/LkZJ0r8YPlemmrLhAiYHCUiNVvXQ++sZOfaO8nrkPWzaKVGB6QxAcCKr10LEM3SV9ZHFZZrLItaD/C0O+R8iGx5e1wqpDcMtApyIUOIHDhMnMwSaPj2oTbDmmX/Nn7fuYoTwJpG0RrJ56xfppAdAgo8GAdibLFB81nRcdHC7/8WnLM+DO51AV7Rin3Qjw6rv8dGlTS8bh0QyupF8CML3b2TEDIv0R6kzSeQvSoWHUIG7Q3ItFWapyINiybCAdxEdjvAGpa7y5n4r5ljC8BMZM9fRPy/4OwzpuweCCkhct/NOrIs2fWtGLLPScrBvl8B4GLQzHI1XQnF6HOqLFaX0jiZx1SY0pV080bkaPGpezZqkS1B3Xo=
+  # for Nightly Enterprise images
+  - NIGHTLY_EE_USER=kong-automation@kong
+  - secure: GVKGtLfqVhinOXkvqHeV7lw5LcFK5dW/trlTYQHGtxWten4TTPy5xJf3zhxcaYBC0u2PyNxRascg6K17ujnwy7Y27iEEYva82qHKvkRBj+xvIW4lDo7XdrXX9wBxQr4P5X/+iYHwAWMecSRFRRcJ6uFZUNDHTnZ2AHfYAuYkf7YQta+1eWExQ4DihNuZKfoKvdUVg1uDUUuWwH4uW0Sa99mCxpfjwzgdVUqXS+Qvus3nXWqiQ3zV2VTme8SGd1t+sI4Z8pRA+Cr4bEPL6Jwq3FMcI5DpjR4YiQYd6IHIG+UcdpCa+3Qq3Oc6eIqo+iy1QI3jhZN/fz2a7deSAId0nWv/OAMnIQshlPa/lI5eT8oDJYha3ysOYVXbJoY0nD1kCOhdFKfgMROe2EzgOX9kaUnw6VNMALBQbHGEn9WI31ilqz6s1YnjLzy1V3482Qt1l2ECV9tdeqOugaJ4pIkiDvfTxXiLIh1rQEd9A3T6CcfrmKEPviXSdx8tes+n+/T6/XRGQZzOIU1RwiD4Z5uqnzdDspR/ipXGt4v+Jel3yvckOaYavcoQPTP2nytQUogP4zS9X+pek8uLJXLNo1c4au1CLi8drL3C1dGXCXiYJE0rTIesCoLkIIOrPwNNcBjfvS7vSzAppsrb2NaQQgvytQ2oIeiQk1p2pKOfadhFSYo=
+
+install:
+- sudo apt-get install figlet
+- make install
+- export PATH=~/.local/bin/:$PATH
+
+script:
+- make lint
+- assets/ci/test.sh --suite "Pongo test suite" $TEST_SCRIPT

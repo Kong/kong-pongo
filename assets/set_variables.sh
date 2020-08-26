@@ -65,6 +65,7 @@ create_all_versions_array
 # shellcheck disable=SC2034  # Unused variable: this script is 'sourced', so a false positive
 KONG_DEFAULT_VERSION="${KONG_CE_VERSIONS[ ${#KONG_CE_VERSIONS[@]}-1 ]}"
 
+
 function is_enterprise {
   local check_version=$1
   local VERSION
