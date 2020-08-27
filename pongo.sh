@@ -313,8 +313,8 @@ function validate_version {
     return
   fi
   err "Version '$version' is not supported, supported versions are:
-  Kong: ${KONG_CE_VERSIONS[@]} (nightly)
-  Kong Enterprise: ${KONG_EE_VERSIONS[@]} (nightly-ee)
+  Kong: ${KONG_CE_VERSIONS[@]} ($NIGHTLY_CE)
+  Kong Enterprise: ${KONG_EE_VERSIONS[@]} ($NIGHTLY_EE)
 
 If the '$version' is valid but not listed, you can try to update Pongo first, and then retry."
 }
