@@ -52,7 +52,8 @@ function globals {
   RC_COMMANDS=( "run" "up" "restart" )
   EXTRA_ARGS=()
 
-  source ${LOCAL_PATH}/assets/set_variables.sh
+  # shellcheck source=./assets/set_variables.sh
+  source "${LOCAL_PATH}/assets/set_variables.sh"
   # resolve a '.x' to a real version; eg. "1.3.0.x" in $KONG_VERSION
   resolve_version
 
@@ -107,7 +108,7 @@ function check_docker {
       warn "sure '/pongo_wd' doesn't exist."
     else
       #msg "Pongo container: $PONGO_CONTAINER_ID"
-      HOST_PATH=$(docker inspect $PONGO_CONTAINER_ID | grep ":/pongo_wd\"" | sed -e 's/^[ \t]*//' | sed s/\"//g | grep -o "^[^:]*")
+      HOST_PATH=$(docker inspect "$PONGO_CONTAINER_ID" | grep ":/pongo_wd\"" | sed -e 's/^[ \t]*//' | sed s/\"//g | grep -o "^[^:]*")
       #msg "Host working directory: $HOST_PATH"
     fi
     if [[ "$HOST_PATH" == "" ]]; then
@@ -169,6 +170,7 @@ function array_contains {
   local array="$1[@]"
   local seeking=$2
   local in=1
+  local element
   for element in "${!array}"; do
     if [[ "$element" == "$seeking" ]]; then
       in=0
@@ -181,7 +183,7 @@ function array_contains {
 
 function add_custom_dependency {
   local to_add=$1
-  if ! $(array_contains KONG_DEPS_AVAILABLE "$to_add"); then
+  if ! array_contains KONG_DEPS_AVAILABLE "$to_add"; then
     KONG_DEPS_AVAILABLE+=("$to_add")
     KONG_DEPS_CUSTOM+=("$to_add")
   fi
@@ -189,6 +191,8 @@ function add_custom_dependency {
 
 
 function read_rc_dependencies {
+  local rc_arg
+  # shellcheck disable=SC2153  # PONGORC_ARGS is defined in sourced file
   for rc_arg in ${PONGORC_ARGS[*]}; do
     if [[ "--no-" == "${rc_arg:0:5}" ]]; then
       rc_arg="${rc_arg:5}"
@@ -197,10 +201,11 @@ function read_rc_dependencies {
     else
       err "not a proper '$PONGORC_FILE' entry: $rc_arg, name must be prefixed with '--' or '--no-'"
     fi
-    add_custom_dependency $rc_arg
+    add_custom_dependency "$rc_arg"
   done;
   #msg "custom deps: ${KONG_DEPS_CUSTOM[@]}"
   #msg "all deps: ${KONG_DEPS_AVAILABLE[@]}"
+  local dependency
   for dependency in ${KONG_DEPS_CUSTOM[*]}; do
     local dcyml
     if [[ -f ".pongo/$dependency.yml" ]]; then
@@ -223,6 +228,7 @@ function add_dependency_start {
 function remove_dependency_start {
   local to_remove=$1
   local new_array=()
+  local dependency
   for dependency in ${KONG_DEPS_START[*]}; do
     if [[ "$dependency" != "$to_remove" ]]; then
       new_array+=("$dependency")
@@ -266,13 +272,15 @@ function parse_args {
     usage pongo
   fi
   if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
-    usage $PONGO_COMMAND
+    usage "$PONGO_COMMAND"
   fi
 
   # only add RC file parameters if command allows it
+  local rc_command
   for rc_command in ${RC_COMMANDS[*]}; do
     if [[ "$rc_command" == "$PONGO_COMMAND" ]]; then
       # add all the Pongo RC args
+      local rc_arg
       for rc_arg in ${PONGORC_ARGS[*]}; do
         PONGO_ARGS+=("$rc_arg")
       done;
@@ -287,6 +295,7 @@ function parse_args {
 
   # parse the arguments
   local args_done=0
+  local pongo_arg
   for pongo_arg in ${PONGO_ARGS[*]}; do
     if [[ args_done -eq 0 ]]; then
       case "$pongo_arg" in
@@ -309,12 +318,12 @@ function parse_args {
 
 function validate_version {
   local version=$1
-  if $(version_exists $version); then
+  if version_exists "$version"; then
     return
   fi
   err "Version '$version' is not supported, supported versions are:
-  Kong: ${KONG_CE_VERSIONS[@]} ($NIGHTLY_CE)
-  Kong Enterprise: ${KONG_EE_VERSIONS[@]} ($NIGHTLY_EE)
+  Kong: ${KONG_CE_VERSIONS[*]} ($NIGHTLY_CE)
+  Kong Enterprise: ${KONG_EE_VERSIONS[*]} ($NIGHTLY_EE)
 
 If the '$version' is valid but not listed, you can try to update Pongo first, and then retry."
 }
@@ -327,7 +336,7 @@ function get_image {
   # NOTE: the image is a plain Kong image, not a development/Pongo one.
   # Result: $KONG_IMAGE will be set to an image based on the requested version
   local image
-  if $(is_nightly $KONG_VERSION); then
+  if is_nightly "$KONG_VERSION"; then
     # go and pull the nightly image here
     if [[ "$KONG_VERSION" == "$NIGHTLY_CE" ]]; then
       # pull the Opensource Nightly image
@@ -343,7 +352,7 @@ function get_image {
       docker pull $image
       if [[ ! $? -eq 0 ]]; then
         warn "failed to pull the Kong Enterprise nightly image, retrying with login..."
-        echo $NIGHTLY_EE_APIKEY | docker login -u $NIGHTLY_EE_USER --password-stdin $NIGHTLY_EE_DOCKER_REPO
+        echo "$NIGHTLY_EE_APIKEY" | docker login -u "$NIGHTLY_EE_USER" --password-stdin "$NIGHTLY_EE_DOCKER_REPO"
         if [[ ! $? -eq 0 ]]; then
           docker logout $NIGHTLY_EE_DOCKER_REPO
           err "
@@ -361,28 +370,28 @@ proper credentials in the \$NIGHTLY_EE_USER and \$NIGHTLY_EE_APIKEY environment 
 
   else
     # regular Kong release, fetch the OSS or Enterprise version if needed
-    if $(is_enterprise $KONG_VERSION); then
+    if is_enterprise "$KONG_VERSION"; then
       image=$KONG_EE_TAG_PREFIX$KONG_VERSION$KONG_EE_TAG_POSTFIX
     else
       image=$KONG_OSS_TAG_PREFIX$KONG_VERSION$KONG_OSS_TAG_POSTFIX
     fi
 
-    docker inspect --type=image $image &> /dev/null
+    docker inspect --type=image "$image" &> /dev/null
     if [[ ! $? -eq 0 ]]; then
-      docker pull $image
+      docker pull "$image"
       if [[ ! $? -eq 0 ]]; then
         warn "failed to pull image $image"
-        if $(is_enterprise $KONG_VERSION); then
+        if is_enterprise "$KONG_VERSION"; then
           # failed to pull Enterprise, so login and retry
           msg "trying to login to Kong docker repo and retry"
-          echo $BINTRAY_APIKEY | docker login -u $BINTRAY_USERNAME --password-stdin $KONG_EE_REPO
+          echo "$BINTRAY_APIKEY" | docker login -u "$BINTRAY_USERNAME" --password-stdin "$KONG_EE_REPO"
           if [[ ! $? -eq 0 ]]; then
             docker logout $KONG_EE_REPO
             err "
 Failed to log into the Kong docker repo. Make sure to provide the proper credentials
 in the \$BINTRAY_USERNAME and \$BINTRAY_APIKEY environment variables."
           fi
-          docker pull $image
+          docker pull "$image"
           if [[ ! $? -eq 0 ]]; then
             docker logout $KONG_EE_REPO
             err "failed to pull: $image"
@@ -396,7 +405,7 @@ in the \$BINTRAY_USERNAME and \$BINTRAY_APIKEY environment variables."
           # prevent any CI from failing in the mean time.
           msg "failed to pull: $image from the official repo, retrying unofficial..."
           image=$KONG_OSS_TAG_FALLBACK_PREFIX$KONG_VERSION$KONG_OSS_TAG_FALLBACK_POSTFIX
-          docker pull $image
+          docker pull "$image"
           if [[ ! $? -eq 0 ]]; then
             err "failed to pull: $image"
           fi
@@ -414,7 +423,7 @@ function get_license {
   # has been set in $KONG_LICENSE_DATA yet, then it will log into Bintray and
   # get the required license.
   # Result: $KONG_LICENSE_DATA will be set if it is needed
-  if $(is_enterprise $KONG_VERSION); then
+  if is_enterprise "$KONG_VERSION"; then
     if [[ -z $KONG_LICENSE_DATA ]]; then
       # Enterprise version, but no license data available, try and get the license data
       if [[ "$BINTRAY_USERNAME" == "" ]]; then
@@ -426,7 +435,8 @@ function get_license {
       if [[ "$BINTRAY_REPO" == "" ]]; then
         warn "BINTRAY_REPO is not set, might not be able to download the license!"
       fi
-      export KONG_LICENSE_DATA=$(curl -s -L -u"$BINTRAY_USERNAME:$BINTRAY_APIKEY" "https://kong.bintray.com/$BINTRAY_REPO/license.json")
+      KONG_LICENSE_DATA=$(curl -s -L -u"$BINTRAY_USERNAME:$BINTRAY_APIKEY" "https://kong.bintray.com/$BINTRAY_REPO/license.json")
+      export KONG_LICENSE_DATA
       if [[ ! $KONG_LICENSE_DATA == *"signature"* || ! $KONG_LICENSE_DATA == *"payload"* ]]; then
         # the check above is a bit lame, but the best we can do without requiring
         # yet more additional dependenies like jq or similar.
@@ -449,13 +459,13 @@ function get_version {
     if [[ -z $KONG_VERSION ]]; then
       KONG_VERSION=$KONG_DEFAULT_VERSION
     fi
-    validate_version $KONG_VERSION
+    validate_version "$KONG_VERSION"
     get_image
   fi
 
   get_license
 
-  if $(is_nightly $KONG_VERSION); then
+  if is_nightly "$KONG_VERSION"; then
     # it's a nightly; get the commit-id from the image
     VERSION=$(docker inspect \
        --format "{{ index .Config.Labels \"org.opencontainers.image.revision\"}}" \
@@ -494,14 +504,16 @@ function compose {
   export SERVICE_NETWORK_NAME
   export KONG_TEST_IMAGE
   export PONGO_WD
-  docker-compose -p ${PROJECT_NAME} ${DOCKER_COMPOSE_FILES} "$@"
+  # s hellcheck disable=SC2086  # we need DOCKER_COMPOSE_FILES to be word-split here
+  docker-compose -p "${PROJECT_NAME}" ${DOCKER_COMPOSE_FILES} "$@"
 }
 
 
 function healthy {
   local iid=$1
   [[ -z $iid ]] && return 1
-  local state=$(docker inspect "$iid")
+  local state
+  state=$(docker inspect "$iid")
 
   echo "$state" | grep \"Health\" &> /dev/null
   if [[ ! $? -eq 0 ]]; then
@@ -536,8 +548,9 @@ function wait_for_dependency {
 
 
 function compose_up {
+  local dependency
   for dependency in ${KONG_DEPS_START[*]}; do
-    healthy "$(cid $dependency)" || compose up -d $dependency
+    healthy "$(cid "$dependency")" || compose up -d "$dependency"
   done;
 }
 
@@ -549,8 +562,9 @@ function ensure_available {
     compose_up
   fi
 
+  local dependency
   for dependency in ${KONG_DEPS_START[*]}; do
-    wait_for_dependency $dependency
+    wait_for_dependency "$dependency"
   done;
 }
 
@@ -563,15 +577,15 @@ function build_image {
   # 3. do a 'make dev' and then some (see the Dockerfile)
   # 4. Tag the result as $KONG_TEST_IMAGE
   get_version
-  if $(is_nightly $KONG_VERSION); then
+  if is_nightly "$KONG_VERSION"; then
     # in a nightly then $VERSION is a commit id
-    validate_version $KONG_VERSION
+    validate_version "$KONG_VERSION"
   else
     # regular version or an image provided, check $VERSION extracted from the image
-    validate_version $VERSION
+    validate_version "$VERSION"
   fi
 
-  docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
+  docker inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
   if [[ $? -eq 0 ]]; then
     msg "image '$KONG_TEST_IMAGE' already exists"
     if [ "$FORCE_BUILD" = false ] ; then
@@ -581,10 +595,11 @@ function build_image {
     msg "rebuilding..."
   fi
 
-  if $(is_nightly $KONG_VERSION); then
+  if is_nightly "$KONG_VERSION"; then
     # nightly; we must fetch the related development files dynamically in this case
-    source ${LOCAL_PATH}/assets/update_versions.sh
-    update_nightly $KONG_VERSION $VERSION
+    # shellcheck source=./assets/update_versions.sh
+    source "${LOCAL_PATH}/assets/update_versions.sh"
+    update_nightly "$KONG_VERSION" "$VERSION"
   fi
 
   msg "starting build of image '$KONG_TEST_IMAGE'"
@@ -601,6 +616,8 @@ function build_image {
 
 function get_plugin_names {
   if [[ -d ./kong/plugins/ ]]; then
+    local dir
+    # shellcheck disable=SC2044  # let's trust the files to not have space in them
     for dir in $(find ./kong/plugins -maxdepth 1 -mindepth 1 -type d); do
       dir=${dir##*/}    # grab everything after the final "/"
       if [[ -f ./kong/plugins/$dir/handler.lua ]]; then
@@ -624,7 +641,7 @@ function cleanup {
   compose down --remove-orphans
   docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "found: {{.ID}}" | grep found
   if [[ $? -eq 0 ]]; then
-    docker rmi $(docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "{{.ID}}")
+    docker rmi "$(docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "{{.ID}}")"
   fi
   if [ -d "$LOCAL_PATH/kong" ]; then
     rm -rf "$LOCAL_PATH/kong"
@@ -639,6 +656,8 @@ function initialize_repo {
   local pluginname
   # derive pluginname
   if [[ -d ./kong/plugins/ ]]; then
+    local dir
+    # shellcheck disable=SC2044  # let's trust the files to not have space in them
     for dir in $(find ./kong/plugins -maxdepth 1 -mindepth 1 -type d); do
       dir=${dir##*/}    # grab everything after the final "/"
       msg "found plugin directory: ./kong/plugins/$dir"
@@ -656,7 +675,8 @@ function initialize_repo {
   fi
 
   if [[ "$pluginname" == "" ]]; then
-    local dirname=$(basename -- $(pwd))
+    local dirname
+    dirname=$(basename -- "$(pwd)")
     if [[ "kong-plugin-" == "${dirname:0:12}" ]]; then
       pluginname=${dirname#"kong-plugin-"}
       msg "found current working directory; ./kong-plugin-$pluginname"
@@ -697,8 +717,9 @@ function initialize_repo {
     fi
     touch .pongo/pongorc
 
+    local dep_name
     for dep_name in ${KONG_DEPS_AVAILABLE[*]}; do
-      if $(array_contains KONG_DEPS_START "$dep_name"); then
+      if array_contains KONG_DEPS_START "$dep_name"; then
         echo "--$dep_name" >> .pongo/pongorc
       #else
       #  echo "--no-$dep_name" >> .pongo/pongorc
@@ -717,7 +738,7 @@ function initialize_repo {
     echo "servroot" >> .gitignore
     msg "added 'servroot' to '.gitignore'"
   fi
-  if grep --quiet ^[*][.]rock$ .gitignore ; then
+  if grep --quiet "^[*][.]rock$" .gitignore ; then
     msg "'.gitignore' already ignores '*.rock'"
   else
     echo "# exclude generated packed rocks" >> .gitignore
@@ -768,7 +789,7 @@ function main {
         if [[ -f $tail_file ]]; then
           break
         fi
-        let index++
+        ((index++))
         sleep 1
       done
     fi
@@ -781,7 +802,7 @@ function main {
     ensure_available
     get_version
 
-    docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
+    docker inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
     if [[ ! $? -eq 0 ]]; then
       msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
       build_image
@@ -790,13 +811,14 @@ function main {
     # figure out where in the arguments list the file-list starts
     local files_start_index=1
     local index=1
+    local arg
     for arg in "${EXTRA_ARGS[@]}"; do
       if [[ ! -f $arg ]] && [[ ! -d $arg ]]; then
         # arg does not exist as a file, so files start at the
         # next index at the earliest
-        let files_start_index=$index+1
+        ((files_start_index = index + 1))
       fi
-      let index++
+      ((index++))
     done
 
     local busted_params=()
@@ -807,10 +829,11 @@ function main {
         busted_params+=( "$arg" )
       else
         # substitute absolute host path for absolute docker path
-        local c_path=$(realpath "$arg" | sed "s/${KONG_TEST_PLUGIN_PATH////\\/}/\/kong-plugin/")
+        local c_path
+        c_path=$(realpath "$arg" | sed "s/${KONG_TEST_PLUGIN_PATH////\\/}/\/kong-plugin/")
         busted_files+=( "$c_path" )
       fi
-      let index++
+      ((index++))
     done
 
     if [[ ${#busted_files[@]} -eq 0 ]]; then
@@ -829,14 +852,14 @@ function main {
     check_docker
     get_plugin_names
     get_version
-    docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
+    docker inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
     if [[ ! $? -eq 0 ]]; then
       msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
       build_image
     fi
 
     local shellprompt
-    if $(is_enterprise $KONG_VERSION); then
+    if is_enterprise "$KONG_VERSION"; then
       shellprompt="Kong-E-$KONG_VERSION"
     else
       shellprompt="Kong-$KONG_VERSION"
@@ -849,7 +872,7 @@ function main {
       cleanup=true
     fi
 
-    local exec_cmd="${EXTRA_ARGS[@]}"
+    local exec_cmd="${EXTRA_ARGS[*]}"
     local suppress_kong_version="true"
     local script_mount=""
     if [[ "$exec_cmd" == "" ]]; then
@@ -868,6 +891,7 @@ function main {
       exec_cmd="sh /kong/bin/shell_script.sh"
     fi
 
+    # shellcheck disable=SC2086 # we explicitly want script_mount & exec_cmd to be splitted
     compose run --rm \
       -e KONG_LICENSE_DATA \
       -e KONG_LOG_LEVEL \
@@ -877,7 +901,7 @@ function main {
       -e "KONG_PLUGINS=$PLUGINS" \
       -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
       $script_mount \
-      -e "PS1=\[\e[00m\]\[\033[1;34m\]["$shellprompt":\[\033[1;92m\]\w\[\033[1;34m\]]#\[\033[00m\] " \
+      -e "PS1=\[\e[00m\]\[\033[1;34m\][$shellprompt:\[\033[1;92m\]\w\[\033[1;34m\]]#\[\033[00m\] " \
       kong $exec_cmd
 
     local result=$?
@@ -893,7 +917,7 @@ function main {
     check_docker
     get_plugin_names
     get_version
-    docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
+    docker inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
     if [[ ! $? -eq 0 ]]; then
       msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
       build_image
@@ -913,7 +937,7 @@ function main {
     check_docker
     get_plugin_names
     get_version
-    docker inspect --type=image $KONG_TEST_IMAGE &> /dev/null
+    docker inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
     if [[ ! $? -eq 0 ]]; then
       msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
       build_image
@@ -930,7 +954,8 @@ function main {
     ;;
 
   update)
-    source ${LOCAL_PATH}/assets/update_versions.sh
+    # shellcheck source=./assets/update_versions.sh
+    source "${LOCAL_PATH}/assets/update_versions.sh"
     update_artifacts
     exit $?
     ;;
@@ -942,8 +967,9 @@ function main {
     echo
     echo Pongo available dependencies:
     echo =============================
+    local dep_name
     for dep_name in ${KONG_DEPS_AVAILABLE[*]}; do
-      if $(array_contains KONG_DEPS_CUSTOM "$dep_name"); then
+      if array_contains KONG_DEPS_CUSTOM "$dep_name"; then
         echo "$dep_name (custom to local plugin)"
       else
         echo "$dep_name"
