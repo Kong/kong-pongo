@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.com/Kong/kong-pongo.svg?branch=master)](https://travis-ci.com/Kong/kong-pongo)
 ```
                 /~\
   ______       C oo
