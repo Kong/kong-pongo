@@ -637,7 +637,7 @@ function get_plugin_names {
 }
 
 
-function cleanup {
+function pongo_clean {
   compose down --remove-orphans
   docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "found: {{.ID}}" | grep found
   if [[ $? -eq 0 ]]; then
@@ -652,7 +652,68 @@ function cleanup {
 }
 
 
-function initialize_repo {
+function pongo_status {
+  if [ ${#EXTRA_ARGS[@]} -eq 0 ]; then
+    # default; do all
+    EXTRA_ARGS=(networks dependencies containers images versions)
+  fi
+
+  local arg
+  local nl
+  for arg in "${EXTRA_ARGS[@]}"; do
+    if [ "$nl" == true ]; then
+      echo
+    else
+      nl=true
+    fi
+
+    case "$arg" in
+      networks)
+        echo Pongo networks:
+        echo ===============
+        docker network ls | grep "${PROJECT_NAME}"
+        ;;
+
+      dependencies)
+        echo Pongo available dependencies:
+        echo =============================
+        local dep_name
+        for dep_name in ${KONG_DEPS_AVAILABLE[*]}; do
+          if array_contains KONG_DEPS_CUSTOM "$dep_name"; then
+            echo "$dep_name (custom to local plugin)"
+          else
+            echo "$dep_name"
+          fi
+        done;
+        ;;
+
+      containers)
+        echo Pongo dependency containers:
+        echo ============================
+        docker ps | grep "${PROJECT_NAME}"
+        ;;
+
+      images)
+        echo Pongo cached images:
+        echo ====================
+        docker images "${PROJECT_NAME}*"
+        ;;
+
+      versions)
+        echo Available Kong versions:
+        echo ========================
+        echo Kong: "${KONG_CE_VERSIONS[*]}" "$NIGHTLY_CE"
+        echo Kong Enterprise: "${KONG_EE_VERSIONS[*]}" "$NIGHTLY_EE"
+        ;;
+
+      *)
+        err "unknown option: '$arg', see 'pongo status --help'"
+    esac
+  done
+}
+
+
+function pongo_init {
   local pluginname
   # derive pluginname
   if [[ -d ./kong/plugins/ ]]; then
@@ -961,41 +1022,19 @@ function main {
     ;;
 
   status)
-    echo Pongo networks:
-    echo ===============
-    docker network ls | grep "${PROJECT_NAME}"
-    echo
-    echo Pongo available dependencies:
-    echo =============================
-    local dep_name
-    for dep_name in ${KONG_DEPS_AVAILABLE[*]}; do
-      if array_contains KONG_DEPS_CUSTOM "$dep_name"; then
-        echo "$dep_name (custom to local plugin)"
-      else
-        echo "$dep_name"
-      fi
-    done;
-    echo
-    echo Pongo dependency containers:
-    echo ============================
-    docker ps | grep "${PROJECT_NAME}"
-    echo
-    echo Pongo cached images:
-    echo ====================
-    docker images "${PROJECT_NAME}*"
-    echo
+    pongo_status
     ;;
 
   init)
-    initialize_repo
+    pongo_init
     ;;
 
   clean)
-    cleanup
+    pongo_clean
     ;;
 
   nuke)
-    cleanup
+    pongo_clean
     ;;
 
   *)
