@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# use the "--debug" flag as first argument, to debug this script; setting the "set -x" option
+
+if [[ "$1" == "--debug" ]]; then
+  shift
+  set -x
+fi
+
 CODE_BASE=$1
 ADD_VERSION=$2
 DRY_RUN=$3
