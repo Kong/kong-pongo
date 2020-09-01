@@ -1,13 +1,24 @@
-Usage: pongo status
+Usage: pongo status [networks|dependencies|containers|images|versions]
 
-Will list:
- - the Pongo network
- - available dependencies
- - currently running dependency containers
- - cached test-images previously build
+If nothing is specified then all items are returned.
 
-NOTE: custom dependencies must be listed in '.pongo/pongorc' to be shown
+  networks:
+      the Pongo networks
+
+  dependecies:
+      available dependencies
+      NOTE: custom dependencies must be listed in '.pongo/pongorc' to be shown
+
+  containers:
+      currently running dependency containers
+
+  images:
+      cached test-images previously build
+
+  versions:
+      Kong versions available (both Kong and Kong Enterprise)
 
 
 Example usage:
   pongo status
+  pongo status versions dependencies
