@@ -92,6 +92,32 @@ EOF
     tsuccess
   fi
 
+  # 3 setting available runtime environment variable
+  tchapter "shell runtime environment"
+
+  ttest "KONG_DATABASE and KONG_TEST_DATABASE env are not available"
+  cat <<EOF > test_script
+[[ -z \$KONG_DATABASE ]] && echo empty || echo KONG_DATABASE=\$KONG_DATABASE
+[[ -z \$KONG_TEST_DATABASE ]] && echo empty || echo KONG_TEST_DATABASE=\$KONG_TEST_DATABASE
+EOF
+  chmod +x test_script
+  pongo shell @test_script | [[ $(grep -c empty) -eq 2 ]]
+  if [ $? -eq 1 ]; then
+    tfailure
+  else
+    tsuccess
+  fi
+
+  ttest "KONG_DATABASE and KONG_TEST_DATABASE env are available"
+  chmod +x test_script
+  KONG_DATABASE=postgres KONG_TEST_DATABASE=cassandra pongo shell @test_script | \
+    [[ $(grep -Ec "KONG_DATABASE=postgres|KONG_TEST_DATABASE=cassandra") -eq 2 ]]
+  if [ $? -eq 1 ]; then
+    tfailure
+  else
+    tsuccess
+  fi
+
   # cleanup
   rm test_script
 
