@@ -905,6 +905,8 @@ function main {
     compose run --rm \
       -e KONG_LICENSE_DATA \
       -e KONG_TEST_DONT_CLEAN \
+      -e KONG_DATABASE \
+      -e KONG_TEST_DATABASE \
       kong \
       "/bin/sh" "-c" "bin/busted --helper=bin/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
     ;;
@@ -963,6 +965,8 @@ function main {
       -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
       $script_mount \
       -e "PS1=\[\e[00m\]\[\033[1;34m\][$shellprompt:\[\033[1;92m\]\w\[\033[1;34m\]]#\[\033[00m\] " \
+      -e KONG_DATABASE \
+      -e KONG_TEST_DATABASE \
       kong $exec_cmd
 
     local result=$?
