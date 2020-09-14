@@ -529,12 +529,25 @@ and have this additional section:
 ```yaml
 env:
   global:
+  - PONGO_SECRETS_AVAILABLE=$TRAVIS_SECURE_ENV_VARS
   - secure: Xa6htQZoS/4K...and some more gibberish
   - secure: o8VSj7hFGm2L...and some more gibberish
   - secure: nQDng6c5xIBJ...and some more gibberish
 ```
 
 Now you can update the `jobs` section and add Kong Enterprise version numbers.
+
+NOTE: the variable PONGO_SECRETS_AVAILABLE works the same as [TRAVIS_SECURE_ENV_VARS](https://docs.travis-ci.com/user/environment-variables/#default-environment-variables).
+If you receive PR's from outside your organization, then the secrets will not be
+available on a CI run, this will cause the build to always fail. If you set this
+variable to `false` then Pongo will print only a warning and exit with success.
+Effectively this means that extrnal PR's are only tested against Kong opensource
+versions, and internal PR's will be tested against opensource and Enterprise
+versions of Kong.
+
+(It is mentioned for completeness in the example above, since Pongo will
+automatically fall back on the Travis-CI variable, on other CI engines you will
+need to set it)
 
 [Back to ToC](#table-of-contents)
 
