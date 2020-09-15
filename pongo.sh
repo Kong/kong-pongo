@@ -22,6 +22,13 @@ function globals {
     PONGORC_FILE=".pongo/pongorc"
   fi
 
+  # when running CI do we have the required secrets available? (used for EE only)
+  # secrets are unavailable for PR's from outside the organization (untrusted)
+  # can be set to "true" or "false", defaults to the Travis-CI setting
+  if [[ "$PONGO_SECRETS_AVAILABLE" == "" ]]; then
+    PONGO_SECRETS_AVAILABLE="$TRAVIS_SECURE_ENV_VARS"
+  fi
+
   # regular Kong Enterprise images repo (tag is build as $PREFIX$VERSION$POSTFIX).
   # Set credentials in $BINTRAY_APIKEY and $BINTRAY_USERNAME
   KONG_EE_REPO="kong-docker-kong-enterprise-edition-docker.bintray.io"
@@ -61,6 +68,7 @@ function globals {
   unset PLUGINS
 }
 
+
 function check_tools {
   local missing=false
 
@@ -94,6 +102,7 @@ function check_tools {
   fi
 }
 
+
 function check_docker {
   # Are we running Pongo itself inside a container?
   # $PONGO_WD will contain the path FOR THE HOST, that maps to
@@ -125,6 +134,7 @@ function check_docker {
     PONGO_WD=${KONG_TEST_PLUGIN_PATH/\/pongo_wd/${HOST_PATH}}
   fi
 }
+
 
 function logo {
 local BLUE='\033[0;36m'
@@ -329,6 +339,27 @@ If the '$version' is valid but not listed, you can try to update Pongo first, an
 }
 
 
+function check_secret_availability {
+  if [[ "$PONGO_SECRETS_AVAILABLE" == "true" ]] || [[ "$PONGO_SECRETS_AVAILABLE" == "" ]]; then
+    return 0
+  elif [[ "$PONGO_SECRETS_AVAILABLE" == "false" ]]; then
+    warn "The required secrets for fetching the image:"
+    warn "  '$1'"
+    warn "are unavailable, it is assumed this is because of a CI run on"
+    warn "a PR from outside the organization, which means it is untrusted."
+    warn ""
+    warn "If the secrets are available then make sure \$PONGO_SECRETS_AVAILABLE is"
+    warn "set to 'true'."
+    warn ""
+    warn "Now exiting with exit-code 0 to indicate success to not fail external"
+    warn "contributed PR's because of CI security restrictions."
+    exit 0
+  else
+    err "variable \$PONGO_SECRETS_AVAILABLE should be 'true', 'false' or unset, but got: '$PONGO_SECRETS_AVAILABLE'"
+  fi
+}
+
+
 function get_image {
   # Checks if an image based on $KONG_VERSION is available, if not it will try to
   # download the image. This might include logging into bintray to get an Enterprise
@@ -352,6 +383,7 @@ function get_image {
       docker pull $image
       if [[ ! $? -eq 0 ]]; then
         warn "failed to pull the Kong Enterprise nightly image, retrying with login..."
+        check_secret_availability "$image"
         echo "$NIGHTLY_EE_APIKEY" | docker login -u "$NIGHTLY_EE_USER" --password-stdin "$NIGHTLY_EE_DOCKER_REPO"
         if [[ ! $? -eq 0 ]]; then
           docker logout $NIGHTLY_EE_DOCKER_REPO
@@ -383,7 +415,8 @@ proper credentials in the \$NIGHTLY_EE_USER and \$NIGHTLY_EE_APIKEY environment 
         warn "failed to pull image $image"
         if is_enterprise "$KONG_VERSION"; then
           # failed to pull Enterprise, so login and retry
-          msg "trying to login to Kong docker repo and retry"
+          msg "trying to login to Kong docker repo and retry..."
+          check_secret_availability "$image"
           echo "$BINTRAY_APIKEY" | docker login -u "$BINTRAY_USERNAME" --password-stdin "$KONG_EE_REPO"
           if [[ ! $? -eq 0 ]]; then
             docker logout $KONG_EE_REPO
