@@ -103,7 +103,16 @@ Pongo provides a simple way of testing Kong plugins
 
 ## Requirements
 
-Set up the following when testing against Kong Enterprise:
+Tools Pongo needs to run:
+* `docker-compose` (and hence `docker`)
+* `curl`
+* `realpath`, for MacOS you need the [`coreutils`](https://www.gnu.org/software/coreutils/coreutils.html)
+  to be installed. This is easiest via the [Homebrew package manager](https://brew.sh/) by doing:
+  ```
+  brew install coreutils
+  ```
+
+Additionally set up the following when testing against Kong Enterprise:
 
 * Set the Bintray credentials (for pulling Kong Enterprise images) in the
   environment variables `BINTRAY_USERNAME` and `BINTRAY_APIKEY`, or manually
@@ -129,14 +138,6 @@ mkdir -p ~/.local/bin
 ln -s $(realpath kong-pongo/pongo.sh) ~/.local/bin/pongo
 ```
 
-_Notes_:
-* you need `~/.local/bin` on your `$PATH`
-* for MacOS you need the [`coreutils`](https://www.gnu.org/software/coreutils/coreutils.html)
-  to be installed. This is easiest via the [Homebrew package manager](https://brew.sh/) by doing:
-  ```
-  brew install coreutils
-  ```
-
 [Back to ToC](#table-of-contents)
 
 ## Do a test run
@@ -148,8 +149,11 @@ git clone git@github.com:Kong/kong-plugin.git
 cd kong-plugin
 
 # auto pull and build the test images
-pongo run ./spec
+pongo run
+```
 
+Some more elaborate examples:
+```shell
 # Run against a specific version of Kong (log into bintray first!) and pass
 # a number of Busted options
 KONG_VERSION=0.36-1 pongo run -v -o gtest ./spec
