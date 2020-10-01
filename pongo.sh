@@ -876,7 +876,7 @@ function main {
     fi
 
     if [[ ! -f $tail_file ]]; then
-      echo "waiting for tail file to appear: $tail_file"
+      msg "waiting for tail file to appear: $tail_file"
       local index=1
       while [ $index -le 300 ]
       do
