@@ -30,6 +30,9 @@ export KONG_LOG_LEVEL=debug
 # export Pongo's redis instance to the Kong test-helpers
 export KONG_SPEC_REDIS_HOST=redis
 
+# set the certificate store
+export KONG_LUA_SSL_TRUSTED_CERTIFICATE=/etc/ssl/certs/ca-certificates.crt
+
 # export the KONG_ variables also in the KONG_TEST_ range
 if [ -z "$KONG_TEST_LICENSE_DATA" ]; then
   export "KONG_TEST_LICENSE_DATA=$KONG_LICENSE_DATA"
@@ -49,6 +52,10 @@ fi
 
 if [ -z "$KONG_TEST_DNS_RESOLVER" ]; then
   export "KONG_TEST_DNS_RESOLVER=$KONG_DNS_RESOLVER"
+fi
+
+if [ -z "$KONG_TEST_LUA_SSL_TRUSTED_CERTIFICATE" ]; then
+  export "KONG_TEST_LUA_SSL_TRUSTED_CERTIFICATE=$KONG_LUA_SSL_TRUSTED_CERTIFICATE"
 fi
 
 
