@@ -674,7 +674,8 @@ function pongo_clean {
   compose down --remove-orphans
   docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "found: {{.ID}}" | grep found
   if [[ $? -eq 0 ]]; then
-    docker rmi "$(docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "{{.ID}}")"
+    # shellcheck disable=SC2046  # we want the image ids to be word-splitted
+    docker rmi $(docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "{{.ID}}")
   fi
   if [ -d "$LOCAL_PATH/kong" ]; then
     rm -rf "$LOCAL_PATH/kong"
