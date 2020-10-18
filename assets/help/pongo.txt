@@ -31,6 +31,8 @@ Environment actions:
 
   down          remove all dependency containers
 
+  expose        expose the internal ports for access from the host
+
   restart       shortcut, a combination of; down + up
 
   status        show status of the Pongo network, images, and containers

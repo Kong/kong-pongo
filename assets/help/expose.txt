@@ -1,0 +1,20 @@
+Usage: pongo expose
+
+Starts the expose container that will expose the internal ports. This will allow
+access to the containers from the host system. For example to connect to the
+database to validate contents.
+
+Alternatively you can specify the '--expose' dependency like any other
+dependency.
+
+
+Ports:
+  - Kong     : 8000, 8001, 8002, 8003, 8004, 8443, 8444, 8445
+  - Postgres : 5432
+  - Cassandra: 7000, 7001, 7199, 9042, 9160
+  - Redis    : 6379
+
+
+Example usage:
+  pongo expose
+  pongo up --expose

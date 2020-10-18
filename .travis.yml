@@ -3,13 +3,13 @@ dist: bionic
 jobs:
   include:
   - name: pongo shell
-    env: TEST_SCRIPT=assets/ci/pongo_shell.test.sh
-  - name: pongo build
-    env: TEST_SCRIPT=assets/ci/pongo_build.test.sh
+    env: TEST_SCRIPT="assets/ci/pongo_shell.test.sh"
+  - name: pongo build, pongo expose
+    env: TEST_SCRIPT="assets/ci/pongo_build.test.sh assets/ci/pongo_expose.test.sh"
   - name: pongo run (CE releases)
-    env: TEST_SCRIPT=assets/ci/pongo_run_ce.test.sh
+    env: TEST_SCRIPT="assets/ci/pongo_run_ce.test.sh"
   - name: pongo run (EE releases)
-    env: TEST_SCRIPT=assets/ci/pongo_run_ee.test.sh
+    env: TEST_SCRIPT="assets/ci/pongo_run_ee.test.sh"
 
 env:
   global:
