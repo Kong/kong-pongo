@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 function run_test {
+  pushd assets/ci
   tinitialize "Pongo test suite" "${BASH_SOURCE[0]}"
 
   # 1 building an image
@@ -44,6 +45,7 @@ function run_test {
   fi
 
   tfinish
+  popd
 }
 
 # No need to modify anything below this comment

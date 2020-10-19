@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 function run_test {
+  pushd assets/ci
   tinitialize "Pongo test suite" "${BASH_SOURCE[0]}"
 
   # 1 passing a command
@@ -96,6 +97,7 @@ EOF
   rm test_script
 
   tfinish
+  popd
 }
 
 # No need to modify anything below this comment

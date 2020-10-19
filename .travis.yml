@@ -28,4 +28,4 @@ install:
 
 script:
 - make lint
-- assets/ci/test.sh --suite "Pongo test suite" $TEST_SCRIPT
+- assets/ci/run.sh --suite "Pongo test suite" $TEST_SCRIPT
