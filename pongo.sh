@@ -387,8 +387,7 @@ function get_image {
         echo "$NIGHTLY_EE_APIKEY" | docker login -u "$NIGHTLY_EE_USER" --password-stdin "$NIGHTLY_EE_DOCKER_REPO"
         if [[ ! $? -eq 0 ]]; then
           docker logout $NIGHTLY_EE_DOCKER_REPO
-          err "
-Failed to log into the nightly Kong Enterprise docker repo. Make sure to provide the
+          err "Failed to log into the nightly Kong Enterprise docker repo. Make sure to provide the
 proper credentials in the \$NIGHTLY_EE_USER and \$NIGHTLY_EE_APIKEY environment variables."
         fi
         docker pull $image
@@ -420,8 +419,7 @@ proper credentials in the \$NIGHTLY_EE_USER and \$NIGHTLY_EE_APIKEY environment 
           echo "$BINTRAY_APIKEY" | docker login -u "$BINTRAY_USERNAME" --password-stdin "$KONG_EE_REPO"
           if [[ ! $? -eq 0 ]]; then
             docker logout $KONG_EE_REPO
-            err "
-Failed to log into the Kong docker repo. Make sure to provide the proper credentials
+            err "Failed to log into the Kong docker repo. Make sure to provide the proper credentials
 in the \$BINTRAY_USERNAME and \$BINTRAY_APIKEY environment variables."
           fi
           docker pull "$image"
