@@ -53,7 +53,7 @@ function globals {
   # Commandline related variables
   unset ACTION
   FORCE_BUILD=false
-  KONG_DEPS_AVAILABLE=( "postgres" "cassandra" "redis" "squid" "grpcbin")
+  KONG_DEPS_AVAILABLE=( "postgres" "cassandra" "redis" "squid" "grpcbin" "expose")
   KONG_DEPS_START=( "postgres" "cassandra" )
   KONG_DEPS_CUSTOM=()
   RC_COMMANDS=( "run" "up" "restart" )
@@ -155,7 +155,7 @@ echo -e "\033[0m"
 
 function usage {
   case "$1" in
-    pongo|init|lint|pack|run|shell|tail|build|nuke|clean|down|restart|status|up|update)
+    pongo|init|lint|pack|run|shell|tail|build|nuke|clean|down|restart|status|up|update|expose)
       logo
       if [ -f "$LOCAL_PATH/assets/help/$1.txt" ]; then
         cat "$LOCAL_PATH/assets/help/$1.txt"
@@ -672,17 +672,32 @@ function get_plugin_names {
 
 function pongo_clean {
   compose down --remove-orphans
+
   docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "found: {{.ID}}" | grep found
   if [[ $? -eq 0 ]]; then
     # shellcheck disable=SC2046  # we want the image ids to be word-splitted
     docker rmi $(docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "{{.ID}}")
   fi
+
+  docker images --filter=reference="pongo-expose:*" --format "found: {{.ID}}" | grep found
+  if [[ $? -eq 0 ]]; then
+    # shellcheck disable=SC2046  # we want the image ids to be word-splitted
+    docker rmi $(docker images --filter=reference="pongo-expose:*" --format "{{.ID}}")
+  fi
+
   if [ -d "$LOCAL_PATH/kong" ]; then
     rm -rf "$LOCAL_PATH/kong"
   fi
   if [ -d "$LOCAL_PATH/kong-ee" ]; then
     rm -rf "$LOCAL_PATH/kong-ee"
   fi
+}
+
+
+function pongo_expose {
+  local dependency="expose"
+  healthy "$(cid "$dependency")" || compose up -d "$dependency"
+  wait_for_dependency "$dependency"
 }
 
 
@@ -987,7 +1002,7 @@ function main {
     fi
 
     # shellcheck disable=SC2086 # we explicitly want script_mount & exec_cmd to be splitted
-    compose run --rm \
+    compose run --rm --use-aliases \
       -e KONG_LICENSE_DATA \
       -e KONG_LOG_LEVEL \
       -e KONG_ANONYMOUS_REPORTS \
@@ -1069,6 +1084,10 @@ function main {
 
   nuke)
     pongo_clean
+    ;;
+
+  expose)
+    pongo_expose
     ;;
 
   *)

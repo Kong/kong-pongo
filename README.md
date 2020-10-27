@@ -43,6 +43,8 @@ Environment actions:
 
   down          remove all dependency containers
 
+  expose        expose the internal ports for access from the host
+
   restart       shortcut, a combination of; down + up
 
   status        show status of the Pongo network, images, and containers
@@ -92,6 +94,8 @@ Pongo provides a simple way of testing Kong plugins
     - [Dependency defaults](#dependency-defaults)
     - [Custom local dependencies](#custom-local-dependencies)
  - [Debugging](#debugging)
+     - [Accessing the logs](#accessing-the-logs)
+     - [Direct access to service ports](#direct-access-to-service-ports)
  - [Test initialization](#test-initialization)
  - [Setting up CI](#setting-up-ci)
      - [CI against nightly builds](#ci-against-nightly-builds)
@@ -371,6 +375,8 @@ Some helpfull examples:
 
 ## Debugging
 
+### Accessing logs
+
 When running the tests, the Kong prefix (or working directory) will be set to
 `./servroot`.
 
@@ -409,6 +415,40 @@ the working directory in between tests. And the final `cat` command will output
 the log to the Travis console.
 
 [Back to ToC](#table-of-contents)
+
+### Direct access to service ports
+
+To directly access Kong from the host, or the datastores, the `pongo expose`
+command can be used to expose the internal ports to the host.
+
+This allows for example to connect to the Postgres on port `5432` to validate
+the contents of the database. Or when running `pongo shell` to manually
+start Kong, you can access all the regular Kong ports from the host, including
+the GUI's.
+
+This has been implemented as a separate container that opens all those ports and
+relays them on the docker network to the actual service containers (the reason
+for this is that regular Pongo runs do not interfere with ports already in use
+on the host, only if `expose` is used there is a risk of failure because ports
+are already in use on the host)
+
+Since it is technically a "dependency" it can be specified as a dependency as
+well.
+
+so
+```shell
+pongo up
+pongo expose
+```
+is equivalent to
+```shell
+pongo up --expose
+```
+
+See `pongo expose --help` for the ports.
+
+[Back to ToC](#table-of-contents)
+
 
 ## Test initialization
 

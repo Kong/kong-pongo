@@ -13,6 +13,22 @@ if [ -f /kong-plugin/.busted ]; then
   cp /kong-plugin/.busted /kong/
 fi
 
+
+if [ -z "$KONG_ADMIN_LISTEN" ]; then
+  # admin_api is by default not exposed, other than 127.0.0.1, since different
+  # Kong versions have different settings, find the default and replace it.
+  FILE_WITH_KONG_DEFAULTS=$(luarocks show kong | grep -oEi '/.*/kong_defaults.lua')
+  DEFAULT_ADMIN_LISTEN_SETTING=$(grep admin_listen < "$FILE_WITH_KONG_DEFAULTS" | sed 's/admin_listen *= *//')
+
+  # export to override defaults in file, with 0.0.0.0 instead of 127.0.0.1
+  export KONG_ADMIN_LISTEN
+  KONG_ADMIN_LISTEN=$(echo "$DEFAULT_ADMIN_LISTEN_SETTING" | sed 's/127\.0\.0\.1/0.0.0.0/g')
+
+  unset FILE_WITH_KONG_DEFAULTS
+  unset DEFAULT_ADMIN_LISTEN_SETTING
+fi
+
+
 # add the plugin code to the LUA_PATH such that the plugin will be found
 export "LUA_PATH=/kong-plugin/?.lua;/kong-plugin/?/init.lua;;"
 

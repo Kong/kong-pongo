@@ -5,6 +5,43 @@ networks:
     name: ${SERVICE_NETWORK_NAME}
 
 services:
+  expose:
+    image: pongo-expose
+    build: ./expose
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+      - "8002:8002"
+      - "8003:8003"
+      - "8004:8004"
+      - "8443:8443"
+      - "8444:8444"
+      - "8445:8445"
+      # Postgres
+      - "5432:5432"
+      # Cassandra
+      - "7000:7000"
+      - "7001:7001"
+      - "7199:7199"
+      - "9042:9042"
+      - "9160:9160"
+      # Redis
+      - "6379:6379"
+    environment:
+      EXPOSE: "kong:8000 kong:8001 kong:8002 kong:8003 kong:8004 kong:8443 kong:8444 kong:8445 postgres:5432 cassandra:7000 cassandra:7001 cassandra:7199 cassandra:9042 cassandra:9160 redis:6379"
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - test
+      - -e
+      - /ready
+      timeout: 10s
+    stop_signal: SIGKILL
+    networks:
+      - ${NETWORK_NAME}
+
   postgres:
     image: postgres:${POSTGRES:-9.5}
     environment:
