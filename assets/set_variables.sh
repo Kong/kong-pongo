@@ -6,19 +6,28 @@
 NIGHTLY_CE=nightly
 NIGHTLY_EE=nightly-ee
 
+
+function ml_message {
+  # prefix each line of a multi-line input
+  local prefix="$1"
+  shift
+  while IFS= read -r line; do >&2 echo -e "$prefix$line\033[0m"; done <<< "$@"
+}
+
+
 function err {
-  >&2 echo -e "\033[0;31m[pongo-ERROR] $*\033[0m"
+  ml_message "\033[0;31m[pongo-ERROR] " "$*"
   exit 1
 }
 
 
 function warn {
-  >&2 echo -e "\033[0;33m[pongo-WARN] $*\033[0m"
+  ml_message "\033[0;33m[pongo-WARN] " "$*"
 }
 
 
 function msg {
-  >&2 echo -e "\033[0;36m[pongo-INFO] $*\033[0m"
+  ml_message "\033[0;36m[pongo-INFO] " "$*"
 }
 
 
