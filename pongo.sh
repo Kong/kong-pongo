@@ -395,6 +395,7 @@ proper credentials in the \$NIGHTLY_EE_USER and \$NIGHTLY_EE_APIKEY environment 
           docker logout $NIGHTLY_EE_DOCKER_REPO
           err "failed to pull: $image"
         fi
+        msg "pull with login succeeded"
         docker logout $NIGHTLY_EE_DOCKER_REPO
       fi
     fi
@@ -427,6 +428,7 @@ in the \$BINTRAY_USERNAME and \$BINTRAY_APIKEY environment variables."
             docker logout $KONG_EE_REPO
             err "failed to pull: $image"
           fi
+          msg "pull with login succeeded"
           docker logout $KONG_EE_REPO
         else
           # failed to pull CE image, so try the fallback
@@ -440,6 +442,7 @@ in the \$BINTRAY_USERNAME and \$BINTRAY_APIKEY environment variables."
           if [[ ! $? -eq 0 ]]; then
             err "failed to pull: $image"
           fi
+          msg "pulling unofficial image succeeded"
         fi
       fi
     fi
