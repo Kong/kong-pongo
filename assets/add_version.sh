@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # use the "--debug" flag as first argument, to debug this script; setting the "set -x" option
 
