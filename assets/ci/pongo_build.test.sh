@@ -12,7 +12,7 @@ function run_test {
   TEST_VERSION=2.0.5
 
 
-  ttest "builds the specified image: TEST_VERSION"
+  ttest "builds the specified image: $TEST_VERSION"
   KONG_VERSION=$TEST_VERSION pongo build
   KONG_VERSION=$TEST_VERSION pongo shell kong version | grep $TEST_VERSION
   if [ $? -eq 1 ]; then
