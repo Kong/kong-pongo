@@ -618,6 +618,9 @@ For this to work the following variables must be present:
 At least the api-key must be encrypted as a secret. Follow the instructions above
 to encrypt and add them to the `.travis.yml` file.
 
+A valid GitHub access token is also required to refresh the Kong Enterprise
+code, and must be specified as a `GITHUB_TOKEN` environment variable.
+
 [Back to ToC](#table-of-contents)
 
 ## Running Pongo in Docker
