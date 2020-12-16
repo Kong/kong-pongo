@@ -29,7 +29,7 @@ Project actions:
                 distribution (see LuaRocks package manager docs)
 
   run           run spec files, accepts Busted options and spec files/folders
-                as arguments, see: '$(basename $0) run -- --help'
+                as arguments, see: 'pongo run -- --help'
 
   shell         get a shell directly on a kong container
 
@@ -516,8 +516,6 @@ script:
 [Back to ToC](#table-of-contents)
 
 ### CI against nightly builds
-
-__**This is not yet available!!**__
 
 To test against nightly builds, the CRON option for Travis-CI should be configured.
 This will trigger a daily test-run.
