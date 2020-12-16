@@ -4,6 +4,14 @@ redefined       = false
 max_line_length = false
 
 
+include_files = {
+  "**/*.lua",
+  "*.rockspec",
+  ".busted",
+  ".luacheckrc",
+}
+
+
 globals = {
     "_KONG",
     "kong",
