@@ -490,6 +490,8 @@ rm -rf lua-resty-session
 Pongo is easily added to a CI setup. The examples below will asume Travis-CI, but
 can be easily converted to other engines.
 
+**Note**: if your engine of preference runs itself in Docker, then checkout [Pongo in Docker](#running-pongo-in-docker).
+
 Here's a base setup for an open-source plugin that will test against 2 Kong versions:
 ```yaml
 # .travis.yml
@@ -579,7 +581,7 @@ env:
 
 Now you can update the `jobs` section and add Kong Enterprise version numbers.
 
-NOTE: the variable PONGO_SECRETS_AVAILABLE works the same as [TRAVIS_SECURE_ENV_VARS](https://docs.travis-ci.com/user/environment-variables/#default-environment-variables).
+**Note**: the variable PONGO_SECRETS_AVAILABLE works the same as [TRAVIS_SECURE_ENV_VARS](https://docs.travis-ci.com/user/environment-variables/#default-environment-variables).
 If you receive PR's from outside your organization, then the secrets will not be
 available on a CI run, this will cause the build to always fail. If you set this
 variable to `false` then Pongo will print only a warning and exit with success.
@@ -595,7 +597,7 @@ need to set it)
 
 ### CI with Kong Enterprise nightly
 
-**NOTE: this is NOT publicly available, only Kong internal**
+**Note: this is NOT publicly available, only Kong internal**
 
 This build will also require a CRON job to build on a daily basis, but also
 requires additional credentials to access the Kong Enterprise master image.
