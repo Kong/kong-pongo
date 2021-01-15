@@ -137,7 +137,7 @@ See [Setting up CI](#setting-up-ci) for some Bintray environment variable exampl
 Clone the repository and install Pongo:
 ```shell
 PATH=$PATH:~/.local/bin
-git clone git@github.com:Kong/kong-pongo.git
+git clone https://github.com/Kong/kong-pongo.git
 mkdir -p ~/.local/bin
 ln -s $(realpath kong-pongo/pongo.sh) ~/.local/bin/pongo
 ```
@@ -149,7 +149,7 @@ ln -s $(realpath kong-pongo/pongo.sh) ~/.local/bin/pongo
 Get a shell into your plugin repository, and run `pongo`, for example:
 
 ```shell
-git clone git@github.com:Kong/kong-plugin.git
+git clone https://github.com/Kong/kong-plugin.git
 cd kong-plugin
 
 # auto pull and build the test images
@@ -193,7 +193,7 @@ To run Pongo on Windows you can use [WSL2](https://docs.microsoft.com/windows/ws
       sudo apt install git curl coreutils
 
       cd ~
-      git clone git@github.com:Kong/kong-pongo.git
+      git clone https://github.com/Kong/kong-pongo.git
       mkdir -p ~/.local/bin
       ln -s $(realpath kong-pongo/pongo.sh) ~/.local/bin/pongo
       PATH=$PATH:~/.local/bin
