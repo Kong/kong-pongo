@@ -155,7 +155,7 @@ echo -e "\033[0m"
 
 function usage {
   case "$1" in
-    pongo|init|lint|pack|run|shell|tail|build|nuke|clean|down|restart|status|up|update|expose)
+    pongo|init|lint|pack|run|shell|tail|build|nuke|clean|down|restart|status|up|update|expose|logs)
       logo
       if [ -f "$LOCAL_PATH/assets/help/$1.txt" ]; then
         cat "$LOCAL_PATH/assets/help/$1.txt"
@@ -702,6 +702,11 @@ function pongo_expose {
 }
 
 
+function pongo_logs {
+  compose logs "${EXTRA_ARGS[@]}"
+}
+
+
 function pongo_status {
   if [ ${#EXTRA_ARGS[@]} -eq 0 ]; then
     # default; do all
@@ -1089,6 +1094,10 @@ function main {
 
   expose)
     pongo_expose
+    ;;
+
+  logs)
+    pongo_logs
     ;;
 
   *)

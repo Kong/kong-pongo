@@ -45,6 +45,8 @@ Environment actions:
 
   expose        expose the internal ports for access from the host
 
+  logs          show docker-compose logs of the Pongo environment
+
   restart       shortcut, a combination of; down + up
 
   status        show status of the Pongo network, images, and containers
@@ -92,6 +94,7 @@ Pongo provides a simple way of testing Kong plugins
     - Redis (key-value store)
     - Squid (forward-proxy)
     - [Dependency defaults](#dependency-defaults)
+    - [Dependency troubleshooting](#dependency-troubleshooting)
     - [Custom local dependencies](#custom-local-dependencies)
  - [Debugging](#debugging)
      - [Accessing the logs](#accessing-the-logs)
@@ -310,6 +313,28 @@ a `.pongo/pongorc` file for a plugin that only needs Postgres and Redis:
 
 [Back to ToC](#table-of-contents)
 
+### Dependency troubleshooting
+
+When dependency containers are causing trouble, the logs can be accessed using
+the `pongo logs` command. This command is the same as `docker-compose logs` except
+that it operates on the Pongo environment specifically. Any additional options
+specified to the command will be passed to the underlying `docker-compose logs`
+command.
+
+Some examples:
+```shell
+# show latest logs
+pongo logs
+
+# tail latest logs
+pongo logs -f
+
+# tail latest logs for the postgres dependency
+pongo logs -f postgres
+```
+
+[Back to ToC](#table-of-contents)
+
 ### Custom local dependencies
 
 If the included dependencies are not enough for testing a plugin, then Pongo allows
@@ -374,6 +399,9 @@ Some helpfull examples:
 [Back to ToC](#table-of-contents)
 
 ## Debugging
+
+This section is about debugging plugin code. If you have trouble with the Pongo
+environment then check [Dependency troubleshooting](#dependency-troubleshooting).
 
 ### Accessing logs
 

@@ -1,0 +1,10 @@
+Usage: pongo logs [options]
+
+This will do a `docker-compose logs` for the Pongo environment. The additional
+options specified will be passsed to docker-compose `logs` command.
+
+
+Example usage:
+  pongo logs
+  pongo logs -f
+  pongo logs -f postgres expose
