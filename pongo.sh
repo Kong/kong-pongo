@@ -364,7 +364,7 @@ function get_image {
   # Checks if an image based on $KONG_VERSION is available, if not it will try to
   # download the image. This might include logging into bintray to get an Enterprise
   # version image.
-  # NOTE: the image is a plain Kong image, not a development/Pongo one.
+  # NOTE: the image is an original Kong image, not a development/Pongo one.
   # Result: $KONG_IMAGE will be set to an image based on the requested version
   local image
   if is_nightly "$KONG_VERSION"; then
