@@ -33,6 +33,8 @@ Environment actions:
 
   expose        expose the internal ports for access from the host
 
+  logs          show docker-compose logs of the Pongo environment
+
   restart       shortcut, a combination of; down + up
 
   status        show status of the Pongo network, images, and containers
