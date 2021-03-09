@@ -488,13 +488,19 @@ depends on any external libraries, those rocks will be installed.
 For example; the Kong plugin `session` relies on the `lua-resty-session` rock.
 So by default it will install that dependency before starting the tests.
 
-An alternate way is to provide a `.pongo/pongo-setup.sh` file.
-If that file is present then that file will be executed (using `source`), instead
-of the default behaviour.
+To modify the default behaviour there are 2 scripts that can be hooked up:
 
-For example, the following file will install a specific
-development branch of `lua-resty-session` instead of the one specified in
-the rockspec:
+* `.pongo/pongo-setup-host.sh` this script will be executed (not sourced) right
+  before the Kong test container is started. Hence this script runs **on the host**.
+  The interpreter can be set using the regular shebang.
+
+* `.pongo/pongo-setup.sh` is ran upon container start **inside** the Kong
+  container. It will not be executed but sourced, and will run on `/bin/sh` as
+  interpreter.
+
+For example, the following file (saved as `.pongo/pongo-setup.sh`) will install
+a specific development branch of `lua-resty-session` instead of the one
+specified in the rockspec:
 
 ```shell
 # remove any existing version if installed
@@ -507,8 +513,12 @@ cd lua-resty-session
 git checkout redis-ssl
 luarocks make
 
+# cleanup
 cd ..
 rm -rf lua-resty-session
+
+# additionally run the default action of installing rockspec dependencies
+find /kong-plugin -maxdepth 1 -type f -name '*.rockspec' -exec luarocks install --only-deps {} \;
 ```
 
 [Back to ToC](#table-of-contents)

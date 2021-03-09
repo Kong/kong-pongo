@@ -671,6 +671,18 @@ function get_plugin_names {
 }
 
 
+function do_prerun_script {
+  if [[ -f .pongo/pongo-setup-host.sh ]]; then
+    # shellcheck disable=SC1091  # not following sourced script
+    .pongo/pongo-setup-host.sh
+
+    if [[ $? -ne 0 ]]; then
+      err "prerun script '.pongo/pongo-setup-host.sh' failed"
+    fi
+  fi
+}
+
+
 function pongo_clean {
   compose down --remove-orphans
 
@@ -964,6 +976,8 @@ function main {
       busted_files+=( "/kong-plugin/spec" )
     fi
 
+    do_prerun_script
+
     compose run --rm \
       -e KONG_LICENSE_DATA \
       -e KONG_TEST_DONT_CLEAN \
@@ -1021,6 +1035,8 @@ function main {
       touch "$history_file"
       history_mount="-v $history_file:/root/.ash_history"
     fi
+
+    do_prerun_script
 
     # shellcheck disable=SC2086 # we explicitly want script_mount & exec_cmd to be splitted
     compose run --rm --use-aliases \
