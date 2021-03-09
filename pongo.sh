@@ -861,6 +861,13 @@ function pongo_init {
     echo "*.rock" >> .gitignore
     msg "added '*.rock' to '.gitignore'"
   fi
+  if grep --quiet "^[.]pongo/[.]ash_history$" .gitignore ; then
+    msg "'.gitignore' already ignores '.pongo/.ash_history'"
+  else
+    echo "# exclude Pongo shell history" >> .gitignore
+    echo ".pongo/.ash_history" >> .gitignore
+    msg "added '.pongo/.ash_history' to '.gitignore'"
+  fi
 }
 
 
@@ -1007,6 +1014,14 @@ function main {
       exec_cmd="sh /kong/bin/shell_script.sh"
     fi
 
+    local history_mount=""
+    local history_file="./.pongo/.ash_history"
+    if [ -d "./.pongo" ]; then
+      history_file=$(realpath "$history_file")
+      touch "$history_file"
+      history_mount="-v $history_file:/root/.ash_history"
+    fi
+
     # shellcheck disable=SC2086 # we explicitly want script_mount & exec_cmd to be splitted
     compose run --rm --use-aliases \
       -e KONG_LICENSE_DATA \
@@ -1017,6 +1032,7 @@ function main {
       -e "KONG_PLUGINS=$PLUGINS" \
       -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
       $script_mount \
+      $history_mount \
       -e "PS1=\[\e[00m\]\[\033[1;34m\][$shellprompt:\[\033[1;92m\]\w\[\033[1;34m\]]#\[\033[00m\] " \
       kong $exec_cmd
 

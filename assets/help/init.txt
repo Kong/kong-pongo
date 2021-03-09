@@ -18,6 +18,7 @@ The files added (if not there):
 If the '.gitignore' file already exists it will add the following entries:
  - 'servroot' which is the working directory/prefix when running tests
  - '*.rock' the binary rock format created by LuaRocks and/or 'pongo pack'
+ - '.pongo/.ash_history' shell history for 'pongo shell'
 
 
 Example usage:
