@@ -1,9 +1,7 @@
 #!/usr/bin/env resty
 
-setmetatable(_G, nil)
+require "luarocks.loader"
 
-pcall(require, "luarocks.loader")
-
-package.path = (os.getenv("KONG_LUA_PATH_OVERRIDE") or "") .. "./?.lua;./?/init.lua;" .. package.path
+package.path = "./?.lua;./?/init.lua;" .. package.path
 
 require("kong.cmd.init")(arg)
