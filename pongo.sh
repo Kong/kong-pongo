@@ -44,11 +44,11 @@ function globals {
 
   # Nightly EE images repo, these require to additionally set the credentials
   # in $NIGHTLY_EE_APIKEY and $NIGHTLY_EE_USER
-  NIGHTLY_EE_DOCKER_REPO="registry.kongcloud.io"
-  NIGHTLY_EE_TAG="registry.kongcloud.io/kong-ee-dev-master:latest"
+  NIGHTLY_EE_DOCKER_REPO="${NIGHTLY_EE_DOCKER_REPO:-registry.kongcloud.io}"
+  NIGHTLY_EE_TAG="${NIGHTLY_EE_TAG:-registry.kongcloud.io/kong-ee-dev-master:latest}"
 
   # Nightly CE images, these are public, no credentials needed
-  NIGHTLY_CE_TAG="kong/kong:latest"
+  NIGHTLY_CE_TAG="${NIGHTLY_CE_TAG:-kong/kong:latest}"
 
   # Commandline related variables
   unset ACTION
@@ -372,7 +372,7 @@ function get_image {
     if [[ "$KONG_VERSION" == "$NIGHTLY_CE" ]]; then
       # pull the Opensource Nightly image
       image=$NIGHTLY_CE_TAG
-      docker pull $image
+      docker pull "$image"
       if [[ ! $? -eq 0 ]]; then
         err "failed to pull the Kong CE nightly image $image"
       fi
@@ -380,23 +380,23 @@ function get_image {
     else
       # pull the Enterprise nightly image
       image=$NIGHTLY_EE_TAG
-      docker pull $image
+      docker pull "$image"
       if [[ ! $? -eq 0 ]]; then
         warn "failed to pull the Kong Enterprise nightly image, retrying with login..."
         check_secret_availability "$image"
         echo "$NIGHTLY_EE_APIKEY" | docker login -u "$NIGHTLY_EE_USER" --password-stdin "$NIGHTLY_EE_DOCKER_REPO"
         if [[ ! $? -eq 0 ]]; then
-          docker logout $NIGHTLY_EE_DOCKER_REPO
+          docker logout "$NIGHTLY_EE_DOCKER_REPO"
           err "Failed to log into the nightly Kong Enterprise docker repo. Make sure to provide the
 proper credentials in the \$NIGHTLY_EE_USER and \$NIGHTLY_EE_APIKEY environment variables."
         fi
-        docker pull $image
+        docker pull "$image"
         if [[ ! $? -eq 0 ]]; then
-          docker logout $NIGHTLY_EE_DOCKER_REPO
+          docker logout "$NIGHTLY_EE_DOCKER_REPO"
           err "failed to pull: $image"
         fi
         msg "pull with login succeeded"
-        docker logout $NIGHTLY_EE_DOCKER_REPO
+        docker logout "$NIGHTLY_EE_DOCKER_REPO"
       fi
     fi
 
