@@ -121,17 +121,16 @@ Tools Pongo needs to run:
 
 Additionally set up the following when testing against Kong Enterprise:
 
-* Set the Bintray credentials (for pulling Kong Enterprise images) in the
-  environment variables `BINTRAY_USERNAME` and `BINTRAY_APIKEY`, or manually
+* Set the Docker credentials (for pulling Kong Enterprise images) in the
+  environment variables `DOCKER_USERNAME` and `DOCKER_PASSWORD`, or manually
   log in to the Kong docker repo.
 * Have the Kong Enterprise license key, and set it in `KONG_LICENSE_DATA`,
-  alternatively set variable `BINTRAY_REPO` to your repository name (in addition
-  to `BINTRAY_USERNAME` and `BINTRAY_APIKEY`) to allow Pongo to download the
-  license file automatically.
-* If you do not have Bintray credentials, make sure to have a docker image of
+  alternatively set variable `PULP_USERNAME` and `PULP_PASSWORD` to your Pulp credentials
+  to allow Pongo to download the license file automatically.
+* If you do not have Docker credentials, make sure to have a docker image of
   Kong Enterprise, and set the image name in the environment variable `KONG_IMAGE`.
 
-See [Setting up CI](#setting-up-ci) for some Bintray environment variable examples.
+See [Setting up CI](#setting-up-ci) for some Pulp environment variable examples.
 
 [Back to ToC](#table-of-contents)
 
@@ -161,7 +160,7 @@ pongo run
 
 Some more elaborate examples:
 ```shell
-# Run against a specific version of Kong (log into bintray first!) and pass
+# Run against a specific version of Kong and pass
 # a number of Busted options
 KONG_VERSION=0.36-1 pongo run -v -o gtest ./spec
 
@@ -578,19 +577,15 @@ some secrets need to be added. With the secrets in place Pongo will be able to
 download the proper Kong Enterprise images and the required license keys.
 
 The environment variables needed are:
-- `BINTRAY_USERNAME=<your Bintray username>`
-- `BINTRAY_APIKEY=<your Bintray API key>`
-- `BINTRAY_REPO=<your Kong Bintray repo name>`
-
-Typically they would look something like this:
-- `BINTRAY_USERNAME=thijs-schreijer@kong`
-- `BINTRAY_APIKEY=Xa6htQZoS/4Ko8VSj7hFGm2LnQDng6c5xIBJ`
-- `BINTRAY_REPO=pongo`
+- `DOCKER_USERNAME=<your_docker_username>`
+- `DOCKER_PASSWORD=<your_docker_password>`
+- `PULP_USERNAME=<your_pulp_username>` (Optional, if KONG_LICENSE_DATA not set)
+- `PULP_PASSWORD=<your_pulp_password>` (Optional, if KONG_LICENSE_DATA not set)
 
 To test the values try the following command, if succesful it will display
 your license key:
 ```
-$ curl -L -u"$BINTRAY_USERNAME:$BINTRAY_APIKEY" "https://kong.bintray.com/$BINTRAY_REPO/license.json"
+$ curl -L -u"$PULP_USERNAME:$PULP_PASSWORD" "https://download.konghq.com/internal/kong-gateway/license.json"
 ```
 
 Once the test command is succesful you can add the secrets to the Travis-CI
@@ -601,9 +596,10 @@ follow these steps:
 - Enter the main directory of your plugins repo
 - Add the encrypted values by doing:
 
-  - `travis encrypt --pro BINTRAY_USERNAME=<your_user_name_here> --add`
-  - `travis encrypt --pro BINTRAY_APIKEY=<your_api_key_here> --add`
-  - `travis encrypt --pro BINTRAY_REPO=<your_Bintray_repo_name_here> --add`
+  - `travis encrypt --pro DOCKER_USERNAME=<your_docker_username> --add`
+  - `travis encrypt --pro DOCKER_PASSWORD=<your_docker_password> --add`
+  - `travis encrypt --pro PULP_USERNAME=<your_pulp_username> --add`
+  - `travis encrypt --pro PULP_PASSWORD=<your_pulp_password> --add`
 
 After completing the steps above, the `.travis.yml` file should now be updated
 and have this additional section:
@@ -650,8 +646,8 @@ jobs:
 ```
 
 For this to work the following variables must be present:
-- `NIGHTLY_EE_USER=<internal Kong username>`
-- `NIGHTLY_EE_APIKEY=<the API key>`
+- `DOCKER_USERNAME=<your_docker_username>`
+- `DOCKER_PASSWORD<your_docker_password>`
 
 At least the api-key must be encrypted as a secret. Follow the instructions above
 to encrypt and add them to the `.travis.yml` file.
