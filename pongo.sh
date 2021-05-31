@@ -117,7 +117,7 @@ function check_docker {
       warn "sure '/pongo_wd' doesn't exist."
     else
       #msg "Pongo container: $PONGO_CONTAINER_ID"
-      HOST_PATH=$(docker inspect "$PONGO_CONTAINER_ID" | grep ":/pongo_wd\"" | sed -e 's/^[ \t]*//' | sed s/\"//g | grep -o "^[^:]*")
+      HOST_PATH=$(docker inspect "$PONGO_CONTAINER_ID" | grep ":/pongo_wd.*\"" | sed -e 's/^[ \t]*//' | sed s/\"//g | grep -o "^[^:]*")
       #msg "Host working directory: $HOST_PATH"
     fi
     if [[ "$HOST_PATH" == "" ]]; then
