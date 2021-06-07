@@ -85,6 +85,7 @@ Pongo provides a simple way of testing Kong plugins
 
  - [Requirements](#requirements)
  - [Installation](#installation)
+ - [Configuration](#configuration)
  - [Do a test run](#do-a-test-run)
  - [Pongo on Windows](#pongo-on-windows)
  - [Test dependencies](#test-dependencies)
@@ -118,19 +119,7 @@ Tools Pongo needs to run:
   ```
   brew install coreutils
   ```
-
-Additionally set up the following when testing against Kong Enterprise:
-
-* Set the Docker credentials (for pulling Kong Enterprise images) in the
-  environment variables `DOCKER_USERNAME` and `DOCKER_PASSWORD`, or manually
-  log in to the Kong docker repo.
-* Have the Kong Enterprise license key, and set it in `KONG_LICENSE_DATA`,
-  alternatively set variable `PULP_USERNAME` and `PULP_PASSWORD` to your Pulp credentials
-  to allow Pongo to download the license file automatically.
-* If you do not have Docker credentials, make sure to have a docker image of
-  Kong Enterprise, and set the image name in the environment variable `KONG_IMAGE`.
-
-See [Setting up CI](#setting-up-ci) for some Pulp environment variable examples.
+* depending on your environment you should set some [environment variables](#configuration).
 
 [Back to ToC](#table-of-contents)
 
@@ -143,6 +132,29 @@ git clone https://github.com/Kong/kong-pongo.git
 mkdir -p ~/.local/bin
 ln -s $(realpath kong-pongo/pongo.sh) ~/.local/bin/pongo
 ```
+
+[Back to ToC](#table-of-contents)
+
+## Configuration
+
+Several environment variables are available for configuration:
+
+* Docker credentials; `DOCKER_USERNAME` and `DOCKER_PASSWORD` to prevent rate-
+  limits when pulling images, but also for testing against older Kong Enterprise
+  images that are not publicly available.
+* Kong license; set `KONG_LICENSE_DATA` with the Enterprise license to enable
+  Enterprise features.
+* Specify a custom image; set the image name/tag in `KONG_IMAGE` and make sure
+  the image is locally available
+
+For Kong-internal use there are some additional variables:
+
+* `PULP_USERNAME` and `PULP_PASSWORD` to automatically download the Kong
+  Enterprise CI license. See [Setting up CI](#setting-up-ci) for some Pulp
+  environment variable examples.
+* `GITHUB_TOKEN` the Github token to get access to the Kong Enterprise source
+  code. This is only required for development/nightly builds, not for released
+  versions of Kong.
 
 [Back to ToC](#table-of-contents)
 
@@ -574,15 +586,19 @@ jobs:
 
 To test against an Enterprise version of Kong the same base setup can be used, but
 some secrets need to be added. With the secrets in place Pongo will be able to
-download the proper Kong Enterprise images and the required license keys.
+download the proper Kong Enterprise images and license keys. See [Configuration](#configuration)
+for details on the environment variables.
 
-The environment variables needed are:
+The environment variables:
 - `DOCKER_USERNAME=<your_docker_username>`
 - `DOCKER_PASSWORD=<your_docker_password>`
+- `KONG_LICENSE_DATA=<your_license_data>`
+
+Kong internal only:
 - `PULP_USERNAME=<your_pulp_username>` (Optional, if KONG_LICENSE_DATA not set)
 - `PULP_PASSWORD=<your_pulp_password>` (Optional, if KONG_LICENSE_DATA not set)
 
-To test the values try the following command, if succesful it will display
+To test the Pulp values try the following command, if succesful it will display
 your license key:
 ```
 $ curl -L -u"$PULP_USERNAME:$PULP_PASSWORD" "https://download.konghq.com/internal/kong-gateway/license.json"
@@ -598,6 +614,7 @@ follow these steps:
 
   - `travis encrypt --pro DOCKER_USERNAME=<your_docker_username> --add`
   - `travis encrypt --pro DOCKER_PASSWORD=<your_docker_password> --add`
+  - `travis encrypt --pro KONG_LICENSE_DATA=<your_license_data> --add`
   - `travis encrypt --pro PULP_USERNAME=<your_pulp_username> --add`
   - `travis encrypt --pro PULP_PASSWORD=<your_pulp_password> --add`
 
@@ -619,7 +636,7 @@ Now you can update the `jobs` section and add Kong Enterprise version numbers.
 If you receive PR's from outside your organization, then the secrets will not be
 available on a CI run, this will cause the build to always fail. If you set this
 variable to `false` then Pongo will print only a warning and exit with success.
-Effectively this means that extrnal PR's are only tested against Kong opensource
+Effectively this means that external PR's are only tested against Kong opensource
 versions, and internal PR's will be tested against opensource and Enterprise
 versions of Kong.
 
