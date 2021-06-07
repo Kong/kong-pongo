@@ -12,6 +12,7 @@ function globals {
   SERVICE_NETWORK_NAME=${PROJECT_NAME}
   IMAGE_BASE_NAME=${PROJECT_NAME}-test
   KONG_TEST_PLUGIN_PATH=$(realpath .)
+  KONG_LICENSE_URL="https://download.konghq.com/internal/kong-gateway/license.json"
   PONGO_WD=$KONG_TEST_PLUGIN_PATH
   if [[ -f "$KONG_TEST_PLUGIN_PATH/.pongo/pongorc" ]]; then
     PONGORC_FILE=".pongo/pongorc"
@@ -30,22 +31,24 @@ function globals {
   fi
 
   # regular Kong Enterprise images repo (tag is build as $PREFIX$VERSION$POSTFIX).
-  # Set credentials in $BINTRAY_APIKEY and $BINTRAY_USERNAME
-  KONG_EE_REPO="kong-docker-kong-enterprise-edition-docker.bintray.io"
-  KONG_EE_TAG_PREFIX="kong-docker-kong-enterprise-edition-docker.bintray.io/kong-enterprise-edition:"
+  KONG_EE_TAG_PREFIX="kong/kong-gateway:"
   KONG_EE_TAG_POSTFIX="-alpine"
+
+  # all Kong Enterprise images repo (tag is build as $PREFIX$VERSION$POSTFIX).
+  KONG_EE_PRIVATE_TAG_PREFIX="kong/kong-gateway-private:"
+  KONG_EE_PRIVATE_TAG_POSTFIX="-alpine"
 
   # regular Kong CE images repo (tag is build as $PREFIX$VERSION$POSTFIX)
   KONG_OSS_TAG_PREFIX="kong:"
   KONG_OSS_TAG_POSTFIX="-alpine"
+
   # unoffical Kong CE images repo, the fallback
-  KONG_OSS_TAG_FALLBACK_PREFIX="kong/kong:"
-  KONG_OSS_TAG_FALLBACK_POSTFIX=
+  KONG_OSS_UNOFFICIAL_TAG_PREFIX="kong/kong:"
+  KONG_OSS_UNOFFICIAL_TAG_POSTFIX=
 
   # Nightly EE images repo, these require to additionally set the credentials
-  # in $NIGHTLY_EE_APIKEY and $NIGHTLY_EE_USER
-  NIGHTLY_EE_DOCKER_REPO="registry.kongcloud.io"
-  NIGHTLY_EE_TAG="registry.kongcloud.io/kong-ee-dev-master:latest"
+  # in $DOCKER_USERNAME and $DOCKER_PASSWORD
+  NIGHTLY_EE_TAG="kong/kong-gateway-internal:master-nightly-alpine"
 
   # Nightly CE images, these are public, no credentials needed
   NIGHTLY_CE_TAG="kong/kong:latest"
@@ -359,11 +362,18 @@ function check_secret_availability {
   fi
 }
 
+function docker_login {
+  echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  if [[ ! $? -eq 0 ]]; then
+    docker logout
+    err "Failed to log into the nightly Kong Enterprise docker repo. Make sure to provide the
+proper credentials in the \$DOCKER_USERNAME and \$DOCKER_PASSWORD environment variables."
+  fi
+}
 
 function get_image {
   # Checks if an image based on $KONG_VERSION is available, if not it will try to
-  # download the image. This might include logging into bintray to get an Enterprise
-  # version image.
+  # download the image.
   # NOTE: the image is an original Kong image, not a development/Pongo one.
   # Result: $KONG_IMAGE will be set to an image based on the requested version
   local image
@@ -384,19 +394,14 @@ function get_image {
       if [[ ! $? -eq 0 ]]; then
         warn "failed to pull the Kong Enterprise nightly image, retrying with login..."
         check_secret_availability "$image"
-        echo "$NIGHTLY_EE_APIKEY" | docker login -u "$NIGHTLY_EE_USER" --password-stdin "$NIGHTLY_EE_DOCKER_REPO"
-        if [[ ! $? -eq 0 ]]; then
-          docker logout $NIGHTLY_EE_DOCKER_REPO
-          err "Failed to log into the nightly Kong Enterprise docker repo. Make sure to provide the
-proper credentials in the \$NIGHTLY_EE_USER and \$NIGHTLY_EE_APIKEY environment variables."
-        fi
+        docker_login
         docker pull $image
         if [[ ! $? -eq 0 ]]; then
-          docker logout $NIGHTLY_EE_DOCKER_REPO
+          docker logout
           err "failed to pull: $image"
         fi
         msg "pull with login succeeded"
-        docker logout $NIGHTLY_EE_DOCKER_REPO
+        docker logout
       fi
     fi
 
@@ -412,24 +417,18 @@ proper credentials in the \$NIGHTLY_EE_USER and \$NIGHTLY_EE_APIKEY environment 
     if [[ ! $? -eq 0 ]]; then
       docker pull "$image"
       if [[ ! $? -eq 0 ]]; then
-        warn "failed to pull image $image"
+        warn "failed to pull image $image."
+
         if is_enterprise "$KONG_VERSION"; then
-          # failed to pull Enterprise, so login and retry
-          msg "trying to login to Kong docker repo and retry..."
-          check_secret_availability "$image"
-          echo "$BINTRAY_APIKEY" | docker login -u "$BINTRAY_USERNAME" --password-stdin "$KONG_EE_REPO"
-          if [[ ! $? -eq 0 ]]; then
-            docker logout $KONG_EE_REPO
-            err "Failed to log into the Kong docker repo. Make sure to provide the proper credentials
-in the \$BINTRAY_USERNAME and \$BINTRAY_APIKEY environment variables."
-          fi
-          docker pull "$image"
-          if [[ ! $? -eq 0 ]]; then
-            docker logout $KONG_EE_REPO
-            err "failed to pull: $image"
-          fi
-          msg "pull with login succeeded"
-          docker logout $KONG_EE_REPO
+            # failed to pull EE image, so try the fallback to the private repo
+            image=$KONG_EE_PRIVATE_TAG_PREFIX$KONG_VERSION$KONG_EE_PRIVATE_TAG_POSTFIX
+            docker_login
+            docker pull "$image"
+            if [[ ! $? -eq 0 ]]; then
+              docker logout
+              err "failed to pull: $image"
+            fi
+            docker logout
         else
           # failed to pull CE image, so try the fallback
           # NOTE: new releases take a while (days) to become available in the
@@ -437,7 +436,7 @@ in the \$BINTRAY_USERNAME and \$BINTRAY_APIKEY environment variables."
           # repo that is immediately available for each release. This will
           # prevent any CI from failing in the mean time.
           msg "failed to pull: $image from the official repo, retrying unofficial..."
-          image=$KONG_OSS_TAG_FALLBACK_PREFIX$KONG_VERSION$KONG_OSS_TAG_FALLBACK_POSTFIX
+          image=$KONG_OSS_UNOFFICIAL_TAG_PREFIX$KONG_VERSION$KONG_OSS_UNOFFICIAL_TAG_POSTFIX
           docker pull "$image"
           if [[ ! $? -eq 0 ]]; then
             err "failed to pull: $image"
@@ -454,22 +453,19 @@ in the \$BINTRAY_USERNAME and \$BINTRAY_APIKEY environment variables."
 
 function get_license {
   # If $KONG_VERSION is recognized as an Enterprise version and no license data
-  # has been set in $KONG_LICENSE_DATA yet, then it will log into Bintray and
+  # has been set in $KONG_LICENSE_DATA yet, then it will log into Pulp and
   # get the required license.
   # Result: $KONG_LICENSE_DATA will be set if it is needed
   if is_enterprise "$KONG_VERSION"; then
     if [[ -z $KONG_LICENSE_DATA ]]; then
       # Enterprise version, but no license data available, try and get the license data
-      if [[ "$BINTRAY_USERNAME" == "" ]]; then
-        warn "BINTRAY_USERNAME is not set, might not be able to download the license!"
+      if [[ "$PULP_USERNAME" == "" ]]; then
+        warn "PULP_USERNAME is not set, might not be able to download the license!"
       fi
-      if [[ "$BINTRAY_APIKEY" == "" ]]; then
-        warn "BINTRAY_APIKEY is not set, might not be able to download the license!"
+      if [[ "$PULP_PASSWORD" == "" ]]; then
+        warn "PULP_PASSWORD is not set, might not be able to download the license!"
       fi
-      if [[ "$BINTRAY_REPO" == "" ]]; then
-        warn "BINTRAY_REPO is not set, might not be able to download the license!"
-      fi
-      KONG_LICENSE_DATA=$(curl -s -L -u"$BINTRAY_USERNAME:$BINTRAY_APIKEY" "https://kong.bintray.com/$BINTRAY_REPO/license.json")
+      KONG_LICENSE_DATA=$(curl -s -L -u"$PULP_USERNAME:$PULP_PASSWORD" $KONG_LICENSE_URL)
       export KONG_LICENSE_DATA
       if [[ ! $KONG_LICENSE_DATA == *"signature"* || ! $KONG_LICENSE_DATA == *"payload"* ]]; then
         # the check above is a bit lame, but the best we can do without requiring
