@@ -13,13 +13,14 @@ The files added (if not there):
  - '.luacheckrc' with sanity checks for the Lua source code using the 'luacheck'
    linter through 'pongo lint'.
  - '.editorconfig' containing default editor settings
+ - '.luacov' with default settings for the LuaCov test coverage tool
  - '.gitignore'
 
 If the '.gitignore' file already exists it will add the following entries:
  - 'servroot' which is the working directory/prefix when running tests
  - '*.rock' the binary rock format created by LuaRocks and/or 'pongo pack'
  - '.pongo/.ash_history' shell history for 'pongo shell'
-
+ - LuaCov output; 'luacov.stats.out' and 'luacov.report.out'
 
 Example usage:
   mkdir kong-plugin-awesome

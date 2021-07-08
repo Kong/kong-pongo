@@ -36,6 +36,7 @@ RUN apk update \
     ; cd /kong \
     && make dependencies \
     && luarocks install busted-htest \
+    && luarocks install luacov \
     && chmod +x /kong/bin/test_plugin_entrypoint.sh
 
 
