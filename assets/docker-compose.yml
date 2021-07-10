@@ -89,6 +89,17 @@ services:
     networks:
       - ${NETWORK_NAME}
 
+  cluster-redis:
+    image: grokzen/redis-cluster:latest
+    container_name: cluster-redis
+    environment:
+      - INITIAL_PORT=7000
+      - MASTERS=3 # Minimum 3 masters are required for clustered redis
+      - SLAVES_PER_MASTER=0
+    restart: on-failure
+    networks:
+      - ${NETWORK_NAME}
+
   squid:
     image: sameersbn/squid:${SQUID:-3.5.27-2}
     volumes:
