@@ -954,9 +954,14 @@ function main {
 
     local busted_params=()
     local busted_files=()
+    local collect_coverage_report=false
+
     index=1
     for arg in "${EXTRA_ARGS[@]}"; do
-      if [[ "$index" -lt "$files_start_index" ]]; then
+      if [[ "$arg" == "--coverage" ]]; then
+        collect_coverage_report=true
+        busted_params+=( "$arg" )
+      elif [[ "$index" -lt "$files_start_index" ]]; then
         busted_params+=( "$arg" )
       else
         # substitute absolute host path for absolute docker path
@@ -974,11 +979,17 @@ function main {
 
     do_prerun_script
 
+    local coverage_report
+    if $collect_coverage_report; then
+      coverage_report="luacov; cp luacov.*.out /kong-plugin/"
+    fi
+
     compose run --rm \
       -e KONG_LICENSE_DATA \
       -e KONG_TEST_DONT_CLEAN \
+      -e KONG_TEST_PLUGIN_PATH \
       kong \
-      "/bin/sh" "-c" "bin/busted --helper=bin/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
+      "/bin/sh" "-c" "bin/busted --helper=bin/busted_helper.lua ${busted_params[*]} ${busted_files[*]}; ${coverage_report}"
     ;;
 
   shell)
