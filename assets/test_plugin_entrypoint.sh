@@ -12,6 +12,10 @@
 if [ -f /kong-plugin/.busted ]; then
   cp /kong-plugin/.busted /kong/
 fi
+# same for LuaCov
+if [ -f /kong-plugin/.luacov ]; then
+  cp /kong-plugin/.luacov /kong/
+fi
 
 
 if [ -z "$KONG_ADMIN_LISTEN" ]; then

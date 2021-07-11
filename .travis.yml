@@ -1,8 +1,8 @@
 dist: bionic
 jobs:
   include:
-  - name: pongo shell
-    env: TEST_SCRIPT="assets/ci/pongo_shell.test.sh"
+  - name: pongo shell, LuaCov
+    env: TEST_SCRIPT="assets/ci/pongo_shell.test.sh assets/ci/pongo_luacov.test.sh"
   - name: pongo build, pongo expose
     env: TEST_SCRIPT="assets/ci/pongo_build.test.sh assets/ci/pongo_expose.test.sh"
   - name: pongo run (CE releases)

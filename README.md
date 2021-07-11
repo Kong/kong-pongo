@@ -101,6 +101,7 @@ Pongo provides a simple way of testing Kong plugins
      - [Accessing the logs](#accessing-the-logs)
      - [Direct access to service ports](#direct-access-to-service-ports)
  - [Test initialization](#test-initialization)
+ - [Test coverage](#test-coverage)
  - [Setting up CI](#setting-up-ci)
      - [CI against nightly builds](#ci-against-nightly-builds)
      - [CI with Kong Enterprise](#ci-with-kong-enterprise)
@@ -531,6 +532,23 @@ rm -rf lua-resty-session
 # additionally run the default action of installing rockspec dependencies
 find /kong-plugin -maxdepth 1 -type f -name '*.rockspec' -exec luarocks install --only-deps {} \;
 ```
+
+[Back to ToC](#table-of-contents)
+
+## Test coverage
+
+Pongo has support for the LuaCov code coverage tool. But this is rather limited.
+LuaCov is not able to run in OpenResty, hence it will not report on integration
+tests, only on unit tests.
+
+To enable LuaCov, run `pongo init` to create the `.luacov` configuration file, and
+then run the tests using the Busted `--coverage` option like this:
+
+```shell
+pongo run -- --coverage
+```
+
+After the test run the output files `luacov.*.out` files should be available.
 
 [Back to ToC](#table-of-contents)
 
