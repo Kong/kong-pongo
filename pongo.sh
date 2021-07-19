@@ -979,9 +979,9 @@ function main {
 
     do_prerun_script
 
-    local coverage_report
+    local coverage_report=""
     if $collect_coverage_report; then
-      coverage_report="luacov; cp luacov.*.out /kong-plugin/"
+      coverage_report="; cp /kong-plugin/.luacov /kong/.luacov; luacov; cp luacov.report.out /kong-plugin/"
     fi
 
     compose run --rm \
@@ -989,7 +989,7 @@ function main {
       -e KONG_TEST_DONT_CLEAN \
       -e KONG_TEST_PLUGIN_PATH \
       kong \
-      "/bin/sh" "-c" "bin/busted --helper=bin/busted_helper.lua ${busted_params[*]} ${busted_files[*]}; ${coverage_report}"
+      "/bin/sh" "-c" "bin/busted --helper=bin/busted_helper.lua ${busted_params[*]} ${busted_files[*]} ${coverage_report}"
     ;;
 
   shell)
