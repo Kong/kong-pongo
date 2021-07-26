@@ -981,7 +981,7 @@ function main {
 
     local coverage_report=""
     if $collect_coverage_report; then
-      coverage_report="; cp /kong-plugin/.luacov /kong/.luacov; luacov; cp luacov.report.out /kong-plugin/"
+      coverage_report="; cp /kong-plugin/.luacov /kong/.luacov; luacov; mkdir -p luacov-html; cp -R luacov-html /kong-plugin/; cp luacov.report.out /kong-plugin/"
     fi
 
     compose run --rm \
