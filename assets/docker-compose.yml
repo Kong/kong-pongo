@@ -38,6 +38,7 @@ services:
       - -e
       - /ready
       timeout: 10s
+    restart: on-failure
     stop_signal: SIGKILL
     networks:
       - ${NETWORK_NAME}
