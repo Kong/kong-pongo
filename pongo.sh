@@ -32,15 +32,15 @@ function globals {
 
   # regular Kong Enterprise images repo (tag is build as $PREFIX$VERSION$POSTFIX).
   KONG_EE_TAG_PREFIX="kong/kong-gateway:"
-  KONG_EE_TAG_POSTFIX="-alpine"
+  KONG_EE_TAG_POSTFIX="-ubuntu"
 
   # all Kong Enterprise images repo (tag is build as $PREFIX$VERSION$POSTFIX).
   KONG_EE_PRIVATE_TAG_PREFIX="kong/kong-gateway-private:"
-  KONG_EE_PRIVATE_TAG_POSTFIX="-alpine"
+  KONG_EE_PRIVATE_TAG_POSTFIX="-ubuntu"
 
   # regular Kong CE images repo (tag is build as $PREFIX$VERSION$POSTFIX)
   KONG_OSS_TAG_PREFIX="kong:"
-  KONG_OSS_TAG_POSTFIX="-alpine"
+  KONG_OSS_TAG_POSTFIX="-ubuntu"
 
   # unoffical Kong CE images repo, the fallback
   KONG_OSS_UNOFFICIAL_TAG_PREFIX="kong/kong:"
