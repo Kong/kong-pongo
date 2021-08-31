@@ -81,7 +81,7 @@ function check_tools {
     missing=true
   fi
 
-  docker-compose -v > /dev/null 2>&1
+  docker-compose > /dev/null 2>&1
   if [[ ! $? -eq 0 ]]; then
     >&2 echo "'docker-compose' command not found, please install docker-compose, and make it available in the path."
     missing=true
