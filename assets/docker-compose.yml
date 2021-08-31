@@ -122,6 +122,7 @@ services:
     environment:
       - KONG_CASSANDRA_CONTACT_POINTS=cassandra
       - KONG_PG_HOST=postgres
+      - PONGO_COMMAND=${ACTION}
     networks:
       - ${NETWORK_NAME}
     volumes:

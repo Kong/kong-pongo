@@ -510,6 +510,9 @@ To modify the default behaviour there are 2 scripts that can be hooked up:
   container. It will not be executed but sourced, and will run on `/bin/sh` as
   interpreter.
 
+Both scripts will have an environment variable `PONGO_COMMAND` that will have
+the current command being executed, for example `shell` or `run`.
+
 For example, the following file (saved as `.pongo/pongo-setup.sh`) will install
 a specific development branch of `lua-resty-session` instead of the one
 specified in the rockspec:
