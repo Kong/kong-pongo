@@ -534,6 +534,7 @@ function compose {
   export SERVICE_NETWORK_NAME
   export KONG_TEST_IMAGE
   export PONGO_WD
+  export ACTION
   # shellcheck disable=SC2086  # we need DOCKER_COMPOSE_FILES to be word-split here
   docker-compose -p "${PROJECT_NAME}" ${DOCKER_COMPOSE_FILES} "$@"
 }
@@ -670,7 +671,7 @@ function get_plugin_names {
 function do_prerun_script {
   if [[ -f .pongo/pongo-setup-host.sh ]]; then
     # shellcheck disable=SC1091  # not following sourced script
-    .pongo/pongo-setup-host.sh
+    PONGO_COMMAND="$ACTION" .pongo/pongo-setup-host.sh
 
     if [[ $? -ne 0 ]]; then
       err "prerun script '.pongo/pongo-setup-host.sh' failed"
