@@ -83,8 +83,16 @@ function check_tools {
 
   docker-compose -v > /dev/null 2>&1
   if [[ ! $? -eq 0 ]]; then
-    >&2 echo "'docker-compose' command not found, please install docker-compose, and make it available in the path."
-    missing=true
+    docker compose > /dev/null 2>&1
+    if [[ ! $? -eq 0 ]]; then
+      >&2 echo "'docker-compose' and 'docker compose' commands not found, please upgrade docker or install docker-compose and make it available in the path."
+      missing=true
+    fi
+    # newer version; compose is a subcommand of docker
+    COMPOSE_COMMAND="docker compose"
+  else
+    # old deprecated way; using docker-compose as a separate command
+    COMPOSE_COMMAND="docker-compose"
   fi
 
   realpath --version > /dev/null 2>&1
@@ -536,7 +544,7 @@ function compose {
   export PONGO_WD
   export ACTION
   # shellcheck disable=SC2086  # we need DOCKER_COMPOSE_FILES to be word-split here
-  docker-compose -p "${PROJECT_NAME}" ${DOCKER_COMPOSE_FILES} "$@"
+  $COMPOSE_COMMAND -p "${PROJECT_NAME}" ${DOCKER_COMPOSE_FILES} "$@"
 }
 
 
