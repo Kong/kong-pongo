@@ -4,7 +4,10 @@
 
 function globals {
   # Project related global variables
-  LOCAL_PATH=$(dirname "$(realpath "$0")")
+  local script_path
+  # explicitly resolve the link because realpath doesn't do it on Windows
+  script_path=$(test -L "$0" && readlink "$0" || echo "$0")
+  LOCAL_PATH=$(dirname "$(realpath "$script_path")")
   DOCKER_FILE=${LOCAL_PATH}/assets/Dockerfile
   DOCKER_COMPOSE_FILES="-f ${LOCAL_PATH}/assets/docker-compose.yml"
   PROJECT_NAME=kong-pongo
@@ -22,6 +25,18 @@ function globals {
   else
     PONGORC_FILE=".pongo/pongorc"
   fi
+
+  unset WINDOWS_SLASH
+  unset WINPTY_PREFIX
+  local platform
+  platform=$(uname -s)
+  if [ "${platform:0:5}" == "MINGW" ]; then
+    # Windows requires an extra / in docker command so //bin/sh
+    # https://www.reddit.com/r/docker/comments/734arg/cant_figure_out_how_to_bash_into_docker_container/
+    WINDOWS_SLASH="/"
+    # for terminal output we passthrough winpty
+    WINPTY_PREFIX=winpty
+  fi;
 
   # when running CI do we have the required secrets available? (used for EE only)
   # secrets are unavailable for PR's from outside the organization (untrusted)
@@ -155,7 +170,7 @@ echo -e "                ${BROWN}/~\\ ${BLUE}"
 echo -e "  ______       ${BROWN}C oo${BLUE}"
 echo -e "  | ___ \      ${BROWN}_( ^)${BLUE}"
 echo -e "  | |_/ /__  _${BROWN}/${BLUE}__ ${BROWN}~\ ${BLUE}__   ___"
-echo -e "  |  __/ _ \| '_ \ ${BROWN}/${BLUE} _\` |/ _ \\"
+echo -e "  |  __/ _ \| '_ \ ${BROWN}/${BLUE} _ \`|/ _ \\"
 echo -e "  | | | (_) | | | | (_| | (_) |"
 echo -e "  \_|  \___/|_| |_|\__, |\___/"
 echo -e "                    __/ |"
@@ -527,7 +542,8 @@ function get_version {
 
         io.stdout:write(parsed_version)
       "')
-    VERSION=$(docker run --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "${cmd[@]}")
+    # shellcheck disable=SC2145  # we want WINDOWS_SLASH to be added to the first element
+    VERSION=$(docker run --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "$WINDOWS_SLASH${cmd[@]}")
     if [[ ! $? -eq 0 ]]; then
       err "failed to read version from Kong image: $KONG_IMAGE"
     fi
@@ -543,8 +559,15 @@ function compose {
   export KONG_TEST_IMAGE
   export PONGO_WD
   export ACTION
+  local prefix
+  if [ -t 1 ] ; then
+    # only use winpty prefix if we're outputting to terminal,
+    # hence don't use when piping
+    prefix=$WINPTY_PREFIX
+  fi
+
   # shellcheck disable=SC2086  # we need DOCKER_COMPOSE_FILES to be word-split here
-  $COMPOSE_COMMAND -p "${PROJECT_NAME}" ${DOCKER_COMPOSE_FILES} "$@"
+  $prefix $COMPOSE_COMMAND -p "${PROJECT_NAME}" ${DOCKER_COMPOSE_FILES} "$@"
 }
 
 
@@ -595,7 +618,13 @@ function compose_up {
 
 
 function ensure_available {
-  compose ps | grep "Up (health" &> /dev/null
+  if [ -z "$WINDOWS_SLASH" ]; then
+    # unix check
+    compose ps | grep "Up (health" &> /dev/null
+  else
+    # Windows check
+    compose ps | grep "running (health" &> /dev/null
+  fi
   if [[ ! $? -eq 0 ]]; then
     msg "auto-starting the test environment, use the 'pongo down' action to stop it"
     compose_up
@@ -642,7 +671,7 @@ function build_image {
   fi
 
   msg "starting build of image '$KONG_TEST_IMAGE'"
-  docker build \
+  $WINPTY_PREFIX docker build \
     -f "$DOCKER_FILE" \
     --build-arg http_proxy \
     --build-arg https_proxy \
@@ -1012,7 +1041,7 @@ function main {
       -e KONG_LICENSE_DATA \
       -e KONG_TEST_DONT_CLEAN \
       kong \
-      "/bin/sh" "-c" "bin/busted --helper=bin/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
+      "$WINDOWS_SLASH/bin/sh" "-c" "bin/busted --helper=bin/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
     ;;
 
   shell)
@@ -1055,7 +1084,7 @@ function main {
         err "Not a valid script filename: $script"
       fi
       script_mount="-v $script:/kong/bin/shell_script.sh"
-      exec_cmd="sh /kong/bin/shell_script.sh"
+      exec_cmd="$WINDOWS_SLASH/bin/sh /kong/bin/shell_script.sh"
     fi
 
     local history_mount=""
@@ -1101,7 +1130,7 @@ function main {
       build_image
     fi
     compose run --rm \
-      --workdir="/kong-plugin" \
+      --workdir="$WINDOWS_SLASH/kong-plugin" \
       -e KONG_LICENSE_DATA \
       -e KONG_LOG_LEVEL \
       -e KONG_ANONYMOUS_REPORTS \
@@ -1121,7 +1150,7 @@ function main {
       build_image
     fi
     compose run --rm \
-      --workdir="/kong-plugin" \
+      --workdir="$WINDOWS_SLASH/kong-plugin" \
       -e KONG_LICENSE_DATA \
       -e KONG_LOG_LEVEL \
       -e KONG_ANONYMOUS_REPORTS \
@@ -1160,9 +1189,27 @@ function main {
 
   docs)
     local tdir=${TMPDIR-/tmp}
+    if [ -n "$TMPDIR" ]; then
+      tdir=$TMPDIR
+    elif [ -n "$TEMP" ]; then
+      tdir=$TEMP
+    elif [ -n "$TMP" ]; then
+      tdir=$TMP
+    else
+      tdir="/tmp"
+    fi
+    if [ ! "${tdir: -1}" = "/" ]; then
+      tdir="$tdir"/
+    fi
     local subd="kong-test-helper-docs/"
-    if [[ "${EXTRA_ARGS[1]}" == "--force" ]]; then
-      rm -rf "$tdir$subd"
+
+
+    if [ -d "$tdir$subd" ]; then
+      if [[ "${EXTRA_ARGS[1]}" == "--force" ]]; then
+        rm -rf "$tdir$subd"
+      else
+        msg "using pre-rendered docs, use '--force' to rebuild"
+      fi
     fi
     if [ ! -d "$tdir$subd" ]; then
       # temp dev-docs dir does not exist, go render the docs
@@ -1175,18 +1222,24 @@ function main {
         build_image
       fi
       compose run --rm \
-        --workdir="/kong/spec" \
+        --workdir="$WINDOWS_SLASH/kong/spec" \
         -e KONG_LICENSE_DATA \
         -e "KONG_PLUGINS=$PLUGINS" \
         -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
-        kong ldoc --dir=/kong-plugin/$subd .
+        kong ldoc --dir=$WINDOWS_SLASH/kong-plugin/$subd .
       if [[ ! $? -eq 0 ]]; then
         err "failed to render the Kong development docs"
       fi
       mv kong-test-helper-docs "$tdir$subd"
     fi
+
+    # try and open the docs in the default browser
     msg "Open docs from: ""$tdir$subd""index.html"
-    open "$tdir$subd""index.html" > /dev/null 2>&1
+    if [ -z "$WINDOWS_SLASH" ]; then
+      open "$tdir$subd""index.html" > /dev/null 2>&1
+    else
+      powershell -Command "$tdir$subd""index.html" > /dev/null 2>&1
+    fi
     echo ""
     ;;
 
