@@ -197,6 +197,9 @@ pongo down
 
 ## Pongo on Windows
 
+Beta: Pongo should run in Git-BASH if you have [Git for Windows](https://gitforwindows.org/)
+installed (and Docker for Windows). Please report any issues.
+
 To run Pongo on Windows you can use [WSL2](https://docs.microsoft.com/windows/wsl/)
 (Windows Subsystem for Linux).
 
