@@ -644,6 +644,10 @@ function build_image {
   msg "starting build of image '$KONG_TEST_IMAGE'"
   docker build \
     -f "$DOCKER_FILE" \
+    --build-arg http_proxy \
+    --build-arg https_proxy \
+    --build-arg ftp_proxy \
+    --build-arg no_proxy \
     --build-arg KONG_BASE="$KONG_IMAGE" \
     --build-arg KONG_DEV_FILES="./kong-versions/$VERSION/kong" \
     --tag "$KONG_TEST_IMAGE" \
