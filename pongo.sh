@@ -1004,7 +1004,7 @@ function main {
 
     do_prerun_script
 
-    compose run --rm \
+    compose run --rm --use-aliases \
       -e KONG_LICENSE_DATA \
       -e KONG_TEST_DONT_CLEAN \
       kong \
