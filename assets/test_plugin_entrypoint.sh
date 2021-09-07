@@ -90,8 +90,12 @@ else
   pongo_setup=none
 fi
 if [ "$pongo_setup" = "none" ]; then
-  # if there is a rockspec, then install it first, so we get any required
-  # dependencies installed before testing
+  # if there is a rockspec,
+  #   1) determine the package name and uninstall it first to ensure depedency
+  #      updates can be applied
+  find /kong-plugin -maxdepth 1 -type f -name '*.rockspec' -exec awk -F "=" '/package/ {print $2}' {} \; | tr -d '"' | xargs luarocks remove
+  #   2) install the rockspec so we get any required dependencies installed
+  #      before testing
   find /kong-plugin -maxdepth 1 -type f -name '*.rockspec' -exec luarocks install --only-deps {} \;
 else
   old_entry_pwd=$(pwd)
