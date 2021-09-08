@@ -41,6 +41,8 @@ Environment actions:
 
   clean / nuke  removes the dependency containers and deletes all test images
 
+  docs          will generate and open the test-helper documentation
+
   down          remove all dependency containers
 
   expose        expose the internal ports for access from the host

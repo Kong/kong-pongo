@@ -166,7 +166,7 @@ echo -e "\033[0m"
 
 function usage {
   case "$1" in
-    pongo|init|lint|pack|run|shell|tail|build|nuke|clean|down|restart|status|up|update|expose|logs)
+    pongo|init|lint|pack|run|shell|tail|build|nuke|clean|down|restart|status|up|update|expose|logs|docs)
       logo
       if [ -f "$LOCAL_PATH/assets/help/$1.txt" ]; then
         cat "$LOCAL_PATH/assets/help/$1.txt"
@@ -1152,6 +1152,38 @@ function main {
 
   expose)
     pongo_expose
+    ;;
+
+  docs)
+    local tdir=${TMPDIR-/tmp}
+    local subd="kong-test-helper-docs/"
+    if [[ "${EXTRA_ARGS[1]}" == "--force" ]]; then
+      rm -rf "$tdir$subd"
+    fi
+    if [ ! -d "$tdir$subd" ]; then
+      # temp dev-docs dir does not exist, go render the docs
+      check_docker
+      get_plugin_names
+      get_version
+      docker inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
+      if [[ ! $? -eq 0 ]]; then
+        msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
+        build_image
+      fi
+      compose run --rm \
+        --workdir="/kong/spec" \
+        -e KONG_LICENSE_DATA \
+        -e "KONG_PLUGINS=$PLUGINS" \
+        -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
+        kong ldoc --dir=/kong-plugin/$subd .
+      if [[ ! $? -eq 0 ]]; then
+        err "failed to render the Kong development docs"
+      fi
+      mv kong-test-helper-docs "$tdir$subd"
+    fi
+    msg "Open docs from: ""$tdir$subd""index.html"
+    open "$tdir$subd""index.html" > /dev/null 2>&1
+    echo ""
     ;;
 
   logs)
