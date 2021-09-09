@@ -95,6 +95,12 @@ pushd "${LOCAL_PATH}" > /dev/null || { echo "Failure to enter $LOCAL_PATH"; exit
 PREVIOUS_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 BRANCH_NAME=add-version-${ADD_VERSION}
 git checkout -b "${BRANCH_NAME}"
+if [[ ! $? -eq 0 ]]; then
+  # first revert change to the versions file
+  git checkout "$VERSIONS_FILE" &> /dev/null
+  err "Failed to checkout a new branch '${BRANCH_NAME}'"
+  exit 1
+fi
 
 git add "$VERSIONS_FILE"
 

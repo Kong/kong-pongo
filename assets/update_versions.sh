@@ -79,7 +79,7 @@ function update_single_version_artifacts {
 
     git checkout -q "$COMMIT"
     if [ ! $? -eq 0 ]; then
-        warn "skipping unknown version $VERSION"
+        warn "cannot checkout version $VERSION. Is the tag missing? skipping it for now..."
     else
         mkdir "../kong-versions/$VERSION"
         mkdir "../kong-versions/$VERSION/kong"
