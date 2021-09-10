@@ -50,6 +50,15 @@ function update_all_repos {
 }
 
 
+function cleanup_all_repos {
+    # removes cloned repos.
+    pushd "$LOCAL_PATH" > /dev/null || { echo "Failure to enter $LOCAL_PATH"; return 1; }
+    rm -rf kong &> /dev/null
+    rm -rf kong-ee &> /dev/null
+    popd > /dev/null || { echo "Failure to pop directory"; return 1; }
+}
+
+
 function clean_artifacts {
     local VERSION=$1
 
@@ -150,6 +159,8 @@ function update_artifacts {
         popd > /dev/null || { echo "Failure to pop directory"; return 1; }
     done;
 
+    cleanup_all_repos
+
     # check wether updates were made
     if [[ -n $(git status -s) ]]; then
         msg "Files were added/changed, please commit the changes:"
@@ -187,4 +198,5 @@ function update_nightly {
     pushd "$LOCAL_PATH/$repo" > /dev/null  || { echo "Failure to enter $LOCAL_PATH/$repo"; return 1; }
     update_single_version_artifacts "$VERSION" "$COMMIT"
     popd > /dev/null || { echo "Failure to pop directory"; return 1; }
+    cleanup_all_repos
 }
