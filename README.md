@@ -1,10 +1,15 @@
 [![Build Status](https://travis-ci.com/Kong/kong-pongo.svg?branch=master)](https://travis-ci.com/Kong/kong-pongo)
+
+| :exclamation:  Important compatibility note |
+|:---------------------------|
+| The Alpine 3.13 to 3.14 update (around Kong `2.6.x`) [can break the Pongo image build](https://github.com/Kong/docker-kong/pull/495). Make sure to update Docker to `20.10.x`. |
+
 ```
                 /~\
   ______       C oo
   | ___ \      _( ^)
   | |_/ /__  _/__ ~\ __   ___
-  |  __/ _ \| '_ \ / _` |/ _ \
+  |  __/ _ \| '_ \ / _ `|/ _ \
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
