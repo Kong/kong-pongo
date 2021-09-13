@@ -12,6 +12,9 @@ COPY assets/busted_helper.lua /kong/bin
 # add new entrypoint for plugin testing
 COPY assets/test_plugin_entrypoint.sh /kong/bin/test_plugin_entrypoint.sh
 
+# add default setup script
+COPY assets/default-pongo-setup.sh /default-pongo-setup.sh
+
 # add packer script
 COPY assets/pongo_pack /kong/bin/pongo_pack
 

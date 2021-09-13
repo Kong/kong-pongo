@@ -500,7 +500,8 @@ See `pongo expose --help` for the ports.
 By default when the test container is started, it will look for a `.rockspec`
 file, if it finds one, then it will install that rockspec file with the
 `--deps-only` flag. Meaning it will not install that rock itself, but if it
-depends on any external libraries, those rocks will be installed.
+depends on any external libraries, those rocks will be installed. If the rock
+is already installed in the image, it will be uninstalled first.
 
 For example; the Kong plugin `session` relies on the `lua-resty-session` rock.
 So by default it will install that dependency before starting the tests.
@@ -518,27 +519,32 @@ To modify the default behaviour there are 2 scripts that can be hooked up:
 Both scripts will have an environment variable `PONGO_COMMAND` that will have
 the current command being executed, for example `shell` or `run`.
 
-For example, the following file (saved as `.pongo/pongo-setup.sh`) will install
-a specific development branch of `lua-resty-session` instead of the one
-specified in the rockspec:
+Below an example using both files. On the host it clones a dependency if it
+isn't available already. This prevents pulling it on each run, but makes sure it
+is available in CI. Then on each run it will install the dependency in the
+container first and then it will do the default action of installing all
+rockspecs found.
 
+Example `.pongo/pongo-setup-host.sh`:
 ```shell
-# remove any existing version if installed
-luarocks remove lua-resty-session --force
+#!/usr/bin/env bash
 
-git clone https://github.com/Tieske/lua-resty-session
-cd lua-resty-session
+# this runs on the host, before the Kong container is started
+if [ ! -d "my_dependency" ]; then
+  git clone https://github.com/memyselfandi/my_dependency.git
+fi
+```
 
-# now checkout and install the development branch
-git checkout redis-ssl
-luarocks make
+Example `.pongo/pongo-setup.sh`:
+```shell
+#!/usr/bin/env sh
 
-# cleanup
-cd ..
-rm -rf lua-resty-session
+# this runs in the test container upon starting it
+cd /kong-plugin/my_dependency
+make install
 
 # additionally run the default action of installing rockspec dependencies
-find /kong-plugin -maxdepth 1 -type f -name '*.rockspec' -exec luarocks install --only-deps {} \;
+/default-pongo-setup.sh
 ```
 
 [Back to ToC](#table-of-contents)
