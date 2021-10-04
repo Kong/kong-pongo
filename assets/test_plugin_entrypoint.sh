@@ -87,20 +87,15 @@ elif [ -f /kong-plugin/.pongo-setup.sh ]; then
   # for backward compatibility
   pongo_setup=/kong-plugin/.pongo-setup.sh
 else
-  pongo_setup=none
+  # fallback to default setup
+  pongo_setup=/default-pongo-setup.sh
 fi
-if [ "$pongo_setup" = "none" ]; then
-  # if there is a rockspec, then install it first, so we get any required
-  # dependencies installed before testing
-  find /kong-plugin -maxdepth 1 -type f -name '*.rockspec' -exec luarocks install --only-deps {} \;
-else
-  old_entry_pwd=$(pwd)
-  cd /kong-plugin || { echo "Failure to enter /kong-plugin"; exit 1; }
-  # shellcheck source=/dev/null  # not checking this since it is user provided
-  . $pongo_setup
-  cd "$old_entry_pwd" || { echo "Failure to enter $old_entry_pwd"; exit 1; }
-  unset old_entry_pwd
-fi
+old_entry_pwd=$(pwd)
+cd /kong-plugin || { echo "Failure to enter /kong-plugin"; exit 1; }
+# shellcheck source=/dev/null  # not checking this since it is user provided
+. $pongo_setup
+cd "$old_entry_pwd" || { echo "Failure to enter $old_entry_pwd"; exit 1; }
+unset old_entry_pwd
 unset pongo_setup
 
 
