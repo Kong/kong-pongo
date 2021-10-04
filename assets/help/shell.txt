@@ -7,6 +7,7 @@ automatically started.
 If the command is preceeded by '@' then it is interpreted as a script that will
 be executed inside the container as: "/bin/sh /kong/bin/shell_script.sh".
 
+Some useful aliases are available, run 'alias' from the shell to list them.
 If the repo has a '.pongo' directory, then the shell history will be retained
 in '.pongo/.ash_history'. So a next shell has the history available.
 
