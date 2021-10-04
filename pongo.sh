@@ -1072,8 +1072,8 @@ function main {
     local suppress_kong_version="true"
     local script_mount=""
     if [[ "$exec_cmd" == "" ]]; then
-      # no args, so plain shell
-      exec_cmd="sh"
+      # no args, so plain shell, use -l to login and run profile scripts
+      exec_cmd="$WINDOWS_SLASH/bin/sh -l"
       suppress_kong_version="false"
     elif [[ "${exec_cmd:0:1}" == "@" ]]; then
       # a script file as argument
@@ -1106,9 +1106,9 @@ function main {
       -e "KONG_PG_DATABASE=kong_tests" \
       -e "KONG_PLUGINS=$PLUGINS" \
       -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
+      -e "PS1_KONG_VERSION=$shellprompt" \
       $script_mount \
       $history_mount \
-      -e "PS1=\[\e[00m\]\[\033[1;34m\][$shellprompt:\[\033[1;92m\]\w\[\033[1;34m\]]#\[\033[00m\] " \
       kong $exec_cmd
 
     local result=$?
