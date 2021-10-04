@@ -1041,7 +1041,7 @@ function main {
       -e KONG_LICENSE_DATA \
       -e KONG_TEST_DONT_CLEAN \
       kong \
-      "$WINDOWS_SLASH/bin/sh" "-c" "bin/busted --helper=bin/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
+      "$WINDOWS_SLASH/bin/sh" "-c" "bin/busted --helper=$WINDOWS_SLASH/pongo/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
     ;;
 
   shell)
@@ -1157,7 +1157,7 @@ function main {
       -e "KONG_PG_DATABASE=kong_tests" \
       -e "KONG_PLUGINS=$PLUGINS" \
       -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
-      kong pongo_pack
+      kong $WINDOWS_SLASH/pongo/pongo_pack.lua
     ;;
 
   update)

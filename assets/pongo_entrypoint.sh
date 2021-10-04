@@ -88,7 +88,7 @@ elif [ -f /kong-plugin/.pongo-setup.sh ]; then
   pongo_setup=/kong-plugin/.pongo-setup.sh
 else
   # fallback to default setup
-  pongo_setup=/default-pongo-setup.sh
+  pongo_setup=/pongo/default-pongo-setup.sh
 fi
 old_entry_pwd=$(pwd)
 cd /kong-plugin || { echo "Failure to enter /kong-plugin"; exit 1; }

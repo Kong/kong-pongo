@@ -7,17 +7,11 @@ ARG KONG_DEV_FILES
 COPY $KONG_DEV_FILES /kong
 
 # add helper files to workaround some issues
-COPY assets/busted_helper.lua /kong/bin
-
-# add new entrypoint for plugin testing
-COPY assets/pongo_entrypoint.sh /kong/bin/pongo_entrypoint.sh
-COPY assets/pongo_profile.sh /etc/profile.d/pongo_profile.sh
-
-# add default setup script
-COPY assets/default-pongo-setup.sh /default-pongo-setup.sh
-
-# add packer script
-COPY assets/pongo_pack /kong/bin/pongo_pack
+COPY assets/busted_helper.lua      /pongo/busted_helper.lua
+COPY assets/pongo_entrypoint.sh    /pongo/pongo_entrypoint.sh
+COPY assets/default-pongo-setup.sh /pongo/default-pongo-setup.sh
+COPY assets/pongo_pack.lua         /pongo/pongo_pack.lua
+COPY assets/pongo_profile.sh       /etc/profile.d/pongo_profile.sh
 
 USER root
 # httpie and jq are genric utilities usable from the shell action.
@@ -36,12 +30,11 @@ USER root
 RUN apk update \
     && apk add zip unzip make g++ py-pip jq git bsd-compat-headers m4 openssl-dev curl \
     && curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin \
-    && pip install 'httpie<2.0.0' \
+    && pip install httpie \
     ; cd /kong \
     && make dependencies \
     && luarocks install busted-htest \
-    && luarocks install luacov \
-    && chmod +x /kong/bin/pongo_entrypoint.sh
+    && luarocks install luacov
 
 
 # make sure resty, LuaJIT, and our custom Busted are in our path
@@ -49,4 +42,4 @@ ENV PATH="/kong/bin:/usr/local/openresty/bin:/usr/local/openresty/luajit/bin:${P
 
 
 WORKDIR /kong
-ENTRYPOINT ["/kong/bin/pongo_entrypoint.sh"]
+ENTRYPOINT ["/pongo/pongo_entrypoint.sh"]
