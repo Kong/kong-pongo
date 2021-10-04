@@ -1054,6 +1054,7 @@ function main {
       build_image
     fi
 
+    local repository_name=${KONG_TEST_PLUGIN_PATH##*/}
     local shellprompt
     if is_enterprise "$KONG_VERSION"; then
       shellprompt="Kong-E-$KONG_VERSION"
@@ -1107,6 +1108,7 @@ function main {
       -e "KONG_PLUGINS=$PLUGINS" \
       -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
       -e "PS1_KONG_VERSION=$shellprompt" \
+      -e "PS1_REPO_NAME=$repository_name" \
       $script_mount \
       $history_mount \
       kong $exec_cmd
