@@ -10,7 +10,7 @@ COPY $KONG_DEV_FILES /kong
 COPY assets/busted_helper.lua /kong/bin
 
 # add new entrypoint for plugin testing
-COPY assets/test_plugin_entrypoint.sh /kong/bin/test_plugin_entrypoint.sh
+COPY assets/pongo_entrypoint.sh /kong/bin/pongo_entrypoint.sh
 
 # add default setup script
 COPY assets/default-pongo-setup.sh /default-pongo-setup.sh
@@ -40,7 +40,7 @@ RUN apk update \
     && make dependencies \
     && luarocks install busted-htest \
     && luarocks install luacov \
-    && chmod +x /kong/bin/test_plugin_entrypoint.sh
+    && chmod +x /kong/bin/pongo_entrypoint.sh
 
 
 # make sure resty, LuaJIT, and our custom Busted are in our path
@@ -48,4 +48,4 @@ ENV PATH="/kong/bin:/usr/local/openresty/bin:/usr/local/openresty/luajit/bin:${P
 
 
 WORKDIR /kong
-ENTRYPOINT ["/kong/bin/test_plugin_entrypoint.sh"]
+ENTRYPOINT ["/kong/bin/pongo_entrypoint.sh"]
