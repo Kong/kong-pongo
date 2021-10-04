@@ -549,7 +549,7 @@ cd /kong-plugin/my_dependency
 make install
 
 # additionally run the default action of installing rockspec dependencies
-/default-pongo-setup.sh
+/pongo/default-pongo-setup.sh
 ```
 
 [Back to ToC](#table-of-contents)
