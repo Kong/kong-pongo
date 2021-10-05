@@ -63,7 +63,7 @@ services:
       - ${NETWORK_NAME}
 
   cassandra:
-    image: cassandra:${CASSANDRA:-3.9}
+    image: cassandra:${CASSANDRA:-3.11}
     environment:
       MAX_HEAP_SIZE: 256M
       HEAP_NEWSIZE: 128M
