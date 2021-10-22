@@ -989,7 +989,7 @@ function main {
       -e KONG_TEST_DONT_CLEAN \
       -e KONG_TEST_PLUGIN_PATH \
       kong \
-      "/bin/sh" "-c" "bin/busted --helper=bin/busted_helper.lua ${busted_params[*]} ${busted_files[*]} ${coverage_report}"
+      "/bin/sh" "-c" "apk add nettle-dev; bin/busted --helper=bin/busted_helper.lua ${busted_params[*]} ${busted_files[*]} ${coverage_report}"
     ;;
 
   shell)
