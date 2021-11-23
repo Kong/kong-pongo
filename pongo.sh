@@ -925,14 +925,14 @@ function pongo_init {
     echo ".pongo/.ash_history" >> .gitignore
     msg "added '.pongo/.ash_history' to '.gitignore'"
   fi
-  if grep --quiet "^[.]luacov[.]stats[.]out$" .gitignore ; then
+  if grep --quiet "^luacov[.]stats[.]out$" .gitignore ; then
     msg "'.gitignore' already ignores 'luacov.stats.out'"
   else
     echo "# exclude LuaCov statistics file" >> .gitignore
     echo "luacov.stats.out" >> .gitignore
     msg "added 'luacov.stats.out' to '.gitignore'"
   fi
-  if grep --quiet "^[.]luacov[.]report[.]out$" .gitignore ; then
+  if grep --quiet "^luacov[.]report[.]out$" .gitignore ; then
     msg "'.gitignore' already ignores 'luacov.report.out'"
   else
     echo "# exclude LuaCov report" >> .gitignore
