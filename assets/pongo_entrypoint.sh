@@ -98,7 +98,6 @@ cd "$old_entry_pwd" || { echo "Failure to enter $old_entry_pwd"; exit 1; }
 unset old_entry_pwd
 unset pongo_setup
 
-
 if [ ! "$SUPPRESS_KONG_VERSION" = "true" ]; then
   echo "Kong version: $(kong version)"
 fi

@@ -8,10 +8,10 @@ function globals {
   # explicitly resolve the link because realpath doesn't do it on Windows
   script_path=$(test -L "$0" && readlink "$0" || echo "$0")
   LOCAL_PATH=$(dirname "$(realpath "$script_path")")
-  DOCKER_FILE=${LOCAL_PATH}/assets/Dockerfile
-  DOCKER_COMPOSE_FILES="-f ${LOCAL_PATH}/assets/docker-compose.yml"
-  PROJECT_NAME=kong-pongo
-  NETWORK_NAME=pongo-test-network
+  DOCKER_FILE=${PONGO_DOCKER_FILE:-$LOCAL_PATH/assets/Dockerfile}
+  DOCKER_COMPOSE_FILES="-f ${PONGO_DOCKER_COMPOSE_FILE:-$LOCAL_PATH/assets/docker-compose.yml}"
+  PROJECT_NAME=${PONGO_DOCKER_COMPOSE_PROJECT_NAME:-kong-pongo}
+  NETWORK_NAME=${PONGO_DOCKER_COMPOSE_NETWORK_NAME:-pongo-test-network}
   SERVICE_NETWORK_NAME=${PROJECT_NAME}
   IMAGE_BASE_NAME=${PROJECT_NAME}-test
   KONG_TEST_PLUGIN_PATH=$(realpath .)
@@ -70,7 +70,7 @@ function globals {
 
   # Commandline related variables
   unset ACTION
-  FORCE_BUILD=false
+  FORCE_BUILD=${PONGO_FORCE_BUILD:-false}
   KONG_DEPS_AVAILABLE=( "postgres" "cassandra" "redis" "squid" "grpcbin" "expose")
   KONG_DEPS_START=( "postgres" "cassandra" )
   KONG_DEPS_CUSTOM=()
@@ -1040,6 +1040,7 @@ function main {
     compose run --rm --use-aliases \
       -e KONG_LICENSE_DATA \
       -e KONG_TEST_DONT_CLEAN \
+      -e SUPPRESS_KONG_VERSION \
       kong \
       "$WINDOWS_SLASH/bin/sh" "-c" "bin/busted --helper=$WINDOWS_SLASH/pongo/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
     ;;

@@ -77,6 +77,18 @@ Environment variables:
   CASSANDRA     the version of the Cassandra dependency to use (default 3.9)
   REDIS         the version of the Redis dependency to use (default 5.0.4)
 
+  PONGO_DOCKER_FILE
+                the dockerfile used to build the pongo testing image
+  PONGO_DOCKER_COMPOSE_FILE
+                the compose file used to run the pongo test harness
+  PONGO_DOCKER_COMPOSE_PROJECT_NAME
+                the compose project name to use (default kong-pongo)
+  PONGO_DOCKER_COMPOSE_NETWORK_NAME
+                the compose network to create (default: pongo-test-network)
+  PONGO_FORCE_BUILD
+                force a rebuild of the pongo test image when using the `build` command
+
+
 Example usage:
   pongo run
   KONG_VERSION=1.3.x pongo run -v -o gtest ./spec/02-access_spec.lua
@@ -746,7 +758,8 @@ _**WARNING**: make sure to read up on the security consequences this has! You ar
 
 ### A walkthrough
 
-1. Start a container to run Pongo;
+NGO
+1. Start a container to run Pongo ;
 
         docker run -it --rm \
           -v /var/run/docker.sock:/var/run/docker.sock \
