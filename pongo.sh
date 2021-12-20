@@ -736,6 +736,9 @@ function pongo_clean {
     docker rmi $(docker images --filter=reference="pongo-expose:*" --format "{{.ID}}")
   fi
 
+  # prune to prevent rebuilding to happen from the docker build cache
+  docker builder prune -f
+
   if [ -d "$LOCAL_PATH/kong" ]; then
     rm -rf "$LOCAL_PATH/kong"
   fi
