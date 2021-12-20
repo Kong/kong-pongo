@@ -417,7 +417,6 @@ function get_image {
       if [[ ! $? -eq 0 ]]; then
         warn "failed to pull the Kong Enterprise nightly image, retrying with login..."
         check_secret_availability "$image"
-        docker_login
         docker pull $image
         if [[ ! $? -eq 0 ]]; then
           docker logout
@@ -445,7 +444,6 @@ function get_image {
         if is_enterprise "$KONG_VERSION"; then
             # failed to pull EE image, so try the fallback to the private repo
             image=$KONG_EE_PRIVATE_TAG_PREFIX$KONG_VERSION$KONG_EE_PRIVATE_TAG_POSTFIX
-            docker_login
             docker pull "$image"
             if [[ ! $? -eq 0 ]]; then
               docker logout
@@ -946,6 +944,10 @@ function main {
   parse_args "$@"
 
   ACTION=${EXTRA_ARGS[0]}; unset 'EXTRA_ARGS[0]'
+
+  if echo "$ACTION" | grep -E 'build|up|restart|run|shell|lint|pack|docs'; then
+    docker_login
+  fi
 
   case "$ACTION" in
 
