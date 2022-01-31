@@ -8,15 +8,7 @@ function globals {
   # explicitly resolve the link because realpath doesn't do it on Windows
   script_path=$(test -L "$0" && readlink "$0" || echo "$0")
   LOCAL_PATH=$(dirname "$(realpath "$script_path")")
-  DOCKER_FILE=${LOCAL_PATH}/assets/Dockerfile
-  DOCKER_COMPOSE_FILES="-f ${LOCAL_PATH}/assets/docker-compose.yml"
-  PROJECT_NAME=kong-pongo
-  NETWORK_NAME=pongo-test-network
-  SERVICE_NETWORK_NAME=${PROJECT_NAME}
-  IMAGE_BASE_NAME=${PROJECT_NAME}-test
-  KONG_TEST_PLUGIN_PATH=$(realpath .)
-  KONG_LICENSE_URL="https://download.konghq.com/internal/kong-gateway/license.json"
-  PONGO_WD=$KONG_TEST_PLUGIN_PATH
+
   if [[ -f "$KONG_TEST_PLUGIN_PATH/.pongo/pongorc" ]]; then
     PONGORC_FILE=".pongo/pongorc"
   elif [[ -f "$KONG_TEST_PLUGIN_PATH/.pongorc" ]]; then
@@ -25,6 +17,61 @@ function globals {
   else
     PONGORC_FILE=".pongo/pongorc"
   fi
+
+  # shellcheck disable=SC1090  # do not follow source
+  source "${LOCAL_PATH}/assets/set_variables.sh"
+
+  DOCKER_FILE=${LOCAL_PATH}/assets/Dockerfile
+  DOCKER_COMPOSE_FILES="-f ${LOCAL_PATH}/assets/docker-compose.yml"
+  IMAGE_BASE_NAME=kong-pongo-test
+
+  # the path where the plugin source is located, as seen from Pongo (this script)
+  KONG_TEST_PLUGIN_PATH=$(realpath .)
+
+  # the working directory, which is the path where the plugin-source is located
+  # on the host machine. Only if Pongo is running inside docker itself, the
+  # PONGO_WD differs from the KONG_TEST_PLUGIN_PATH
+  PONGO_WD=$KONG_TEST_PLUGIN_PATH
+  if [[ -d "/pongo_wd" ]]; then
+    local HOST_PATH
+    PONGO_CONTAINER_ID=$(</pongo_wd/.containerid)
+    if [[ "$PONGO_CONTAINER_ID" == "" ]]; then
+      warn "'/pongo_wd' path is defined, but failed to get the container id from"
+      warn "the '/pongo_wd/.containerid' file. Start the Pongo container with"
+      warn "'--cidfile \"[plugin-path]/.containerid\"' to set the file."
+      warn "If you are NOT running Pongo itself inside a container, then make"
+      warn "sure '/pongo_wd' doesn't exist."
+    else
+      #msg "Pongo container: $PONGO_CONTAINER_ID"
+      HOST_PATH=$(docker inspect "$PONGO_CONTAINER_ID" | grep ":/pongo_wd.*\"" | sed -e 's/^[ \t]*//' | sed s/\"//g | grep -o "^[^:]*")
+      #msg "Host working directory: $HOST_PATH"
+    fi
+    if [[ "$HOST_PATH" == "" ]]; then
+      warn "Failed to read the container information, could not retrieve the"
+      warn "host path of the '/pongo_wd' directory."
+      warn "Make sure to start the container running Pongo with:"
+      warn "    -v /var/run/docker.sock:/var/run/docker.sock"
+      warn "NOTE: make sure you understand the security implications!"
+      err "Failed to get container info."
+    fi
+    if [[ ! $KONG_TEST_PLUGIN_PATH == /pongo_wd ]] && [[ ! ${KONG_TEST_PLUGIN_PATH:0:10} == /pongo_wd/ ]]; then
+      err "When Pongo itself runs inside a container, the plugin source MUST be within the '/pongo_wd' path"
+    fi
+    PONGO_WD=${KONG_TEST_PLUGIN_PATH/\/pongo_wd/${HOST_PATH}}
+  fi
+
+  # create unique projectID based on file-path (on the host machine)
+  PROJECT_ID=$(echo -n "$PONGO_WD" | md5sum)
+  PROJECT_ID="${PROJECT_ID:0:8}"
+
+  PROJECT_NAME_PREFIX="pongo-"
+  PROJECT_NAME=${PROJECT_NAME_PREFIX}${PROJECT_ID}
+
+  NETWORK_NAME=pongo-test-network
+  SERVICE_NETWORK_PREFIX="pongo-"
+  SERVICE_NETWORK_NAME=${SERVICE_NETWORK_PREFIX}${PROJECT_ID}
+
+  KONG_LICENSE_URL="https://download.konghq.com/internal/kong-gateway/license.json"
 
   unset WINDOWS_SLASH
   unset WINPTY_PREFIX
@@ -77,8 +124,6 @@ function globals {
   RC_COMMANDS=( "run" "up" "restart" )
   EXTRA_ARGS=()
 
-  # shellcheck disable=SC1090  # do not follow source
-  source "${LOCAL_PATH}/assets/set_variables.sh"
   # resolve a '.x' to a real version; eg. "1.3.0.x" in $KONG_VERSION
   resolve_version
 
@@ -125,41 +170,6 @@ function check_tools {
   if [[ "$missing" == "true" ]]; then
     >&2 echo -e "\033[0;31m[pongo-ERROR] the above dependencies are missing, install and retry.\033[0m"
     exit 1
-  fi
-}
-
-
-function check_docker {
-  # Are we running Pongo itself inside a container?
-  # $PONGO_WD will contain the path FOR THE HOST, that maps to
-  # $KONG_TEST_PLUGIN_PATH in the container that runs Pongo (=this code)
-  local PONGO_CONTAINER_ID
-  local HOST_PATH
-  if [[ -d "/pongo_wd" ]]; then
-    PONGO_CONTAINER_ID=$(</pongo_wd/.containerid)
-    if [[ "$PONGO_CONTAINER_ID" == "" ]]; then
-      warn "'/pongo_wd' path is defined, but failed to get the container id from"
-      warn "the '/pongo_wd/.containerid' file. Start the Pongo container with"
-      warn "'--cidfile \"[plugin-path]/.containerid\"' to set the file."
-      warn "If you are NOT running Pongo itself inside a container, then make"
-      warn "sure '/pongo_wd' doesn't exist."
-    else
-      msg "Pongo container: $PONGO_CONTAINER_ID"
-      HOST_PATH=$(docker inspect "$PONGO_CONTAINER_ID" | grep ":/pongo_wd.*\"" | sed -e 's/^[ \t]*//' | sed s/\"//g | grep -o "^[^:]*")
-      msg "Host working directory: $HOST_PATH"
-    fi
-    if [[ "$HOST_PATH" == "" ]]; then
-      warn "Failed to read the container information, could not retrieve the"
-      warn "host path of the '/pongo_wd' directory."
-      warn "Make sure to start the container running Pongo with:"
-      warn "    -v /var/run/docker.sock:/var/run/docker.sock"
-      warn "NOTE: make sure you understand the security implications!"
-      err "Failed to get container info."
-    fi
-    if [[ ! $KONG_TEST_PLUGIN_PATH == /pongo_wd ]] && [[ ! ${KONG_TEST_PLUGIN_PATH:0:10} == /pongo_wd/ ]]; then
-      err "When Pongo itself runs inside a container, the plugin source MUST be within the '/pongo_wd' path"
-    fi
-    PONGO_WD=${KONG_TEST_PLUGIN_PATH/\/pongo_wd/${HOST_PATH}}
   fi
 }
 
@@ -575,6 +585,7 @@ function compose {
   export KONG_TEST_IMAGE
   export PONGO_WD
   export ACTION
+  export PROJECT_ID
   local prefix
   if [ -t 1 ] ; then
     # only use winpty prefix if we're outputting to terminal,
@@ -739,7 +750,13 @@ function do_prerun_script {
 
 
 function pongo_clean {
-  compose down --remove-orphans
+  # use 'docker network ls' command to find networks, and kill them all
+  while read -r network ; do
+    PROJECT_ID=${network: -8}
+    PROJECT_NAME=${PROJECT_NAME_PREFIX}${PROJECT_ID}
+    SERVICE_NETWORK_NAME=${SERVICE_NETWORK_PREFIX}${PROJECT_ID}
+    compose down --remove-orphans
+  done < <(docker network ls --filter 'name='$SERVICE_NETWORK_PREFIX --format '{{.Name}}')
 
   docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "found: {{.ID}}" | grep found
   if [[ $? -eq 0 ]]; then
@@ -783,6 +800,20 @@ function pongo_status {
     EXTRA_ARGS=(networks dependencies containers images versions)
   fi
 
+  local project="${PROJECT_NAME}"
+  for arg in "${EXTRA_ARGS[@]}"; do
+    if [ "$arg" == "--all" ]; then
+      # we need to show everything, so do not grep for project ID
+      # but use the generic part of the name to list all pongo envs
+      project="pongo-"
+
+      if [ ${#EXTRA_ARGS[@]} -eq 1 ]; then
+        # only --all specified, so use defaults
+        EXTRA_ARGS=(networks dependencies containers images versions)
+      fi
+    fi
+  done
+
   local arg
   local nl
   for arg in "${EXTRA_ARGS[@]}"; do
@@ -796,7 +827,7 @@ function pongo_status {
       networks)
         echo Pongo networks:
         echo ===============
-        docker network ls | grep "${PROJECT_NAME}"
+        docker network ls | grep "${project}"
         ;;
 
       dependencies)
@@ -813,15 +844,15 @@ function pongo_status {
         ;;
 
       containers)
-        echo Pongo dependency containers:
-        echo ============================
-        docker ps | grep "${PROJECT_NAME}"
+        echo Pongo containers:
+        echo =================
+        docker ps | grep "${project}"
         ;;
 
       images)
         echo Pongo cached images:
         echo ====================
-        docker images "${PROJECT_NAME}*"
+        docker images "${IMAGE_BASE_NAME}"
         ;;
 
       versions)
@@ -829,6 +860,9 @@ function pongo_status {
         echo ========================
         echo Kong: "${KONG_CE_VERSIONS[*]}" "$NIGHTLY_CE"
         echo Kong Enterprise: "${KONG_EE_VERSIONS[*]}" "$NIGHTLY_EE"
+        ;;
+
+      --all)
         ;;
 
       *)
@@ -1019,7 +1053,6 @@ function main {
     ;;
 
   run)
-    check_docker
     ensure_available
     get_version
 
@@ -1072,7 +1105,6 @@ function main {
     ;;
 
   shell)
-    check_docker
     get_plugin_names
     get_version
     docker inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
@@ -1150,7 +1182,6 @@ function main {
     ;;
 
   lint)
-    check_docker
     get_plugin_names
     get_version
     docker inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
@@ -1170,7 +1201,6 @@ function main {
     ;;
 
   pack)
-    check_docker
     get_plugin_names
     get_version
     docker inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
@@ -1242,7 +1272,6 @@ function main {
     fi
     if [ ! -d "$tdir$subd" ]; then
       # temp dev-docs dir does not exist, go render the docs
-      check_docker
       get_plugin_names
       get_version
       docker inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null

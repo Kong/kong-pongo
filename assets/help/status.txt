@@ -1,16 +1,18 @@
-Usage: pongo status [networks|dependencies|containers|images|versions]
+Usage: pongo status [--all] [networks|dependencies|containers|images|versions]
 
 If nothing is specified then all items are returned.
 
   networks:
-      the Pongo networks
+      the Pongo network for the current environment, or all Pongo networks
+      when '--all' is given
 
-  dependecies:
+  dependencies:
       available dependencies
       NOTE: custom dependencies must be listed in '.pongo/pongorc' to be shown
 
   containers:
-      currently running dependency containers
+      running containers in the current environment, or all Pongo containers
+      when '--all' is given
 
   images:
       cached test-images previously build

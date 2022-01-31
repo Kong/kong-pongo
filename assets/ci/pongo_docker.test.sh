@@ -16,7 +16,7 @@ function run_test {
   fi
 
 
-  # clone and enter test plugin directory
+  tmessage "setup: clone test plugin and enter directory"
   git clone https://github.com/kong/kong-plugin.git
   pushd kong-plugin || exit 1
 
@@ -29,6 +29,18 @@ function run_test {
     tfailure
   fi
 
+
+  ttest "count unique Pongo environments"
+  local pongo_env_count
+  pongo_env_count=$(docker network ls | grep -c "pongo-")
+  docker network ls
+  if [ "$pongo_env_count" -eq 1 ]; then
+    tsuccess "found $pongo_env_count Pongo networks"
+  else
+    tfailure "found $pongo_env_count Pongo networks, expected 1"
+  fi
+
+
   ttest "pongo-docker build"
   ../../docker/pongo-docker.sh build
   if [ $? -eq 0 ]; then
@@ -36,6 +48,18 @@ function run_test {
   else
     tfailure
   fi
+
+
+  ttest "count unique Pongo environments"
+  local pongo_env_count
+  pongo_env_count=$(docker network ls | grep -c "pongo-")
+  docker network ls
+  if [ "$pongo_env_count" -eq 1 ]; then
+    tsuccess "found $pongo_env_count Pongo networks"
+  else
+    tfailure "found $pongo_env_count Pongo networks, expected 1"
+  fi
+
 
   ttest "pongo-docker run"
   ../../docker/pongo-docker.sh run
@@ -45,11 +69,36 @@ function run_test {
     tfailure
   fi
 
+
+  ttest "count unique Pongo environments"
+  local pongo_env_count
+  pongo_env_count=$(docker network ls | grep -c "pongo-")
+  docker network ls
+  if [ "$pongo_env_count" -eq 1 ]; then
+    tsuccess "found $pongo_env_count Pongo networks"
+  else
+    tfailure "found $pongo_env_count Pongo networks, expected 1"
+  fi
+
+
   # cleanup working directory
+  tmessage "cleanup; clear working directory (servroot)"
   if [ -d ./servroot ]; then
     #rm -rf servroot                   doesn't work; priviledge issue
     ../../docker/pongo-docker.sh shell rm -rf /kong-plugin/servroot
   fi
+
+
+  ttest "count unique Pongo environments"
+  local pongo_env_count
+  pongo_env_count=$(docker network ls | grep -c "pongo-")
+  docker network ls
+  if [ "$pongo_env_count" -eq 1 ]; then
+    tsuccess "found $pongo_env_count Pongo networks"
+  else
+    tfailure "found $pongo_env_count Pongo networks, expected 1"
+  fi
+
 
   ttest "pongo-docker down"
   ../../docker/pongo-docker.sh down
@@ -59,8 +108,21 @@ function run_test {
     tfailure
   fi
 
+
+  ttest "count unique Pongo environments"
+  local pongo_env_count
+  pongo_env_count=$(docker network ls | grep -c "pongo-")
+  docker network ls
+  if [ "$pongo_env_count" -eq 0 ]; then
+    tsuccess "found $pongo_env_count Pongo networks"
+  else
+    tfailure "found $pongo_env_count Pongo networks, expected 0"
+  fi
+
+
   # cleanup, delete cloned repo
   popd
+  tmessage "cleanup; removing test-plugin"
   rm -rf kong-plugin
 
   tfinish
