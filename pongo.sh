@@ -386,6 +386,20 @@ function check_secret_availability {
 }
 
 function docker_login {
+  if [[ -z $DOCKER_PASSWORD ]] && [[ -z $DOCKER_USERNAME ]]; then
+    # No credentials, nothing to log into
+    return 0
+  fi
+
+  echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  if [[ ! $? -eq 0 ]]; then
+    docker logout
+    err "Docker login failed. Make sure to provide the proper credentials in the \$DOCKER_USERNAME
+and \$DOCKER_PASSWORD environment variables."
+  fi
+}
+
+function docker_login_ee {
   echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   if [[ ! $? -eq 0 ]]; then
     docker logout
@@ -417,7 +431,7 @@ function get_image {
       if [[ ! $? -eq 0 ]]; then
         warn "failed to pull the Kong Enterprise nightly image, retrying with login..."
         check_secret_availability "$image"
-        docker_login
+        docker_login_ee
         docker pull $image
         if [[ ! $? -eq 0 ]]; then
           docker logout
@@ -445,7 +459,7 @@ function get_image {
         if is_enterprise "$KONG_VERSION"; then
             # failed to pull EE image, so try the fallback to the private repo
             image=$KONG_EE_PRIVATE_TAG_PREFIX$KONG_VERSION$KONG_EE_PRIVATE_TAG_POSTFIX
-            docker_login
+            docker_login_ee
             docker pull "$image"
             if [[ ! $? -eq 0 ]]; then
               docker logout
@@ -610,6 +624,7 @@ function wait_for_dependency {
 
 
 function compose_up {
+  docker_login
   local dependency
   for dependency in ${KONG_DEPS_START[*]}; do
     healthy "$(cid "$dependency")" || compose up -d "$dependency"
