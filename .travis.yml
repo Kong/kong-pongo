@@ -15,5 +15,6 @@ install:
 - make install
 - export PATH=~/.local/bin/:$PATH
 script:
+- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 - make lint
 - assets/ci/run.sh --suite "Pongo test suite" $TEST_SCRIPT
