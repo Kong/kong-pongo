@@ -959,6 +959,13 @@ function pongo_init {
     echo "luacov.report.out" >> .gitignore
     msg "added 'luacov.report.out' to '.gitignore'"
   fi
+  if grep --quiet "^[.]containerid$" .gitignore ; then
+    msg "'.gitignore' already ignores '.containerid'"
+  else
+    echo "# exclude Pongo containerid file" >> .gitignore
+    echo ".containerid" >> .gitignore
+    msg "added '.containerid' to '.gitignore'"
+  fi
 }
 
 
