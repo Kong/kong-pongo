@@ -136,15 +136,17 @@ function check_docker {
   local PONGO_CONTAINER_ID
   local HOST_PATH
   if [[ -d "/pongo_wd" ]]; then
-    PONGO_CONTAINER_ID=$(grep "memory:/" < /proc/self/cgroup | sed 's|.*/||')
+    PONGO_CONTAINER_ID=$(</pongo_wd/.containerid)
     if [[ "$PONGO_CONTAINER_ID" == "" ]]; then
-      warn "'/pongo_wd' path is defined, but failed to get the container id."
+      warn "'/pongo_wd' path is defined, but failed to get the container id from"
+      warn "the '/pongo_wd/.containerid' file. Start the Pongo container with"
+      warn "'--cidfile \"[plugin-path]/.containerid\"' to set the file."
       warn "If you are NOT running Pongo itself inside a container, then make"
       warn "sure '/pongo_wd' doesn't exist."
     else
-      #msg "Pongo container: $PONGO_CONTAINER_ID"
+      msg "Pongo container: $PONGO_CONTAINER_ID"
       HOST_PATH=$(docker inspect "$PONGO_CONTAINER_ID" | grep ":/pongo_wd.*\"" | sed -e 's/^[ \t]*//' | sed s/\"//g | grep -o "^[^:]*")
-      #msg "Host working directory: $HOST_PATH"
+      msg "Host working directory: $HOST_PATH"
     fi
     if [[ "$HOST_PATH" == "" ]]; then
       warn "Failed to read the container information, could not retrieve the"
