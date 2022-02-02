@@ -733,65 +733,12 @@ To share the plugin code and tests with the (sibling) test container Pongo will
 need a shared working directory on the host. This working directory must be
 mapped to `/pongo_wd` on the container running Pongo.
 
-So combined the container running Pongo must be started like so:
+Additionally the container id must be made available to the Pongo container. It must
+be in a file `.containerid` in the same working directory.
 
-    docker run -it \
-      -v /var/run/docker.sock:/var/run/docker.sock \
-      -v /some/pongo/working/dir:/pongo_wd \
-      ubuntu /bin/bash
+_**WARNING**: make sure to read up on the security consequences of sharing `docker.sock`! You are allowing a Docker container to control the Docker deamon on the host!_
 
-_**WARNING**: make sure to read up on the security consequences this has! You are allowing a Docker container to control the Docker deamon on the host!_
-
-[Back to ToC](#table-of-contents)
-
-### A walkthrough
-
-1. Start a container to run Pongo;
-
-        docker run -it --rm \
-          -v /var/run/docker.sock:/var/run/docker.sock \
-          -v /some/pongo/working/dir:/pongo_wd \
-          ubuntu /bin/bash
-
-1. Prepare the container; install dependencies and Pongo
-
-        apt update
-        apt install -y git curl docker-compose
-
-        cd ~
-        git clone https://github.com/Kong/kong-pongo.git
-        mkdir -p ~/.local/bin
-        ln -s $(realpath ./kong-pongo/pongo.sh) ~/.local/bin/pongo
-        export PATH=$PATH:~/.local/bin
-
-1. Clone the plugin to test
-
-    IMPORTANT: this is shared, and hence MUST be in `/pongo_wd`, since that
-    is mapped to the provided working directory on the host.
-
-        cd /pongo_wd
-        git clone https://github.com/Kong/kong-plugin.git
-        cd kong-plugin
-
-1. Run Pongo
-
-    Since we share the docker environment/daemon with the host, we first restart
-    to make sure the environment is clean (`restart`). And then we run the tests
-    (`lint` and `run`).
-
-        pongo restart
-        pongo lint
-        pongo run
-
-1. Cleanup and exit
-
-    The test environment runs on the host docker environment/daemon, so when
-    this Pongo container exits we do not want anything to be left behind on the
-    host, hence we shutdown the environment explicitly.
-
-        pongo down
-        exit
-
+For a working example see [the Pongo repo](https://github.com/Kong/kong-pongo/tree/master/assets/docker).
 
 [Back to ToC](#table-of-contents)
 
