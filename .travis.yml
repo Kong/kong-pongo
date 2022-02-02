@@ -6,6 +6,8 @@ jobs:
     env: TEST_SCRIPT="assets/ci/pongo_shell.test.sh assets/ci/pongo_luacov.test.sh"
   - name: pongo build, pongo expose
     env: TEST_SCRIPT="assets/ci/pongo_build.test.sh assets/ci/pongo_expose.test.sh"
+  - name: pongo in docker
+    env: TEST_SCRIPT="assets/ci/pongo_docker.test.sh"
   - name: pongo run (CE releases)
     env: TEST_SCRIPT="assets/ci/pongo_run_ce.test.sh"
   - name: pongo run (EE releases)
