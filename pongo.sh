@@ -749,14 +749,34 @@ function do_prerun_script {
 }
 
 
-function pongo_clean {
+function pongo_down {
+  # if '--all' is passed then kill all environments, otherwise just current
+  if [[ ! "$1" == "--all" ]]; then
+    # just current env
+    compose down --remove-orphans
+    exit
+  fi
+
   # use 'docker network ls' command to find networks, and kill them all
+  local p_id=$PROJECT_ID
+  local p_name=$PROJECT_NAME
+  local snn=$SERVICE_NETWORK_NAME
+
   while read -r network ; do
     PROJECT_ID=${network: -8}
     PROJECT_NAME=${PROJECT_NAME_PREFIX}${PROJECT_ID}
     SERVICE_NETWORK_NAME=${SERVICE_NETWORK_PREFIX}${PROJECT_ID}
     compose down --remove-orphans
   done < <(docker network ls --filter 'name='$SERVICE_NETWORK_PREFIX --format '{{.Name}}')
+
+  PROJECT_ID=$p_id
+  PROJECT_NAME=$p_name
+  SERVICE_NETWORK_NAME=$snn
+}
+
+
+function pongo_clean {
+  pongo_down --all
 
   docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "found: {{.ID}}" | grep found
   if [[ $? -eq 0 ]]; then
@@ -1022,7 +1042,7 @@ function main {
     ;;
 
   down)
-    compose down --remove-orphans
+    pongo_down "${EXTRA_ARGS[1]}"
     ;;
 
   restart)
