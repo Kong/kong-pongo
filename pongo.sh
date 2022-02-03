@@ -1168,10 +1168,10 @@ function main {
     fi
 
     local history_mount=""
-    local history_file="./.pongo/.ash_history"
-    if [ -d "./.pongo" ]; then
-      history_file=$(realpath "$history_file")
+    local history_file=".pongo/.ash_history"
+    if [ -d ".pongo" ]; then
       touch "$history_file"
+      history_file="$PONGO_WD/$history_file"
       history_mount="-v $history_file:/root/.ash_history"
     fi
 
