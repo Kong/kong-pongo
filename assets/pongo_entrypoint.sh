@@ -36,6 +36,28 @@ fi
 # add the plugin code to the LUA_PATH such that the plugin will be found
 export "LUA_PATH=/kong-plugin/?.lua;/kong-plugin/?/init.lua;;"
 
+# many of the test config files for Kong will have a nameserver set to 8.8.8.8
+# this will clearly not work with Docker, so we need to override it. Hence we
+# parse the resolv.conf file (to get whatever Docker provided us) and set the
+# value in KONG_DNS_RESOLVER.
+if [ -z "$KONG_DNS_RESOLVER" ]; then
+  export KONG_DNS_RESOLVER
+  grep "nameserver " < /etc/resolv.conf | sed "s/nameserver //" | while read -r line ; do
+    if [ -z "$KONG_DNS_RESOLVER" ]; then
+      KONG_DNS_RESOLVER=$line
+    else
+      KONG_DNS_RESOLVER=$KONG_DNS_RESOLVER,$line
+    fi
+    echo "$KONG_DNS_RESOLVER" > /tmp/KONG_DNS_RESOLVER
+  done
+  if [ -f /tmp/KONG_DNS_RESOLVER ]; then
+    KONG_DNS_RESOLVER=$(cat /tmp/KONG_DNS_RESOLVER)
+    rm /tmp/KONG_DNS_RESOLVER
+  else
+    # we didn't get any, so set the standard Docker nameserver address
+    KONG_DNS_RESOLVER="127.0.0.1"
+  fi
+fi
 
 # set working dir in mounted volume to be able to check the logs
 export KONG_PREFIX=/kong-plugin/servroot
