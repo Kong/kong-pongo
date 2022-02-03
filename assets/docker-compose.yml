@@ -120,8 +120,8 @@ services:
   kong:
     image: ${KONG_TEST_IMAGE:-ignore_if_not_provided}
     environment:
-      - KONG_CASSANDRA_CONTACT_POINTS=cassandra
-      - KONG_PG_HOST=postgres
+      - KONG_CASSANDRA_CONTACT_POINTS=${SERVICE_NETWORK_NAME}_cassandra_1.${SERVICE_NETWORK_NAME}
+      - KONG_PG_HOST=${SERVICE_NETWORK_NAME}_postgres_1.${SERVICE_NETWORK_NAME}
       - PONGO_COMMAND=${ACTION}
     networks:
       - ${NETWORK_NAME}

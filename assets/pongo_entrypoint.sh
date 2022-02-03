@@ -36,10 +36,6 @@ fi
 # add the plugin code to the LUA_PATH such that the plugin will be found
 export "LUA_PATH=/kong-plugin/?.lua;/kong-plugin/?/init.lua;;"
 
-# DNS resolution on docker always has this ip. Since we have a qualified
-# name for the db server, we need to set up the DNS resolver, is set
-# to 8.8.8.8 on the spec conf
-export KONG_DNS_RESOLVER=127.0.0.11
 
 # set working dir in mounted volume to be able to check the logs
 export KONG_PREFIX=/kong-plugin/servroot
