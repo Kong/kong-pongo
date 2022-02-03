@@ -90,14 +90,16 @@ else
   # fallback to default setup
   pongo_setup=/pongo/default-pongo-setup.sh
 fi
-old_entry_pwd=$(pwd)
-cd /kong-plugin || { echo "Failure to enter /kong-plugin"; exit 1; }
-# shellcheck source=/dev/null  # not checking this since it is user provided
-. $pongo_setup
-cd "$old_entry_pwd" || { echo "Failure to enter $old_entry_pwd"; exit 1; }
-unset old_entry_pwd
-unset pongo_setup
 
+if [ -d /kong-plugin ]; then
+  old_entry_pwd=$(pwd)
+  cd /kong-plugin || { echo "Failure to enter /kong-plugin"; exit 1; }
+  # shellcheck source=/dev/null  # not checking this since it is user provided
+  . $pongo_setup
+  cd "$old_entry_pwd" || { echo "Failure to enter $old_entry_pwd"; exit 1; }
+  unset old_entry_pwd
+  unset pongo_setup
+fi
 
 if [ ! "$SUPPRESS_KONG_VERSION" = "true" ]; then
   echo "Kong version: $(kong version)"
