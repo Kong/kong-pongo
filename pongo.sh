@@ -21,7 +21,7 @@ function globals {
   # shellcheck disable=SC1090  # do not follow source
   source "${LOCAL_PATH}/assets/set_variables.sh"
 
-  DOCKER_FILE=${LOCAL_PATH}/assets/Dockerfile
+  DOCKER_FILE=${PONGO_DOCKER_FILE:-$LOCAL_PATH/assets/Dockerfile}
   DOCKER_COMPOSE_FILES="-f ${LOCAL_PATH}/assets/docker-compose.yml"
   IMAGE_BASE_NAME=kong-pongo-test
 
