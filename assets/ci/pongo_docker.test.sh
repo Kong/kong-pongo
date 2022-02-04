@@ -19,10 +19,10 @@ function run_test {
 
   ttest "build.sh builds a Pongo image"
   ../docker/build.sh
-  if [ $? -eq 1 ]; then
-    tfailure
-  else
+  if [ $? -eq 0 ]; then
     tsuccess
+  else
+    tfailure
   fi
 
   tmessage "setup: clone test plugin and enter directory"
