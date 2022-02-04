@@ -115,6 +115,29 @@ function globals {
   # Nightly CE images, these are public, no credentials needed
   NIGHTLY_CE_TAG="kong/kong:latest"
 
+
+  # Dependency image defaults
+  if [[ -z $POSTGRES_IMAGE ]] && [[ -n $POSTGRES ]]; then
+    # backward compat; POSTGRES replaced by POSTGRES_IMAGE
+    export POSTGRES_IMAGE=postgres:$POSTGRES
+  fi
+
+  if [[ -z $CASSANDRA_IMAGE ]] && [[ -n $CASSANDRA ]]; then
+    # backward compat; CASSANDRA replaced by CASSANDRA_IMAGE
+    export CASSANDRA_IMAGE=cassandra:$CASSANDRA
+  fi
+
+  if [[ -z $REDIS_IMAGE ]] && [[ -n $REDIS ]]; then
+    # backward compat; replaced by REDIS_IMAGE
+    export REDIS_IMAGE=redis:$REDIS-alpine
+  fi
+
+  if [[ -z $SQUID_IMAGE ]] && [[ -n $SQUID ]]; then
+    # backward compat; replaced by SQUID_IMAGE
+    export SQUID_IMAGE=sameersbn/squid:$SQUID
+  fi
+
+
   # Commandline related variables
   unset ACTION
   FORCE_BUILD=false
