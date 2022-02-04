@@ -454,7 +454,7 @@ function get_image {
     if [[ "$KONG_VERSION" == "$NIGHTLY_CE" ]]; then
       # pull the Opensource Nightly image
       image=$NIGHTLY_CE_TAG
-      docker pull $image
+      docker pull "$image"
       if [[ ! $? -eq 0 ]]; then
         err "failed to pull the Kong CE nightly image $image"
       fi
@@ -462,12 +462,12 @@ function get_image {
     else
       # pull the Enterprise nightly image
       image=$NIGHTLY_EE_TAG
-      docker pull $image
+      docker pull "$image"
       if [[ ! $? -eq 0 ]]; then
         warn "failed to pull the Kong Enterprise nightly image, retrying with login..."
         check_secret_availability "$image"
         docker_login_ee
-        docker pull $image
+        docker pull "$image"
         if [[ ! $? -eq 0 ]]; then
           docker logout
           err "failed to pull: $image"
