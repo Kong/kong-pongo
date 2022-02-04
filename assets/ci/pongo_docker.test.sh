@@ -7,6 +7,16 @@ function run_test {
   # 1 passing a command
   tchapter "Pongo in docker"
 
+  # the assets/docker/Dockerfile will clone the Pongo repo to build the Pongo
+  # container. To make sure it uses the same code as this test when running,
+  # we must set PONGO_VERSION to the commitid we're testing, such that the Pongo
+  # version in that image ends up being the same one as the one carrying this test
+  # file.
+  # Also: when running the tests locally, make sure the last commit is also in
+  # Pongo repo, otherwise the build will not find that commit.
+  export PONGO_VERSION
+  PONGO_VERSION=$(git rev-parse HEAD)
+
   ttest "build.sh builds a Pongo image"
   ../docker/build.sh
   if [ $? -eq 1 ]; then
@@ -14,7 +24,6 @@ function run_test {
   else
     tsuccess
   fi
-
 
   tmessage "setup: clone test plugin and enter directory"
   git clone https://github.com/kong/kong-plugin.git
@@ -122,6 +131,7 @@ function run_test {
 
   # cleanup, delete cloned repo
   popd
+  unset PONGO_VERSION
   tmessage "cleanup; removing test-plugin"
   rm -rf kong-plugin
 
