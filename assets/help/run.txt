@@ -43,4 +43,4 @@ Example usage:
   pongo run
   KONG_VERSION=nightly pongo run
   KONG_VERSION=1.3.x pongo run -v -o TAP ./spec/02-access_spec.lua
-  POSTGRES=10 KONG_IMAGE=kong-ee pongo run
+  POSTGRES_IMAGE=postgres:10 KONG_IMAGE=kong-ee pongo run

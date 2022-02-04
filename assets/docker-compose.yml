@@ -44,7 +44,7 @@ services:
       - ${NETWORK_NAME}
 
   postgres:
-    image: postgres:${POSTGRES:-9.5}
+    image: ${POSTGRES_IMAGE:-postgres:9.5}
     environment:
       POSTGRES_USER: kong
       POSTGRES_DB: kong_tests
@@ -64,7 +64,7 @@ services:
       - ${NETWORK_NAME}
 
   cassandra:
-    image: cassandra:${CASSANDRA:-3.9}
+    image: ${CASSANDRA_IMAGE:-cassandra:3.9}
     environment:
       MAX_HEAP_SIZE: 256M
       HEAP_NEWSIZE: 128M
@@ -79,7 +79,7 @@ services:
       - ${NETWORK_NAME}
 
   redis:
-    image: redis:${REDIS:-5.0.4}-alpine
+    image: ${REDIS_IMAGE:-redis:5.0.4-alpine}
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -91,7 +91,7 @@ services:
       - ${NETWORK_NAME}
 
   squid:
-    image: sameersbn/squid:${SQUID:-3.5.27-2}
+    image: ${SQUID_IMAGE:-sameersbn/squid:3.5.27-2}
     volumes:
       - ./squid/squid.conf:/etc/squid/squid.conf
       - ./squid/passwords:/etc/squid/passwords
@@ -106,7 +106,7 @@ services:
       - ${NETWORK_NAME}
 
   grpcbin:
-    image: moul/grpcbin:latest
+    image: ${GRPCBIN_IMAGE:-moul/grpcbin:latest}
     healthcheck:
       interval: 5s
       retries: 10

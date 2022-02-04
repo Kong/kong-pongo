@@ -56,13 +56,14 @@ Environment variables:
   KONG_LICENSE_DATA
                 set this variable with the Kong Enterprise license data
 
-  POSTGRES      the version of the Postgres dependency to use (default 9.5)
-  CASSANDRA     the version of the Cassandra dependency to use (default 3.9)
-  REDIS         the version of the Redis dependency to use (default 5.0.4)
-  SQUID         the version of the Squid dependency to use (default 3.5.27-2)
+  POSTGRES_IMAGE   the Postgres image to use (default postgres:9.5)
+  CASSANDRA_IMAGE  the Cassandra image to use (default cassandra:3.9)
+  REDIS_IMAGE      the Redis dependency to use (default redis:5.0.4-alpine)
+  SQUID_IMAGE      the Squid dependency to use (default sameersbn/squid:3.5.27-2)
+  GRPCBIN_IMAGE    the Grpcbin dependency to use (default moul/grpcbin:latest)
 
 Example usage:
   pongo run
   KONG_VERSION=1.3.x pongo run -v -o gtest ./spec/02-access_spec.lua
-  POSTGRES=10 KONG_IMAGE=kong-ee pongo run
+  POSTGRES_IMAGE=postgres:10 KONG_IMAGE=kong-ee pongo run
   pongo down
