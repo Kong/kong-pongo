@@ -1,7 +1,8 @@
 Usage: pongo build [--force]
 
 This will build a Kong test image if it does not already exist. To force a
-rebuild of an image use the '--force' flag.
+rebuild of an image use the '--force' flag, or set PONGO_FORCE_BUILD to anything
+else than 'false'.
 
 The base image used to build the test image can be specified using the
 following 2 environment variables:
