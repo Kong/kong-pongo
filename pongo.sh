@@ -140,7 +140,7 @@ function globals {
 
   # Commandline related variables
   unset ACTION
-  FORCE_BUILD=false
+  FORCE_BUILD=${PONGO_FORCE_BUILD:-false}
   KONG_DEPS_AVAILABLE=( "postgres" "cassandra" "redis" "squid" "grpcbin" "expose")
   KONG_DEPS_START=( "postgres" "cassandra" )
   KONG_DEPS_CUSTOM=()
