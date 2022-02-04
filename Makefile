@@ -10,4 +10,4 @@ lint:
 	bash -c 'shopt -s globstar nullglob &> /dev/null; shellcheck **/*.{sh,ksh,bash}'
 
 test:
-	cd assets/ci && run.sh --suite "Pongo test suite" && cd ../..
+	cd assets/ci && ./run.sh --suite "Pongo test suite" && cd ../..
