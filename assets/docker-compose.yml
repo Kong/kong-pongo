@@ -41,7 +41,7 @@ services:
     restart: on-failure
     stop_signal: SIGKILL
     networks:
-      - ${NETWORK_NAME}
+      - pongo-test-network
 
   postgres:
     image: ${POSTGRES_IMAGE:-postgres:9.5}
@@ -61,7 +61,9 @@ services:
     restart: on-failure
     stop_signal: SIGKILL
     networks:
-      - ${NETWORK_NAME}
+      pongo-test-network:
+        aliases:
+          - ${SERVICE_NETWORK_NAME}-postgres.${SERVICE_NETWORK_NAME}
 
   cassandra:
     image: ${CASSANDRA_IMAGE:-cassandra:3.9}
@@ -76,7 +78,9 @@ services:
     restart: on-failure
     stop_signal: SIGKILL
     networks:
-      - ${NETWORK_NAME}
+      pongo-test-network:
+        aliases:
+          - ${SERVICE_NETWORK_NAME}-cassandra.${SERVICE_NETWORK_NAME}
 
   redis:
     image: ${REDIS_IMAGE:-redis:5.0.4-alpine}
@@ -88,7 +92,9 @@ services:
     restart: on-failure
     stop_signal: SIGKILL
     networks:
-      - ${NETWORK_NAME}
+      pongo-test-network:
+        aliases:
+          - ${SERVICE_NETWORK_NAME}-redis.${SERVICE_NETWORK_NAME}
 
   squid:
     image: ${SQUID_IMAGE:-sameersbn/squid:3.5.27-2}
@@ -103,7 +109,9 @@ services:
     restart: on-failure
     stop_signal: SIGKILL
     networks:
-      - ${NETWORK_NAME}
+      pongo-test-network:
+        aliases:
+          - ${SERVICE_NETWORK_NAME}-squid.${SERVICE_NETWORK_NAME}
 
   grpcbin:
     image: ${GRPCBIN_IMAGE:-moul/grpcbin:latest}
@@ -115,17 +123,21 @@ services:
     restart: on-failure
     stop_signal: SIGKILL
     networks:
-      - ${NETWORK_NAME}
+      pongo-test-network:
+        aliases:
+          - ${SERVICE_NETWORK_NAME}-grpcbin.${SERVICE_NETWORK_NAME}
 
   kong:
     image: ${KONG_TEST_IMAGE:-ignore_if_not_provided}
     environment:
-      - KONG_CASSANDRA_CONTACT_POINTS=${SERVICE_NETWORK_NAME}_cassandra_1.${SERVICE_NETWORK_NAME}
-      - KONG_PG_HOST=${SERVICE_NETWORK_NAME}_postgres_1.${SERVICE_NETWORK_NAME}
+      - KONG_CASSANDRA_CONTACT_POINTS=${SERVICE_NETWORK_NAME}-cassandra.${SERVICE_NETWORK_NAME}
+      - KONG_PG_HOST=${SERVICE_NETWORK_NAME}-postgres.${SERVICE_NETWORK_NAME}
       - PONGO_COMMAND=${ACTION}
       - PONGO_NETWORK=${SERVICE_NETWORK_NAME}
       - PONGO_ID=${PROJECT_ID}
     networks:
-      - ${NETWORK_NAME}
+      pongo-test-network:
+        aliases:
+          - ${SERVICE_NETWORK_NAME}-kong.${SERVICE_NETWORK_NAME}
     volumes:
       - ${PONGO_WD}:/kong-plugin
