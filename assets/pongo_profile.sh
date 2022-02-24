@@ -19,6 +19,11 @@ alias kms='kong stop;
            fi &&
            kong start'
 
+alias kdbl='if [ ! -e /kong-plugin/kong.yaml ]; then
+              echo $'\''\nError: Declarative file "kong.yaml" not found'\'';
+              return 1;
+            fi &&
+            KONG_DATABASE=off KONG_DECLARATIVE_CONFIG=/kong-plugin/kong.yaml kong restart'
 
 parse_git_branch() {
     OLDPWD=$(pwd)
