@@ -32,6 +32,7 @@ RUN apk update \
     && curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin \
     && pip install httpie \
     ; cd /kong \
+    && git config --global url.https://github.com/.insteadOf git://github.com/ \
     && make dependencies \
     && luarocks install busted-htest \
     && luarocks install luacov
