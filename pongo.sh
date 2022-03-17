@@ -4,6 +4,8 @@
 
 function globals {
   # Project related global variables
+  PONGO_VERSION=1.0.0
+
   local script_path
   # explicitly resolve the link because realpath doesn't do it on Windows
   script_path=$(test -L "$0" && readlink "$0" || echo "$0")
@@ -209,7 +211,7 @@ echo -e "  |  __/ _ \| '_ \ ${BROWN}/${BLUE} _ \`|/ _ \\"
 echo -e "  | | | (_) | | | | (_| | (_) |"
 echo -e "  \_|  \___/|_| |_|\__, |\___/"
 echo -e "                    __/ |"
-echo -e "                   |___/"
+echo -e "                   |___/  ${BROWN}v$PONGO_VERSION"
 echo -e "\033[0m"
 }
 
