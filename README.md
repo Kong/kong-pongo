@@ -777,6 +777,9 @@ The result should be a new PR on the Pongo repo.
 
 ### unreleased
 
+ * Upgrade cassandra image from 3.9 to 3.11 for M1 chip
+   [#269](https://github.com/Kong/kong-pongo/pull/269)
+
  * Fix rock installation issue due to unauthenticated Git protocol
    [#266](https://github.com/Kong/kong-pongo/pull/266)
 
