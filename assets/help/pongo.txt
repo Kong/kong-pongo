@@ -58,7 +58,7 @@ Environment variables:
 
   POSTGRES_IMAGE   the Postgres image to use (default postgres:9.5)
   CASSANDRA_IMAGE  the Cassandra image to use (default cassandra:3.11)
-  REDIS_IMAGE      the Redis dependency to use (default redis:5.0.4-alpine)
+  REDIS_IMAGE      the Redis dependency to use (default redis:6.2.6-alpine)
   SQUID_IMAGE      the Squid dependency to use (default sameersbn/squid:3.5.27-2)
   GRPCBIN_IMAGE    the Grpcbin dependency to use (default moul/grpcbin:latest)
 

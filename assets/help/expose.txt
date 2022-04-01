@@ -12,7 +12,7 @@ Ports:
   - Kong     : 8000, 8001, 8002, 8003, 8004, 8443, 8444, 8445
   - Postgres : 5432
   - Cassandra: 7000, 7001, 7199, 9042, 9160
-  - Redis    : 6379
+  - Redis    : 6379, 6380
 
 
 Example usage:

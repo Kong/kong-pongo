@@ -76,7 +76,7 @@ Environment variables:
 
   POSTGRES      the version of the Postgres dependency to use (default 9.5)
   CASSANDRA     the version of the Cassandra dependency to use (default 3.11)
-  REDIS         the version of the Redis dependency to use (default 5.0.4)
+  REDIS         the version of the Redis dependency to use (default 6.2.6)
 
 Example usage:
   pongo run
@@ -776,6 +776,10 @@ The result should be a new PR on the Pongo repo.
 # Changelog
 
 ### unreleased
+
+ * Enable SSL for Redis on port `6380`
+
+ * Upgrade image `redis:5.0.4-alpine` to `redis:6.2.6-alpine`
 
  * Upgrade cassandra image from 3.9 to 3.11 for M1 chip
    [#269](https://github.com/Kong/kong-pongo/pull/269)
