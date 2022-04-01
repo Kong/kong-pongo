@@ -27,6 +27,7 @@ services:
       - "9160:9160"
       # Redis
       - "6379:6379"
+      - "6380:6380"
     environment:
       EXPOSE: "kong:8000 kong:8001 kong:8002 kong:8003 kong:8004 kong:8443 kong:8444 kong:8445 postgres:5432 cassandra:7000 cassandra:7001 cassandra:7199 cassandra:9042 cassandra:9160 redis:6379"
     healthcheck:
@@ -83,7 +84,17 @@ services:
           - ${SERVICE_NETWORK_NAME}-cassandra.${SERVICE_NETWORK_NAME}
 
   redis:
-    image: ${REDIS_IMAGE:-redis:5.0.4-alpine}
+    image: ${REDIS_IMAGE:-redis:6.2.6-alpine}
+    volumes:
+      - "./redis/redis_server.crt:/usr/local/etc/redis/server.crt"
+      - "./redis/redis_server.key:/usr/local/etc/redis/server.key"
+    command: >-
+      --tls-port 6380 
+      --tls-cert-file /usr/local/etc/redis/server.crt 
+      --tls-key-file /usr/local/etc/redis/server.key 
+      --tls-cluster no 
+      --tls-replication no 
+      --tls-auth-clients no 
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
