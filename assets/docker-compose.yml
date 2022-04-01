@@ -67,7 +67,7 @@ services:
           - ${SERVICE_NETWORK_NAME}-postgres.${SERVICE_NETWORK_NAME}
 
   cassandra:
-    image: ${CASSANDRA_IMAGE:-cassandra:3.9}
+    image: ${CASSANDRA_IMAGE:-cassandra:3.11}
     environment:
       MAX_HEAP_SIZE: 256M
       HEAP_NEWSIZE: 128M
