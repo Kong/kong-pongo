@@ -86,8 +86,8 @@ services:
   redis:
     image: ${REDIS_IMAGE:-redis:6.2.6-alpine}
     volumes:
-      - "./redis/redis_server.crt:/usr/local/etc/redis/server.crt"
-      - "./redis/redis_server.key:/usr/local/etc/redis/server.key"
+      - "./redis/server.crt:/usr/local/etc/redis/server.crt"
+      - "./redis/server.key:/usr/local/etc/redis/server.key"
     command: >-
       --tls-port 6380 
       --tls-cert-file /usr/local/etc/redis/server.crt 
