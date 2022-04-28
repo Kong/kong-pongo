@@ -5,6 +5,12 @@
 | Pongo is being switched from non-versioned to versioned. This means that future changes on the `master` branch might be introducing breaking changes. So it is important to switch to a pinned version in your CI to prevent unexpected failures (Notice added 17-Mar-2022, no breaking changes expected before 17-Sep-2022) |
 | The Alpine 3.13 to 3.14 update (around Kong `2.6.x`) [can break the Pongo image build](https://github.com/Kong/docker-kong/pull/495). Make sure to update Docker to `20.10.x`. |
 
+# pongo
+
+Pongo provides a simple way of testing Kong plugins. For a complete walkthrough
+check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plugin-kong-gateway).
+
+
 ```
                 /~\
   ______       C oo
@@ -84,10 +90,6 @@ Example usage:
   POSTGRES=10 KONG_IMAGE=kong-ee pongo run
   pongo down
 ```
-
-# pongo
-
-Pongo provides a simple way of testing Kong plugins
 
 ## Table of contents
 
