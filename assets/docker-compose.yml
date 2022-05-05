@@ -85,16 +85,16 @@ services:
 
   redis:
     image: ${REDIS_IMAGE:-redis:6.2.6-alpine}
-    volumes:
-      - "./redis/server.crt:/usr/local/etc/redis/server.crt"
-      - "./redis/server.key:/usr/local/etc/redis/server.key"
-    command: >-
-      --tls-port 6380
-      --tls-cert-file /usr/local/etc/redis/server.crt
-      --tls-key-file /usr/local/etc/redis/server.key
-      --tls-cluster no
-      --tls-replication no
-      --tls-auth-clients no
+    # volumes:
+    #   - "./redis/server.crt:/usr/local/etc/redis/server.crt"
+    #   - "./redis/server.key:/usr/local/etc/redis/server.key"
+    # command: >-
+    #   --tls-port 6380
+    #   --tls-cert-file /usr/local/etc/redis/server.crt
+    #   --tls-key-file /usr/local/etc/redis/server.key
+    #   --tls-cluster no
+    #   --tls-replication no
+    #   --tls-auth-clients no
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
