@@ -376,6 +376,7 @@ function parse_args {
           args_done=1
           ;;
         --debug)
+          PONGO_DEBUG=true
           set -x
           ;;
         *)
@@ -724,8 +725,15 @@ function build_image {
   fi
 
   msg "starting build of image '$KONG_TEST_IMAGE'"
+  local progress_type
+  if [[ "$PONGO_DEBUG" == "true" ]] ; then
+    progress_type=plain
+  else
+    progress_type=auto
+  fi
   $WINPTY_PREFIX docker build \
     -f "$DOCKER_FILE" \
+    --progress $progress_type \
     --build-arg http_proxy \
     --build-arg https_proxy \
     --build-arg ftp_proxy \
