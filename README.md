@@ -779,6 +779,10 @@ The result should be a new PR on the Pongo repo.
 
 ### unreleased
 
+ * the `--debug` flag now also sets docker build command to `--progress plain`
+   for easier debugging of the build. It also does `set -x` so be careful not
+   to copy-paste secrets somewhere!!
+
  * Enable SSL for Redis on port `6380`
 
  * Upgrade image `redis:5.0.4-alpine` to `redis:6.2.6-alpine`
