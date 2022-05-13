@@ -779,6 +779,8 @@ The result should be a new PR on the Pongo repo.
 
 ### unreleased
 
+ * add `python3-dev` package to fix the `httpie` installation
+
  * the `--debug` flag now also sets docker build command to `--progress plain`
    for easier debugging of the build. It also does `set -x` so be careful not
    to copy-paste secrets somewhere!!
