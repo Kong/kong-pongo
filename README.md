@@ -777,9 +777,19 @@ The result should be a new PR on the Pongo repo.
 
 # Changelog
 
-### unreleased
+## unreleased
+
+#### Fixes
 
  * add `python3-dev` package to fix the `httpie` installation
+
+ * Fix rock installation issue due to unauthenticated Git protocol
+   [#266](https://github.com/Kong/kong-pongo/pull/266)
+
+ * Upgrade cassandra image from 3.9 to 3.11 for M1 chip
+   [#269](https://github.com/Kong/kong-pongo/pull/269)
+
+#### Changes
 
  * the `--debug` flag now also sets docker build command to `--progress plain`
    for easier debugging of the build. It also does `set -x` so be careful not
@@ -789,13 +799,9 @@ The result should be a new PR on the Pongo repo.
 
  * Upgrade image `redis:5.0.4-alpine` to `redis:6.2.6-alpine`
 
- * Upgrade cassandra image from 3.9 to 3.11 for M1 chip
-   [#269](https://github.com/Kong/kong-pongo/pull/269)
+---
 
- * Fix rock installation issue due to unauthenticated Git protocol
-   [#266](https://github.com/Kong/kong-pongo/pull/266)
-
-### 1.0.0 released 1-Feb-2022
+## 1.0.0 released 1-Feb-2022
 
  * Initial versioned release of Pongo
 
