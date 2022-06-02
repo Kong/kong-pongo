@@ -78,9 +78,11 @@ function update_single_version_artifacts {
     # pass in a version tag, and optionally a commit id.
     # tag is used for creating directory names etc.
     # commit id defaults to the tag if omitted
-    local VERSION=$1
+    resolve_version_info "$1"
+    local VERSION=${VERSION_INFO[0]}
     local COMMIT=$2
     local fname
+    local kong_version_path="../kong-versions/$1"
 
     if [[ "$COMMIT" == "" ]]; then
       COMMIT=$VERSION
@@ -90,12 +92,12 @@ function update_single_version_artifacts {
     if [ ! $? -eq 0 ]; then
         warn "cannot checkout version $VERSION. Is the tag missing? skipping it for now..."
     else
-        mkdir "../kong-versions/$VERSION"
-        mkdir "../kong-versions/$VERSION/kong"
-        cp Makefile  "../kong-versions/$VERSION/kong/"
-        cp -R bin    "../kong-versions/$VERSION/kong/"
+        mkdir "$kong_version_path"
+        mkdir "${kong_version_path}/kong"
+        cp Makefile  "${kong_version_path}/kong/"
+        cp -R bin    "${kong_version_path}/kong/"
 
-        mkdir "../kong-versions/$VERSION/kong/spec"
+        mkdir "${kong_version_path}/kong/spec"
         for fname in spec/*; do
             case $fname in
             (spec/[0-9]*)
@@ -103,13 +105,13 @@ function update_single_version_artifacts {
                 ;;
             (*)
                 # everything else we copy
-                cp -R "$fname" "../kong-versions/$VERSION/kong/spec/"
+                cp -R "$fname" "${kong_version_path}/kong/spec/"
                 ;;
             esac
         done
 
         if [[ -d spec-ee ]]; then
-            mkdir "../kong-versions/$VERSION/kong/spec-ee"
+            mkdir "${kong_version_path}/kong/spec-ee"
             for fname in spec-ee/*; do
                 case $fname in
                 (spec-ee/[0-9]*)
@@ -117,16 +119,16 @@ function update_single_version_artifacts {
                     ;;
                 (*)
                     # everything else we copy
-                    cp -R "$fname" "../kong-versions/$VERSION/kong/spec-ee/"
+                    cp -R "$fname" "${kong_version_path}/kong/spec-ee/"
                     ;;
                 esac
             done
         fi
 
         # update old Makefile if it does not have the 'dependencies' make target
-        grep "dependencies:" &> /dev/null < "../kong-versions/$VERSION/kong/Makefile"
+        grep "dependencies:" &> /dev/null < "${kong_version_path}/kong/Makefile"
         if [[ ! $? -eq 0 ]]; then
-            cat ../assets/Makefile-addition >> "../kong-versions/$VERSION/kong/Makefile"
+            cat ../assets/Makefile-addition >> "${kong_version_path}/kong/Makefile"
         fi
     fi
 }
@@ -143,19 +145,20 @@ function update_artifacts {
     update_all_repos
     clean_artifacts
 
-    msg "copying files ..."
     local VERSION
-    for VERSION in ${KONG_VERSIONS[*]}; do
-        if is_enterprise "$VERSION"; then
-            pushd ./kong-ee > /dev/null || { echo "Failure to enter ./kong-ee"; return 1; }
-            msg "Enterprise $VERSION"
-        else
-            pushd ./kong > /dev/null || { echo "Failure to enter ./kong"; return 1; }
-            msg "Open source $VERSION"
-        fi
+    msg "copying EE files ..."
+    for VERSION in ${KONG_EE_VERSIONS[*]}; do
+        pushd ./kong-ee > /dev/null || { echo "Failure to enter ./kong-ee"; return 1; }
+        msg "Enterprise $VERSION"
+        update_single_version_artifacts "${VERSION}-ee"
+        popd > /dev/null || { echo "Failure to pop directory"; return 1; }
+    done;
 
+    msg "copying CE files ..."
+    for VERSION in ${KONG_CE_VERSIONS[*]}; do
+        pushd ./kong > /dev/null || { echo "Failure to enter ./kong"; return 1; }
+        msg "Open source $VERSION"
         update_single_version_artifacts "$VERSION"
-
         popd > /dev/null || { echo "Failure to pop directory"; return 1; }
     done;
 

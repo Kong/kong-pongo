@@ -43,11 +43,12 @@ if [[ ! "$DRY_RUN" == "test" ]]; then
   fi
 fi
 
-
 if [[ "$CODE_BASE" == "CE" ]]; then
   msg "Adding to: Kong open source"
+  VERSION="${ADD_VERSION}"
 elif [[ "$CODE_BASE" == "EE" ]]; then
   msg "Adding to: Kong Enterprise"
+  VERSION="${ADD_VERSION}-ee"
 else
   warn "code-base, 1st parameter, must be either 'CE' or 'EE', got: '$CODE_BASE'"
   usage
@@ -63,8 +64,7 @@ fi
 msg "Version to add: $ADD_VERSION"
 
 #TODO: here check we're in a Pongo git repo, and on 'master' branch
-
-if version_exists "$ADD_VERSION"; then
+if version_exists "$VERSION"; then
   err "Version '$ADD_VERSION' is already available"
   exit 1
 fi

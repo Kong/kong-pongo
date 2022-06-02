@@ -117,7 +117,6 @@ function globals {
   # Nightly CE images, these are public, no credentials needed
   NIGHTLY_CE_TAG="kong/kong:latest"
 
-
   # Dependency image defaults
   if [[ -z $POSTGRES_IMAGE ]] && [[ -n $POSTGRES ]]; then
     # backward compat; POSTGRES replaced by POSTGRES_IMAGE
@@ -148,9 +147,6 @@ function globals {
   KONG_DEPS_CUSTOM=()
   RC_COMMANDS=( "run" "up" "restart" )
   EXTRA_ARGS=()
-
-  # resolve a '.x' to a real version; eg. "1.3.0.x" in $KONG_VERSION
-  resolve_version
 
   unset CUSTOM_PLUGINS
   unset PLUGINS
@@ -379,6 +375,9 @@ function parse_args {
           PONGO_DEBUG=true
           set -x
           ;;
+        --enterprise|--ee)
+          PONGO_ENTERPRISE=true
+          ;;
         *)
           handle_dep_arg "$pongo_arg" || EXTRA_ARGS+=("$pongo_arg")
           ;;
@@ -391,8 +390,10 @@ function parse_args {
 
 
 function validate_version {
-  local version=$1
-  if version_exists "$version"; then
+  resolve_version_info "$1"
+  local version=${VERSION_INFO[0]}
+
+  if version_exists "$1"; then
     return
   fi
   err "Version '$version' is not supported, supported versions are:
@@ -451,6 +452,8 @@ function get_image {
   # download the image.
   # NOTE: the image is an original Kong image, not a development/Pongo one.
   # Result: $KONG_IMAGE will be set to an image based on the requested version
+  resolve_version_info "$KONG_VERSION"
+  local version=${VERSION_INFO[0]}
   local image
   if is_nightly "$KONG_VERSION"; then
     # go and pull the nightly image here
@@ -483,9 +486,9 @@ function get_image {
   else
     # regular Kong release, fetch the OSS or Enterprise version if needed
     if is_enterprise "$KONG_VERSION"; then
-      image=$KONG_EE_TAG_PREFIX$KONG_VERSION$KONG_EE_TAG_POSTFIX
+      image=$KONG_EE_TAG_PREFIX$version$KONG_EE_TAG_POSTFIX
     else
-      image=$KONG_OSS_TAG_PREFIX$KONG_VERSION$KONG_OSS_TAG_POSTFIX
+      image=$KONG_OSS_TAG_PREFIX$version$KONG_OSS_TAG_POSTFIX
     fi
 
     docker inspect --type=image "$image" &> /dev/null
@@ -496,7 +499,7 @@ function get_image {
 
         if is_enterprise "$KONG_VERSION"; then
             # failed to pull EE image, so try the fallback to the private repo
-            image=$KONG_EE_PRIVATE_TAG_PREFIX$KONG_VERSION$KONG_EE_PRIVATE_TAG_POSTFIX
+            image=$KONG_EE_PRIVATE_TAG_PREFIX$version$KONG_EE_PRIVATE_TAG_POSTFIX
             docker_login_ee
             docker pull "$image"
             if [[ ! $? -eq 0 ]]; then
@@ -511,7 +514,7 @@ function get_image {
           # repo that is immediately available for each release. This will
           # prevent any CI from failing in the mean time.
           msg "failed to pull: $image from the official repo, retrying unofficial..."
-          image=$KONG_OSS_UNOFFICIAL_TAG_PREFIX$KONG_VERSION$KONG_OSS_UNOFFICIAL_TAG_POSTFIX
+          image=$KONG_OSS_UNOFFICIAL_TAG_PREFIX$version$KONG_OSS_UNOFFICIAL_TAG_POSTFIX
           docker pull "$image"
           if [[ ! $? -eq 0 ]]; then
             err "failed to pull: $image"
@@ -564,6 +567,13 @@ function get_version {
     if [[ -z $KONG_VERSION ]]; then
       KONG_VERSION=$KONG_DEFAULT_VERSION
     fi
+
+    is_legacy_ee_version "$KONG_VERSION"
+    local legacy_ee_version=$?
+    if [[ "$PONGO_ENTERPRISE" == "true" ]] || [[ legacy_ee_version -eq 0 ]] ; then
+      KONG_VERSION="${KONG_VERSION}-ee"
+    fi
+
     validate_version "$KONG_VERSION"
     get_image
   fi
@@ -589,10 +599,11 @@ function get_version {
         local command = [[kong version]]
         local version_output = io.popen(command):read()
 
+        local is_enterprise = string.find(version_output, \"Enterprise\") ~= nil and true or false
         local version_pattern = [[([%d%.%-]+)]]
         local parsed_version = version_output:match(version_pattern)
 
-        io.stdout:write(parsed_version)
+        io.stdout:write(string.format(\"%s%s\", parsed_version, is_enterprise and \"-ee\" or \"\"))
       "')
     # shellcheck disable=SC2145  # we want WINDOWS_SLASH to be added to the first element
     VERSION=$(docker run --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "$WINDOWS_SLASH${cmd[@]}")
@@ -1058,6 +1069,9 @@ function pongo_init {
 
 function main {
   parse_args "$@"
+
+  # resolve a '.x' to a real version; eg. "1.3.0.x" in $KONG_VERSION
+  resolve_version
 
   ACTION=${EXTRA_ARGS[0]}; unset 'EXTRA_ARGS[0]'
 
