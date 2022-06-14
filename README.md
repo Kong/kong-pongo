@@ -20,7 +20,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v1.0.0
+                   |___/  v1.1.0
 
 Usage: pongo action [options...] [--] [action options...]
 
@@ -777,27 +777,42 @@ The result should be a new PR on the Pongo repo.
 
 # Changelog
 
-## unreleased
+#### releasing new versions
 
-#### Fixes
+ * update the changelog below
+ * update version in `pongo.sh`
+ * update version in logo at top of this `README`
+ * commit as `release x.y.z`, tag as `x.y.z`
+ * push commit and tags
 
- * add `python3-dev` package to fix the `httpie` installation
 
- * Fix rock installation issue due to unauthenticated Git protocol
-   [#266](https://github.com/Kong/kong-pongo/pull/266)
+## 1.1.0 released 14-Jun-2022
 
- * Upgrade cassandra image from 3.9 to 3.11 for M1 chip
-   [#269](https://github.com/Kong/kong-pongo/pull/269)
+ * Feat: Kong Enterprise 2.6.1.0, 2.7.2.0, 2.8.0.0, 2.8.1.0, 2.8.1.1
 
-#### Changes
+ * Feat: Kong OSS 2.4.2, 2.5.2, 2.6.1, 2.7.2, 2.8.0, 2.8.1
 
- * the `--debug` flag now also sets docker build command to `--progress plain`
+ * Feat: Enable SSL for Redis on port `6380`
+   [#270](https://github.com/Kong/kong-pongo/pull/270)
+
+ * Feat: The `--debug` flag now also sets docker build command to `--progress plain`
    for easier debugging of the build. It also does `set -x` so be careful not
    to copy-paste secrets somewhere!!
+   [#283](https://github.com/Kong/kong-pongo/pull/283)
 
- * Enable SSL for Redis on port `6380`
+ * Change: Upgrade image `redis:5.0.4-alpine` to `redis:6.2.6-alpine`
 
- * Upgrade image `redis:5.0.4-alpine` to `redis:6.2.6-alpine`
+ * Fix: Packing rocks was limited to single-digit rockspec revisions
+   [#289](https://github.com/Kong/kong-pongo/pull/289)
+
+ * Fix: Add `python3-dev` package to fix the `httpie` installation
+   [#283](https://github.com/Kong/kong-pongo/pull/283)
+
+ * Fix: Fix rock installation issue due to unauthenticated Git protocol
+   [#266](https://github.com/Kong/kong-pongo/pull/266)
+
+ * Fix: Upgrade cassandra image from 3.9 to 3.11 for M1 chip
+   [#269](https://github.com/Kong/kong-pongo/pull/269)
 
 ---
 
