@@ -7,6 +7,10 @@ Options (can also be added to '.pongo/pongorc'):
   --redis            do start redis db (see readme for info)
   --squid            do start squid forward-proxy (see readme for info)
 
+  --enterprise,--ee  specify we are testing a Kong Enterprise version
+                     required when using `KONG_VERSION` with a 3 digits
+                     EE version (3.0.0+)
+
 Project actions:
   init          initializes the current plugin directory with some default
                 configuration files if not already there (not required)
