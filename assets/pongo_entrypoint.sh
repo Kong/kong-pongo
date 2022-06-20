@@ -67,6 +67,8 @@ export KONG_LOG_LEVEL=debug
 
 # export Pongo's redis instance to the Kong test-helpers
 export KONG_SPEC_REDIS_HOST=redis
+# Kong test-helpers 3.0.0+
+export KONG_SPEC_TEST_REDIS_HOST=redis
 
 # set the certificate store
 export KONG_LUA_SSL_TRUSTED_CERTIFICATE=/etc/ssl/certs/ca-certificates.crt
