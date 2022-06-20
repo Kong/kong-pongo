@@ -785,6 +785,13 @@ The result should be a new PR on the Pongo repo.
  * commit as `release x.y.z`, tag as `x.y.z`
  * push commit and tags
 
+---
+
+## unreleased
+
+ * Export the new `KONG_SPEC_TEST_REDIS_HOST` variable to be compatible with Kong 3.0.0+
+
+---
 
 ## 1.1.0 released 14-Jun-2022
 
@@ -813,8 +820,6 @@ The result should be a new PR on the Pongo repo.
 
  * Fix: Upgrade cassandra image from 3.9 to 3.11 for M1 chip
    [#269](https://github.com/Kong/kong-pongo/pull/269)
-
- * Export the new `KONG_SPEC_TEST_REDIS_HOST` variable to be compatible with Kong 3.0.0+
 
 ---
 
