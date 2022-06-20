@@ -60,6 +60,13 @@ if [[ "$ADD_VERSION" == "" ]]; then
   usage
   exit 1
 fi
+# for Kong Enterprise 3.0.0+ use a 'e' prefix
+if [[ "$CODE_BASE" == "EE" ]]; then
+  if [[ ${ADD_VERSION//[0-9]} == ".." ]]; then
+    # only 3 digits so a 3.0.0+ EE version
+    ADD_VERSION=e$ADD_VERSION
+  fi
+fi
 msg "Version to add: $ADD_VERSION"
 
 #TODO: here check we're in a Pongo git repo, and on 'master' branch
