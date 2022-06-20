@@ -599,8 +599,15 @@ function get_version {
         local command = [[kong version]]
         local version_output = io.popen(command):read()
 
+        local is_enterprise = not not string.find(version_output, [[Enterprise]])
+
         local version_pattern = [[([%d%.%-]+)]]
         local parsed_version = version_output:match(version_pattern)
+
+        if is_enterprise and (parsed_version or [[]]):gsub([[%d]], [[]]) == [[..]] then
+          -- 3 digit Kong 3.0.0+ Enterprise version, prefix with e
+          parsed_version = [[e]] .. parsed_version
+        end
 
         io.stdout:write(parsed_version)
       "')
