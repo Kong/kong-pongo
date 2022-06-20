@@ -83,12 +83,17 @@ function update_single_version_artifacts {
     local fname
 
     if [[ "$COMMIT" == "" ]]; then
-      COMMIT=$VERSION
+      if [[ ${VERSION//[0-9]} == "e.." ]]; then
+        # Kong Eneterprise version 3.0.0+; strip 'e' prefix
+        COMMIT=${VERSION:1}
+      else
+        COMMIT=$VERSION
+      fi
     fi
 
     git checkout -q "$COMMIT"
     if [ ! $? -eq 0 ]; then
-        warn "cannot checkout version $VERSION. Is the tag missing? skipping it for now..."
+        warn "cannot checkout version $COMMIT. Is the tag missing? skipping it for now..."
     else
         mkdir "../kong-versions/$VERSION"
         mkdir "../kong-versions/$VERSION/kong"
