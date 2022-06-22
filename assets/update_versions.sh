@@ -53,8 +53,8 @@ function update_all_repos {
 function cleanup_all_repos {
     # removes cloned repos.
     pushd "$LOCAL_PATH" > /dev/null || { echo "Failure to enter $LOCAL_PATH"; return 1; }
-    rm -rf kong &> /dev/null
-    rm -rf kong-ee &> /dev/null
+    #rm -rf kong &> /dev/null
+    #rm -rf kong-ee &> /dev/null
     popd > /dev/null || { echo "Failure to pop directory"; return 1; }
 }
 
