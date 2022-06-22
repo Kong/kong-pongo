@@ -62,7 +62,7 @@ if [[ "$ADD_VERSION" == "" ]]; then
 fi
 # for Kong Enterprise 3.0.0+ use a 'e' prefix
 if [[ "$CODE_BASE" == "EE" ]]; then
-  if [[ ${ADD_VERSION//[^[0-9]]} == ".." ]]; then
+  if [[ ${ADD_VERSION//[0-9]} == ".." ]]; then
     # only 3 digits so a 3.0.0+ EE version
     ADD_VERSION=e$ADD_VERSION
   fi
