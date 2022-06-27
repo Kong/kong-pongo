@@ -791,6 +791,9 @@ The result should be a new PR on the Pongo repo.
 
  * Export the new `KONG_SPEC_TEST_REDIS_HOST` variable to be compatible with Kong 3.0.0+
 
+ * Aliases now support `.yml` and `.json` extension for declarative config file
+   [#296](https://github.com/Kong/kong-pongo/pull/296)
+
 ---
 
 ## 1.1.0 released 14-Jun-2022
