@@ -7,11 +7,14 @@ ARG KONG_DEV_FILES
 COPY $KONG_DEV_FILES /kong
 
 # add helper files to workaround some issues
-COPY assets/busted_helper.lua      /pongo/busted_helper.lua
-COPY assets/pongo_entrypoint.sh    /pongo/pongo_entrypoint.sh
-COPY assets/default-pongo-setup.sh /pongo/default-pongo-setup.sh
-COPY assets/pongo_pack.lua         /pongo/pongo_pack.lua
-COPY assets/pongo_profile.sh       /etc/profile.d/pongo_profile.sh
+COPY assets/busted_helper.lua        /pongo/busted_helper.lua
+COPY assets/pongo_entrypoint.sh      /pongo/pongo_entrypoint.sh
+COPY assets/default-pongo-setup.sh   /pongo/default-pongo-setup.sh
+COPY assets/pongo_pack.lua           /pongo/pongo_pack.lua
+COPY assets/kong_migrations_start.sh /pongo/kong_migrations_start.sh
+COPY assets/kong_start_dbless.sh     /pongo/kong_start_dbless.sh
+COPY assets/parse_git_branch.sh      /pongo/parse_git_branch.sh
+COPY assets/pongo_profile.sh         /etc/profile.d/pongo_profile.sh
 
 USER root
 # httpie and jq are genric utilities usable from the shell action.
