@@ -576,12 +576,41 @@ After the test run the output files `luacov.*.out` files should be available.
 
 ## Setting up CI
 
-Pongo is easily added to a CI setup. The examples below will asume Travis-CI, but
-can be easily converted to other engines.
+Pongo is easily added to a CI setup. Below examples for Travis CI and Github Actions
 
 **Note**: if your engine of preference runs itself in Docker, then checkout [Pongo in Docker](#running-pongo-in-docker).
 
 Here's a base setup for an open-source plugin that will test against 2 Kong versions:
+
+#### Github Actions
+```yaml
+# .github/workflows/test.yaml
+
+name: "Test"
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        kongVersion:
+        - "2.7.x"
+        - "2.8.x"
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: Kong/kong-pongo@1.2
+      with:
+        kong_version: ${{ matrix.kongVersion }}
+
+    - run: pongo run
+```
+
+#### Travis CI
 ```yaml
 # .travis.yml
 
@@ -608,11 +637,20 @@ script:
 
 ### CI against nightly builds
 
-To test against nightly builds, the CRON option for Travis-CI should be configured.
-This will trigger a daily test-run.
+To test against nightly builds, a CRON type job should be configured to test daily,
+even if there are no changes to the plugin code itself.
 
 In the test matrix add a job with `KONG_VERSION=nightly`, like this:
 
+#### Github Actions
+```yaml
+      matrix:
+        kongVersion:
+        - "2.8.x"
+        - "nightly"
+```
+
+#### Travis CI
 ```yaml
 jobs:
   include:
@@ -789,6 +827,7 @@ The result should be a new PR on the Pongo repo.
 
 ## unreleased
 
+ * Added Github Action [#298](https://github.com/Kong/kong-pongo/pull/298)
  * Export the new `KONG_SPEC_TEST_REDIS_HOST` variable to be compatible with Kong 3.0.0+
 
  * Aliases now support `.yml` and `.json` extension for declarative config file

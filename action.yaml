@@ -1,0 +1,111 @@
+name: 'Kong Pongo'
+description: 'Installs Pongo, tool for testing Kong Gateway plugins'
+
+
+
+inputs:
+  kong_version:
+    description: >
+      The Kong version to test against
+    required: true
+
+  build_image:
+    description: >
+      Pre-build the image for the given Kong version (runs 'pongo build')
+    required: true
+    default: "true"
+
+  start_environment:
+    description: >
+      Start the test environment (runs 'pongo up')
+    required: true
+    default: "true"
+
+  license:
+    description: >
+      The Kong license (defaults to environment variable `KONG_LICENSE_DATA` if
+      not given). This is only required if you are testing a plugin against an
+      Enterprise version of the Kong Gateway.
+    required: false
+
+  enterprise_nightly_docker_password:
+    description: >
+      Kong Inc internal only!
+      The password to access the nightly Kong Enterprise images for `nightly-ee`
+      testing.
+    required: false
+
+  enterprise_nightly_docker_username:
+    description: >
+      Kong Inc internal only!
+      The username to access the nightly Kong Enterprise images for `nightly-ee`
+      testing.
+    required: false
+
+  github_token:
+    description: >
+      Kong Inc internal only!
+      The token to clone the `kong-ee` git repo for `nightly-ee` testing.
+    required: false
+
+
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Pongo executable
+      id: install-pongo
+      # create a symlink (command without '.sh'), and inject into PATH
+      run: |
+        ln -s "${{ github.action_path }}/pongo.sh" "${{ github.action_path }}/pongo"
+        echo "${{ github.action_path }}/" >> $GITHUB_PATH
+        echo Installed pongo in the system path
+      shell: bash
+
+
+    - name: Export global Pongo configuration variables
+      id: export-globals
+      # The license is exported only if given, and its signature masked.
+      # The Kong version is always exported.
+      # The docker credentials are only exported if testing 'nightly-ee'
+      shell: bash
+      run: |
+        echo "KONG_VERSION=${{ inputs.kong_version }}" >> $GITHUB_ENV
+        echo Exported KONG_VERSION=${{ inputs.kong_version }} as global environment variable
+
+        INPUT_LICENSE=${{ inputs.license }}
+        if [ "$INPUT_LICENSE" == "" ]; then
+          INPUT_LICENSE="$KONG_LICENSE_DATA"
+        fi
+
+        if [ "$INPUT_LICENSE" == "" ]; then
+          echo Not exporting KONG_LICENSE_DATA, no license provided
+        else
+          echo ::add-mask::$(jq -r '.license.signature' <<< "$INPUT_LICENSE")
+          echo ::add-mask::$(jq -r '.license.payload.license_key' <<< "$INPUT_LICENSE")
+          echo 'KONG_LICENSE_DATA<<EOF' >> $GITHUB_ENV
+          echo $INPUT_LICENSE >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+          echo Exported KONG_LICENSE_DATA as global environment variable
+        fi
+
+        if [ "${{ inputs.kong_version }}" == "nightly-ee" ]; then
+          echo "DOCKER_USERNAME=${{ inputs.enterprise_nightly_docker_username }}" >> $GITHUB_ENV
+          echo "DOCKER_PASSWORD=${{ inputs.enterprise_nightly_docker_password }}" >> $GITHUB_ENV
+          echo Exported DOCKER_USERNAME and DOCKER_PASSWORD as global environment variables
+        fi
+
+    - name: Start the Pongo environment
+      id: start-environment
+      if: ${{ inputs.start_environment }} == "true"
+      run: pongo up
+      shell: bash
+
+
+    - name: Build the Pongo test image for Kong version ${{ inputs.kong_version }}
+      id: build-image
+      if: ${{ inputs.build_image }} == "true"
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+      run: pongo build
+      shell: bash
