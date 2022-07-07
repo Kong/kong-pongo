@@ -54,7 +54,6 @@ runs:
   using: "composite"
   steps:
     - name: Install Pongo executable
-      id: install-pongo
       # create a symlink (command without '.sh'), and inject into PATH
       run: |
         ln -s "${{ github.action_path }}/pongo.sh" "${{ github.action_path }}/pongo"
@@ -64,7 +63,6 @@ runs:
 
 
     - name: Export global Pongo configuration variables
-      id: export-globals
       # The license is exported only if given, and its signature masked.
       # The Kong version is always exported.
       # The docker credentials are only exported if testing 'nightly-ee'
@@ -96,14 +94,12 @@ runs:
         fi
 
     - name: Start the Pongo environment
-      id: start-environment
       if: ${{ inputs.start_environment }} == "true"
       run: pongo up
       shell: bash
 
 
     - name: Build the Pongo test image for Kong version ${{ inputs.kong_version }}
-      id: build-image
       if: ${{ inputs.build_image }} == "true"
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
