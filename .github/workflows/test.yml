@@ -12,7 +12,6 @@ jobs:
   tests:
     name: Tests
     runs-on: ubuntu-20.04
-
     strategy:
       matrix:
         include:
@@ -29,20 +28,15 @@ jobs:
 
     steps:
     - name: Checkout source code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Install
       run: |
         sudo apt-get install figlet
         make install
+        echo "~/.local/bin/" >> $GITHUB_PATH
         echo ${{ matrix.env }} >> $GITHUB_ENV
-    
-    - name: Lint
-      run: |
-       export PATH=~/.local/bin/:$PATH
-       make lint
 
     - name: Pongo test suite
       run: |
-       export PATH=~/.local/bin/:$PATH
        assets/ci/run.sh --suite "Pongo test suite" $TEST_SCRIPT
