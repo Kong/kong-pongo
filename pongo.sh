@@ -112,7 +112,7 @@ function globals {
 
   # Nightly EE images repo, these require to additionally set the credentials
   # in $DOCKER_USERNAME and $DOCKER_PASSWORD
-  NIGHTLY_EE_TAG="kong/kong-gateway-internal:master"
+  NIGHTLY_EE_TAG="kong/kong-gateway-internal:master-alpine"
 
   # Nightly CE images, these are public, no credentials needed
   NIGHTLY_CE_TAG="kong/kong:latest"
