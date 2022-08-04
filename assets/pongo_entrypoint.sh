@@ -114,6 +114,11 @@ fi
 if [ -d /kong-plugin ]; then
   old_entry_pwd=$(pwd)
   cd /kong-plugin || { echo "Failure to enter /kong-plugin"; exit 1; }
+
+  plugin_name=$(ls kong/plugins)
+  rm -rf "/usr/local/openresty/site/lualib/kong/plugins/$plugin_name"
+  unset plugin_name
+
   # shellcheck source=/dev/null  # not checking this since it is user provided
   . $pongo_setup
   cd "$old_entry_pwd" || { echo "Failure to enter $old_entry_pwd"; exit 1; }
