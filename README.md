@@ -428,7 +428,7 @@ Some helpfull examples:
 This section is about debugging plugin code. If you have trouble with the Pongo
 environment then check [Dependency troubleshooting](#dependency-troubleshooting).
 
-### Accessing logs
+### Accessing the logs
 
 When running the tests, the Kong prefix (or working directory) will be set to
 `./servroot`.
