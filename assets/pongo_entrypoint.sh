@@ -69,6 +69,8 @@ export KONG_LOG_LEVEL=debug
 export KONG_SPEC_REDIS_HOST=redis
 # Kong test-helpers 3.0.0+
 export KONG_SPEC_TEST_REDIS_HOST=redis
+# Support Redis Cluster (RC)
+export KONG_SPEC_TEST_REDIS_CLUSTER_ADDRESSES='["rc:7000","rc:7001","rc:7003"]'
 
 # set the certificate store
 export KONG_LUA_SSL_TRUSTED_CERTIFICATE=/etc/ssl/certs/ca-certificates.crt
