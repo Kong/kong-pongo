@@ -801,6 +801,9 @@ The result should be a new PR on the Pongo repo.
  * Changed nightly-ee image to the new `master` tag
    [#300](https://github.com/Kong/kong-pongo/pull/300)
 
+ * Added new alias "kx" for export, and added explanation when shelling
+   [#311](https://github.com/Kong/kong-pongo/pull/311)
+
 ---
 
 ## 1.1.0 released 14-Jun-2022

@@ -7,16 +7,16 @@ kong migrations bootstrap --force
 
 echo ''
 unset KMS_FILENAME
-if [ -f /kong-plugin/kong.yaml ]; then
-    KMS_FILENAME=kong.yaml
-elif [ -f /kong-plugin/kong.yml ]; then
+if [ -f /kong-plugin/kong.yml ]; then
     KMS_FILENAME=kong.yml
+elif [ -f /kong-plugin/kong.yaml ]; then
+    KMS_FILENAME=kong.yaml
 elif [ -f /kong-plugin/kong.json ]; then
     KMS_FILENAME=kong.json
 fi
 
 if [ "$KMS_FILENAME" = "" ]; then
-    echo 'Declarative file "kong.yaml/yml/json" not found, skipping import'
+    echo 'Declarative file "kong.yml/yaml/json" not found, skipping import'
 else
     echo "Found \"$KMS_FILENAME\", importing declarative config..."
     kong config db_import /kong-plugin/$KMS_FILENAME
