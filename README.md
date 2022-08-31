@@ -20,7 +20,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v1.1.0
+                   |___/  v1.2.0
 
 Usage: pongo action [options...] [--] [action options...]
 
@@ -787,7 +787,11 @@ The result should be a new PR on the Pongo repo.
 
 ---
 
-## unreleased
+## 1.2.0 released 01-Sep-2022
+
+ * Feat: Kong Enterprise 2.8.1.2, 2.8.1.3, 2.8.1.4
+
+ * Added a Pongo github action, see the [marketplace](https://github.com/marketplace/actions/kong-pongo)
 
  * Enabled redis cluster tests
    [#305](https://github.com/Kong/kong-pongo/pull/305)
