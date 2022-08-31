@@ -11,5 +11,17 @@ alias ks='kong restart'
 alias kp='kong stop'
 alias kms='/pongo/kong_migrations_start.sh'
 alias kdbl='/pongo/kong_start_dbless.sh'
+alias kx='/pongo/kong_export.sh'
 
 PS1="\[\e[00m\]\[\033[1;34m\][$PS1_KONG_VERSION:\[\e[91m\]$PS1_REPO_NAME\$(/pongo/parse_git_branch.sh)\[\033[1;34m\]:\[\033[1;92m\]\w\[\033[1;34m\]]$\[\033[00m\] "
+
+echo "Welcome to the Pongo shell!"
+echo ""
+echo "Get started quickly with the following aliases/shortcuts:"
+echo "  kms  - kong migrations start; wipe/initialize the database and start Kong clean,"
+echo "         importing declarative configuration if available."
+echo "  kdbl - kong start dbless; start Kong in dbless mode, requires a declarative configuration."
+echo "  ks   - kong start; starts Kong with the existing database contents (actually a restart)."
+echo "  kp   - kong stop; stop Kong."
+echo "  kx   - export the current Kong database to a declarative configuration file."
+echo ""
