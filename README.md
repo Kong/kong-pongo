@@ -787,6 +787,13 @@ The result should be a new PR on the Pongo repo.
 
 ---
 
+## unreleased
+
+ * Fix: workaround for https://github.com/Kong/kong/issues/9365
+   [#314](https://github.com/Kong/kong-pongo/pull/314)]
+
+---
+
 ## 1.2.0 released 01-Sep-2022
 
  * Feat: Kong Enterprise 2.8.1.2, 2.8.1.3, 2.8.1.4
