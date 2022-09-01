@@ -19,6 +19,8 @@ if [ "$KMS_FILENAME" = "" ]; then
     echo 'Declarative file "kong.yml/yaml/json" not found, skipping import'
 else
     echo "Found \"$KMS_FILENAME\", importing declarative config..."
+    # run prepare in case: https://github.com/Kong/kong/issues/9365
+    kong prepare
     kong config db_import /kong-plugin/$KMS_FILENAME
     if [ $? -ne 0 ]; then
         echo "Failed to import \"$KMS_FILENAME\""
