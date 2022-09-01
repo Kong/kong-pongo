@@ -2,11 +2,11 @@
 
 # export the kong configuration to "kong.yml"
 
-
+KX_FILENAME=/kong-plugin/kong.yml
 echo ''
-if [ -f /kong-plugin/kong.yml ]; then
+if [ -f $KX_FILENAME ]; then
     if [ ! "$1" = "-y" ]; then
-        echo "The file \"kong.yml\" already exists, overwrite? (y/n, or use \"-y\") "
+        echo "The file \"$KX_FILENAME\" already exists, overwrite? (y/n, or use \"-y\") "
         old_stty_cfg=$(stty -g)
         stty raw -echo
         answer=$( while ! head -c 1 | grep -i '[ny]' ;do true ;done )
@@ -15,13 +15,14 @@ if [ -f /kong-plugin/kong.yml ]; then
             exit 0
         fi
     fi
+    rm $KX_FILENAME
 fi
 
 
-echo "Exporting declarative config to \"kong.yml\"..."
-kong config db_export /kong-plugin/kong.yml
+echo "Exporting declarative config to \"$KX_FILENAME\"..."
+kong config db_export $KX_FILENAME
 if [ $? -ne 0 ]; then
-    echo "Failed to export to \"kong.yml\""
+    echo "Failed to export to \"$KX_FILENAME\""
     exit 1
 fi
-echo "Export to \"kong.yml\" complete."
+echo "Export to \"$KX_FILENAME\" complete."
