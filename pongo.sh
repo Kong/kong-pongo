@@ -96,15 +96,15 @@ function globals {
 
   # regular Kong Enterprise images repo (tag is build as $PREFIX$VERSION$POSTFIX).
   KONG_EE_TAG_PREFIX="kong/kong-gateway:"
-  KONG_EE_TAG_POSTFIX="-alpine"
+  KONG_EE_TAG_POSTFIX="-ubuntu"
 
   # all Kong Enterprise images repo (tag is build as $PREFIX$VERSION$POSTFIX).
   KONG_EE_PRIVATE_TAG_PREFIX="kong/kong-gateway-private:"
-  KONG_EE_PRIVATE_TAG_POSTFIX="-alpine"
+  KONG_EE_PRIVATE_TAG_POSTFIX="-ubuntu"
 
   # regular Kong CE images repo (tag is build as $PREFIX$VERSION$POSTFIX)
   KONG_OSS_TAG_PREFIX="kong:"
-  KONG_OSS_TAG_POSTFIX="-alpine"
+  KONG_OSS_TAG_POSTFIX="-ubuntu"
 
   # unoffical Kong CE images repo, the fallback
   KONG_OSS_UNOFFICIAL_TAG_PREFIX="kong/kong:"
@@ -112,7 +112,7 @@ function globals {
 
   # Nightly EE images repo, these require to additionally set the credentials
   # in $DOCKER_USERNAME and $DOCKER_PASSWORD
-  NIGHTLY_EE_TAG="kong/kong-gateway-internal:master-alpine"
+  NIGHTLY_EE_TAG="kong/kong-gateway-internal:master-ubuntu"
 
   # Nightly CE images, these are public, no credentials needed
   NIGHTLY_CE_TAG="kong/kong:latest"
@@ -589,7 +589,7 @@ function get_version {
         local command = [[kong version]]
         local version_output = io.popen(command):read()
 
-        local version_pattern = [[([%d%.%-]+)]]
+        local version_pattern = [[([%d%.%-]+[%d%.])]]
         local parsed_version = version_output:match(version_pattern)
 
         io.stdout:write(parsed_version)
@@ -1153,6 +1153,7 @@ function main {
     compose run --rm --use-aliases \
       -e KONG_LICENSE_DATA \
       -e KONG_TEST_DONT_CLEAN \
+      -e LD_LIBRARY_PATH=/kong-plugin \
       kong \
       "$WINDOWS_SLASH/bin/sh" "-c" "bin/busted --helper=$WINDOWS_SLASH/pongo/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
     ;;
@@ -1186,7 +1187,7 @@ function main {
     local script_mount=""
     if [[ "$exec_cmd" == "" ]]; then
       # no args, so plain shell, use -l to login and run profile scripts
-      exec_cmd="$WINDOWS_SLASH/bin/sh -l"
+      exec_cmd="$WINDOWS_SLASH/bin/bash -l"
       suppress_kong_version="false"
     elif [[ "${exec_cmd:0:1}" == "@" ]]; then
       # a script file as argument
@@ -1201,11 +1202,11 @@ function main {
     fi
 
     local history_mount=""
-    local history_file=".pongo/.ash_history"
+    local history_file=".pongo/.bash_history"
     if [ -d ".pongo" ]; then
       touch "$history_file"
       history_file="$PONGO_WD/$history_file"
-      history_mount="-v $history_file:/root/.ash_history"
+      history_mount="-v $history_file:/root/.bash_history"
     fi
 
     do_prerun_script
