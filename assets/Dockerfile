@@ -1,7 +1,6 @@
 ARG KONG_BASE
 FROM ${KONG_BASE}
 
-
 # add dev files
 ARG KONG_DEV_FILES
 COPY $KONG_DEV_FILES /kong
@@ -31,11 +30,12 @@ USER root
 #   make dependencies
 # But that means hardcoding and that doesn't play well with the nature of Pongo
 # that should be independent of Kong versions.
-RUN apk update \
-    && apk add zip unzip make g++ py-pip jq git bsd-compat-headers m4 openssl-dev curl wget python3-dev shadow \
-    && curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin \
-    && pip install httpie \
-    ; cd /kong \
+
+RUN apt update \
+      && apt install -y zip make jq m4 curl build-essential wget git libssl-dev python3-pip
+RUN pip3 install httpie
+RUN curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
+RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
     && make dependencies \
     && luarocks install busted-htest \
