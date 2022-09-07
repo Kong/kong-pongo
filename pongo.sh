@@ -23,7 +23,9 @@ function globals {
   # shellcheck disable=SC1090  # do not follow source
   source "${LOCAL_PATH}/assets/set_variables.sh"
 
-  DOCKER_FILE=${PONGO_DOCKER_FILE:-$LOCAL_PATH/assets/Dockerfile}
+  KONG_IMAGE_OS=${KONG_IMAGE_OS:-alpine}
+
+  DOCKER_FILE=${PONGO_DOCKER_FILE:-$LOCAL_PATH/assets/Dockerfile.${KONG_IMAGE_OS}}
   DOCKER_COMPOSE_FILES="-f ${LOCAL_PATH}/assets/docker-compose.yml"
   IMAGE_BASE_NAME=kong-pongo-test
 
@@ -96,15 +98,15 @@ function globals {
 
   # regular Kong Enterprise images repo (tag is build as $PREFIX$VERSION$POSTFIX).
   KONG_EE_TAG_PREFIX="kong/kong-gateway:"
-  KONG_EE_TAG_POSTFIX="-alpine"
+  KONG_EE_TAG_POSTFIX="-${KONG_IMAGE_OS}"
 
   # all Kong Enterprise images repo (tag is build as $PREFIX$VERSION$POSTFIX).
   KONG_EE_PRIVATE_TAG_PREFIX="kong/kong-gateway-private:"
-  KONG_EE_PRIVATE_TAG_POSTFIX="-alpine"
+  KONG_EE_PRIVATE_TAG_POSTFIX="-${KONG_IMAGE_OS}"
 
   # regular Kong CE images repo (tag is build as $PREFIX$VERSION$POSTFIX)
   KONG_OSS_TAG_PREFIX="kong:"
-  KONG_OSS_TAG_POSTFIX="-alpine"
+  KONG_OSS_TAG_POSTFIX="-${KONG_IMAGE_OS}"
 
   # unoffical Kong CE images repo, the fallback
   KONG_OSS_UNOFFICIAL_TAG_PREFIX="kong/kong:"
@@ -112,7 +114,7 @@ function globals {
 
   # Nightly EE images repo, these require to additionally set the credentials
   # in $DOCKER_USERNAME and $DOCKER_PASSWORD
-  NIGHTLY_EE_TAG="kong/kong-gateway-internal:master-alpine"
+  NIGHTLY_EE_TAG="kong/kong-gateway-internal:master-${KONG_IMAGE_OS}"
 
   # Nightly CE images, these are public, no credentials needed
   NIGHTLY_CE_TAG="kong/kong:latest"
