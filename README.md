@@ -145,7 +145,7 @@ ln -s $(realpath kong-pongo/pongo.sh) ~/.local/bin/pongo
 
 ## Update
 
-Since the shell script is symbolic linked to ~/.local/bin/pongo, in order to update the program, all you have to do is to fetch latest changes from this repo:
+Since the Pongo script is symbolic linked to `~/.local/bin/pongo`, in order to update Pongo, all you have to do is to fetch latest changes from the Pongo repo:
 
 ```
 cd <repo cloned directory>
