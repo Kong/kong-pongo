@@ -20,7 +20,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v1.2.0
+                   |___/  v1.2.1
 
 Usage: pongo action [options...] [--] [action options...]
 
@@ -787,7 +787,10 @@ The result should be a new PR on the Pongo repo.
 
 ---
 
-## unreleased
+## 1.2.1 released 09-Sep-2022
+
+ * Fix: format for reedis cluster support
+   [#318](https://github.com/Kong/kong-pongo/pull/318)]
 
  * Fix: workaround for https://github.com/Kong/kong/issues/9365
    [#314](https://github.com/Kong/kong-pongo/pull/314)]
