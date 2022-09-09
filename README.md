@@ -95,6 +95,7 @@ Example usage:
 
  - [Requirements](#requirements)
  - [Installation](#installation)
+ - [Update](#update)
  - [Configuration](#configuration)
  - [Do a test run](#do-a-test-run)
  - [Pongo on Windows](#pongo-on-windows)
@@ -142,6 +143,15 @@ PATH=$PATH:~/.local/bin
 git clone https://github.com/Kong/kong-pongo.git
 mkdir -p ~/.local/bin
 ln -s $(realpath kong-pongo/pongo.sh) ~/.local/bin/pongo
+```
+
+## Update
+
+Since the Pongo script is symbolic linked to `~/.local/bin/pongo`, in order to update Pongo, all you have to do is to fetch latest changes from the Pongo repo:
+
+```
+cd <cloned Pongo repo>
+git pull
 ```
 
 [Back to ToC](#table-of-contents)
