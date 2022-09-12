@@ -108,7 +108,7 @@ function globals {
 
   # unoffical Kong CE images repo, the fallback
   KONG_OSS_UNOFFICIAL_TAG_PREFIX="kong/kong:"
-  KONG_OSS_UNOFFICIAL_TAG_POSTFIX=
+  KONG_OSS_UNOFFICIAL_TAG_POSTFIX="-alpine"
 
   # Nightly EE images repo, these require to additionally set the credentials
   # in $DOCKER_USERNAME and $DOCKER_PASSWORD
