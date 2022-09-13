@@ -101,6 +101,31 @@ if [ -z "$KONG_TEST_LUA_SSL_TRUSTED_CERTIFICATE" ]; then
 fi
 
 
+# Modify the 'kong' user to match the ownership of the mounted plugin folder
+# Kong will not start because of permission errors if it cannot write to the
+# /kong-plugin/servroot folder (which resides on the mount).
+# Since those permissions are controlled by the host, we update the 'kong' user
+# inside the container to match the UID and GID.
+if [ -d /kong-plugin ]; then
+  KONG_UID=$(id -u kong)
+  KONG_GID=$(id -g kong)
+  MOUNT_UID=$(stat -c "%u" /kong-plugin)
+  MOUNT_GID=$(stat -c "%g" /kong-plugin)
+  if [ ! "$KONG_GID" = "$MOUNT_GID" ]; then
+    # change KONG_GID to the ID of the folder owner group
+    groupmod -g "$MOUNT_GID" kong > /dev/null 2>&1
+  fi
+
+  if [ ! "$KONG_UID" = "$MOUNT_UID" ]; then
+    # change KONG_UID to the ID of the folder owner
+    usermod -u "$MOUNT_UID" -g "$MOUNT_GID" kong > /dev/null 2>&1
+  fi
+  unset KONG_UID
+  unset KONG_GID
+  unset MOUNT_UID
+  unset MOUNT_GID
+fi
+
 
 # perform any custom setup if specified
 if [ -f /kong-plugin/.pongo/pongo-setup.sh ]; then
