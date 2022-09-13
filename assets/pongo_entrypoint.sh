@@ -113,12 +113,12 @@ if [ -d /kong-plugin ]; then
   MOUNT_GID=$(stat -c "%g" /kong-plugin)
   if [ ! "$KONG_GID" = "$MOUNT_GID" ]; then
     # change KONG_GID to the ID of the folder owner group
-    groupmod -g "$MOUNT_GID" kong > /dev/null 2>&1
+    groupmod -g "$MOUNT_GID" --non-unique kong
   fi
 
   if [ ! "$KONG_UID" = "$MOUNT_UID" ]; then
     # change KONG_UID to the ID of the folder owner
-    usermod -u "$MOUNT_UID" -g "$MOUNT_GID" kong > /dev/null 2>&1
+    usermod -u "$MOUNT_UID" -g "$MOUNT_GID" --non-unique kong
   fi
   unset KONG_UID
   unset KONG_GID
