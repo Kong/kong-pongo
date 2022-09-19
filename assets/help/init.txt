@@ -19,7 +19,7 @@ The files added (if not there):
 If the '.gitignore' file already exists it will add the following entries:
  - 'servroot' which is the working directory/prefix when running tests
  - '*.rock' the binary rock format created by LuaRocks and/or 'pongo pack'
- - '.pongo/.ash_history' shell history for 'pongo shell'
+ - '.pongo/.bash_history' shell history for 'pongo shell'
  - LuaCov output; 'luacov.stats.out' and 'luacov.report.out'
  - '.containerid' cid file used when Pongo itself runs inside docker
 
