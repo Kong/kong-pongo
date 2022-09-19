@@ -144,7 +144,7 @@ function globals {
   unset ACTION
   FORCE_BUILD=${PONGO_FORCE_BUILD:-false}
   KONG_DEPS_AVAILABLE=( "postgres" "cassandra" "redis" "squid" "grpcbin" "expose")
-  KONG_DEPS_START=( "postgres" "cassandra" )
+  KONG_DEPS_START=( "postgres" )
   KONG_DEPS_CUSTOM=()
   RC_COMMANDS=( "run" "up" "restart" )
   EXTRA_ARGS=()
