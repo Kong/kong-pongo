@@ -20,7 +20,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v1.2.1
+                   |___/  v1.3.0
 
 Usage: pongo action [options...] [--] [action options...]
 
@@ -797,12 +797,19 @@ The result should be a new PR on the Pongo repo.
 
 ---
 
-## unreleased
+## 1.3.0 released 19-Sep-2022
+
+* Feat: Kong Enterprise 3.0.0.0
+
+* Feat: Kong OSS 3.0.0
 
 * Fix: change the `kong` user to the ID of the `/kong-plugin` folder owner, to
   prevent permission issues when starting Kong (access to the `servroot` working
   directory which is located in the mounted folder)
   [#321](https://github.com/Kong/kong-pongo/pull/321)
+
+* Fix: location of the unofficial Kong image (used between releasing and
+  Docker hub availability).
 
 ---
 
