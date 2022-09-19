@@ -122,12 +122,6 @@ function update_single_version_artifacts {
                 esac
             done
         fi
-
-        # update old Makefile if it does not have the 'dependencies' make target
-        grep "dependencies:" &> /dev/null < "../kong-versions/$VERSION/kong/Makefile"
-        if [[ ! $? -eq 0 ]]; then
-            cat ../assets/Makefile-addition >> "../kong-versions/$VERSION/kong/Makefile"
-        fi
     fi
 }
 
