@@ -1025,12 +1025,12 @@ function pongo_init {
     echo "*.rock" >> .gitignore
     msg "added '*.rock' to '.gitignore'"
   fi
-  if grep --quiet "^[.]pongo/[.]ash_history$" .gitignore ; then
-    msg "'.gitignore' already ignores '.pongo/.ash_history'"
+  if grep --quiet "^[.]pongo/[.]bash_history$" .gitignore ; then
+    msg "'.gitignore' already ignores '.pongo/.bash_history'"
   else
     echo "# exclude Pongo shell history" >> .gitignore
-    echo ".pongo/.ash_history" >> .gitignore
-    msg "added '.pongo/.ash_history' to '.gitignore'"
+    echo ".pongo/.bash_history" >> .gitignore
+    msg "added '.pongo/.bash_history' to '.gitignore'"
   fi
   if grep --quiet "^luacov[.]stats[.]out$" .gitignore ; then
     msg "'.gitignore' already ignores 'luacov.stats.out'"
