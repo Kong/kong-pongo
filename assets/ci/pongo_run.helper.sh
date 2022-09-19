@@ -15,20 +15,12 @@ function checkout_commit {
   local COMMIT
   case $VERSION in
     # CE versions
-    0.13.x|0.14.x|0.15.x|1.0.x|1.1.x)
-      COMMIT="6789fcf283e8c1e12ba7a06226fed698e25963a7"
-      ;;
-
-    1.2.x|1.3.x|1.4.x|1.5.x|2.0.x|2.1.x|2.2.x)
+    2.0.x|2.1.x|2.2.x)
       COMMIT="7b9929c19df0efc0643f8f8262ba8f7b0d0439d1"
       ;;
 
     # EE versions
-    0.33-x|0.34-x|0.35-x)
-      COMMIT="6789fcf283e8c1e12ba7a06226fed698e25963a7"
-      ;;
-
-    0.36-x|1.3.0.x|1.5.0.x|1.5.0.1x|2.1.3.x|2.1.4.x|2.2.0.x|2.2.1.x)
+    2.1.3.x|2.1.4.x|2.2.0.x|2.2.1.x)
       COMMIT="7b9929c19df0efc0643f8f8262ba8f7b0d0439d1"
       ;;
 
