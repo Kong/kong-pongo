@@ -14,6 +14,7 @@ The files added (if not there):
    linter through 'pongo lint'.
  - '.editorconfig' containing default editor settings
  - '.luacov' with default settings for the LuaCov test coverage tool
+ - '.pongo/pongorc' default settings for dependecies to start with Pongo
  - '.gitignore'
 
 If the '.gitignore' file already exists it will add the following entries:

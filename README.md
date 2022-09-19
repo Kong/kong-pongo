@@ -25,8 +25,8 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
 Usage: pongo action [options...] [--] [action options...]
 
 Options (can also be added to '.pongo/pongorc'):
-  --no-cassandra     do not start cassandra db
   --no-postgres      do not start postgres db
+  --cassandra        do start cassandra db
   --grpcbin          do start grpcbin (see readme for info)
   --redis            do start redis db (see readme for info)
   --squid            do start squid forward-proxy (see readme for info)
@@ -269,8 +269,8 @@ The available dependencies are:
   - Disable it with `--no-postgres`
   - The Postgres version is controlled by the `POSTGRES` environment variable
 
-* **Cassandra** Kong datastore (started by default)
-  - Disable it with `--no-cassandra`
+* **Cassandra** Kong datastore
+  - Enable it with `--cassandra`
   - The Cassandra version is controlled by the `CASSANDRA` environment variable
 
 * **grpcbin** mock grpc backend
@@ -313,7 +313,7 @@ The available dependencies are:
     ```shell
     # clean environment, start with squid and create a shell
     pongo down
-    pongo up --squid --no-postgres --no-cassandra
+    pongo up --squid --no-postgres
     pongo shell
 
     # connect to httpbin (http), while authenticating
@@ -794,6 +794,33 @@ The result should be a new PR on the Pongo repo.
  * update version in logo at top of this `README`
  * commit as `release x.y.z`, tag as `x.y.z`
  * push commit and tags
+
+
+---
+
+## unreleased 2.x
+
+### Upgrade steps
+
+* run `pongo clean` using the `1.x` version of Pongo
+
+* `cd` into the folder where Pongo resides and do a `git pull`
+
+* on your plugin repositories run `pongo init` to update any settings (git-ignoring
+  bash history mostly)
+
+* If you need Cassandra when testing, then ensure in the plugin repositories that
+  the `.pongo/pongorc` file contains: `--cassandra`, since it is no longer started
+  by default.
+
+### Changes
+
+* the Kong base image is now `Ubuntu` (previously `Alpine`). The default shell
+  now is `/bin/bash` (was `/bin/sh`)
+
+* Support for Kong versions before `2.0` is dropped
+
+* Cassandra is no longer started by default.
 
 ---
 

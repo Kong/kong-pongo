@@ -4,10 +4,10 @@ Starts the docker-compose environment with required dependency containers for
 testing.
 
 The dependecies can be specified using their name and prefixes by either '--'
-or '--no-'. The only 2 dependencies started by default are 'postgres' and
-'cassandra'. The defaults for a repository can be set by specifying them in the
-'.pongo/pongorc' configuration file (one option per line, including the '--'
-and '--no-' prefixes).
+or '--no-'. The only dependency started by default is 'postgres'. The defaults
+for a repository can be set by specifying them in the '.pongo/pongorc'
+configuration file (one option per line, including the '--' and '--no-'
+prefixes).
 
 Custom (plugin specific) dependencies can be specified by providing a
 docker-compose yaml file in '.pongo'. For an example see:
@@ -18,8 +18,8 @@ repository (custom dependencies must be listed in '.pongo/pongorc' to be shown).
 
 
 Default available dependencies:
-  --no-cassandra     do not start cassandra db
   --no-postgres      do not start postgres db
+  --cassandra        do start cassandra db
   --grpcbin          do start grpcbin (see readme for info)
   --redis            do start redis db (see readme for info)
   --squid            do start squid forward-proxy (see readme for info)
@@ -37,4 +37,4 @@ Custom dependencies may have their own variables.
 
 Example usage:
   pongo up
-  pongo up --no-cassandra --customdependency
+  pongo up --cassandra --no-postgres --customdependency
