@@ -82,6 +82,7 @@ function test_single_version {
   local VERSION=$1
 
   ttest "pongo up"
+  checkout_commit "$VERSION"
   KONG_VERSION=$VERSION pongo up
   if [ $? -eq 0 ]; then
     tsuccess
@@ -98,7 +99,6 @@ function test_single_version {
   fi
 
   ttest "pongo run"
-  checkout_commit "$VERSION"
   KONG_VERSION=$VERSION pongo run
   if [ $? -eq 0 ]; then
     tsuccess
