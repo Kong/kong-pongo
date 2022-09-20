@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 
 # USAGE: do not use this file directly. It is the entry script for the
@@ -26,7 +26,7 @@ if [ -z "$KONG_ADMIN_LISTEN" ]; then
 
   # export to override defaults in file, with 0.0.0.0 instead of 127.0.0.1
   export KONG_ADMIN_LISTEN
-  KONG_ADMIN_LISTEN=$(echo "$DEFAULT_ADMIN_LISTEN_SETTING" | sed 's/127\.0\.0\.1/0.0.0.0/g')
+  KONG_ADMIN_LISTEN=${DEFAULT_ADMIN_LISTEN_SETTING//127\.0\.0\.1/0.0.0.0}
 
   unset FILE_WITH_KONG_DEFAULTS
   unset DEFAULT_ADMIN_LISTEN_SETTING

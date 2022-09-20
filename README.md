@@ -531,7 +531,7 @@ To modify the default behaviour there are 2 scripts that can be hooked up:
   The interpreter can be set using the regular shebang.
 
 * `.pongo/pongo-setup.sh` is ran upon container start **inside** the Kong
-  container. It will not be executed but sourced, and will run on `/bin/sh` as
+  container. It will not be executed but sourced, and will run on `/bin/bash` as
   interpreter.
 
 Both scripts will have an environment variable `PONGO_COMMAND` that will have
@@ -555,7 +555,7 @@ fi
 
 Example `.pongo/pongo-setup.sh`:
 ```shell
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # this runs in the test container upon starting it
 cd /kong-plugin/my_dependency
@@ -800,20 +800,29 @@ The result should be a new PR on the Pongo repo.
 
 ## unreleased 2.x
 
-### Upgrade steps
+#### Upgrading
 
-* run `pongo clean` using the `1.x` version of Pongo
+* Upgrade Pongo
 
-* `cd` into the folder where Pongo resides and do a `git pull`
+  * run `pongo clean` using the `1.x` version of Pongo, to cleanup old artifacts
+    and images
 
-* on your plugin repositories run `pongo init` to update any settings (git-ignoring
-  bash history mostly)
+  * `cd` into the folder where Pongo resides and do a `git pull`, followed by
+    `git checkout 2.0.0`
 
-* If you need Cassandra when testing, then ensure in the plugin repositories that
-  the `.pongo/pongorc` file contains: `--cassandra`, since it is no longer started
-  by default.
+* Upgrade Plugin repositories
 
-### Changes
+  * on your plugin repositories run `pongo init` to update any settings (git-ignoring
+    bash history mostly)
+
+  * If you need Cassandra when testing, then ensure in the plugin repositories that
+    the `.pongo/pongorc` file contains: `--cassandra`, since it is no longer started
+    by default.
+
+  * Update init scripts `.pongo/pongo-setup.sh`. They will now be sourced in `bash`
+    instead of in `sh`.
+
+#### Changes
 
 * the Kong base image is now `Ubuntu` (previously `Alpine`). The default shell
   now is `/bin/bash` (was `/bin/sh`)
