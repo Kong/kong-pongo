@@ -1,6 +1,8 @@
 ARG KONG_BASE
 FROM ${KONG_BASE}
 
+ARG PYTHON_VERSION=3.9.14
+
 # add dev files
 ARG KONG_DEV_FILES
 COPY $KONG_DEV_FILES /kong
@@ -33,12 +35,12 @@ USER root
 
 RUN apt update \
     && apt install -y zip make jq m4 curl build-essential wget git libssl-dev zlib1g-dev
-RUN echo Installing Python 3.9.14 \
-    && curl -L https://www.python.org/ftp/python/3.9.14/Python-3.9.14.tgz | tar -xzf - -C /tmp \
-    && cd /tmp/Python-3.9.14 \
+RUN echo Installing Python $PYTHON_VERSION \
+    && curl -L https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz | tar -xzf - -C /tmp \
+    && cd /tmp/Python-$PYTHON_VERSION \
     && ./configure > /dev/null 2>&1 \
     && make install > /dev/null 2>&1 \
-    && echo Python 3.9.14 installed
+    && echo Python $PYTHON_VERSION installed
 RUN pip3 install httpie
 RUN curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
 RUN cd /kong \
