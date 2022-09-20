@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # this requires LOCAL_PATH to be set to the Pongo directory
 
