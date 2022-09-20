@@ -48,23 +48,13 @@ function versions_to_test {
   local CLEAN_VERSIONS=()
   for VERSION in $VERSIONS ; do
 
-    # step 1) cleanup version strings
-    if [ "$VERSION" == "1.3" ]; then
-      # EE version accidentally released 2 zero's short
-      VERSION="1.3.0.0";
-    fi
-    if [[ "$VERSION" =~ ^[0-9]\.[0-9][0-9]$ ]]; then
-      # old "first versions"; 0.35, 0.36; append "-0"
-      VERSION="$VERSION-0"
-    fi
-
-    # step 2) add wilcard to get unique versions by major-minor (ignoring patch)
+    # step 1) add wilcard to get unique versions by major-minor (ignoring patch)
     if [[ "$VERSION" =~ ^[0-9] ]]; then
       # numeric version, so not a nightly one; replace last digit with 'x' wildcard
       VERSION="${VERSION:0:${#VERSION}-1}x"
     fi
 
-    # step 3) store version if not already in our CLEAN_VERSIONS array
+    # step 2) store version if not already in our CLEAN_VERSIONS array
     local entry
     for entry in ${CLEAN_VERSIONS[*]}; do
       if [[ "$entry" == "$VERSION" ]]; then
@@ -92,6 +82,7 @@ function test_single_version {
   local VERSION=$1
 
   ttest "pongo up"
+  checkout_commit "$VERSION"
   KONG_VERSION=$VERSION pongo up
   if [ $? -eq 0 ]; then
     tsuccess
@@ -108,7 +99,6 @@ function test_single_version {
   fi
 
   ttest "pongo run"
-  checkout_commit "$VERSION"
   KONG_VERSION=$VERSION pongo run
   if [ $? -eq 0 ]; then
     tsuccess
