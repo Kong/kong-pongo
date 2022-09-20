@@ -10,6 +10,8 @@ alias kms='/pongo/kong_migrations_start.sh'
 alias kdbl='/pongo/kong_start_dbless.sh'
 alias kx='/pongo/kong_export.sh'
 
+# We want this to output without expanding variables
+# shellcheck disable=SC2016
 echo 'PS1="\[\e[00m\]\[\033[1;34m\][$PS1_KONG_VERSION:\[\e[91m\]$PS1_REPO_NAME\$(/pongo/parse_git_branch.sh)\[\033[1;34m\]:\[\033[1;92m\]\w\[\033[1;34m\]]$\[\033[00m\] "' >> /root/.bashrc
 
 echo "Welcome to the Pongo shell!"
