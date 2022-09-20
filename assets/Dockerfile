@@ -33,10 +33,12 @@ USER root
 
 RUN apt update \
     && apt install -y zip make jq m4 curl build-essential wget git libssl-dev zlib1g-dev
-RUN curl -L https://www.python.org/ftp/python/3.9.14/Python-3.9.14.tgz | tar -xzf - -C /tmp \
+RUN echo Installing Python 3.9.14 \
+    && curl -L https://www.python.org/ftp/python/3.9.14/Python-3.9.14.tgz | tar -xzf - -C /tmp \
     && cd /tmp/Python-3.9.14 \
-    && ./configure \
-    && make install
+    && ./configure > /dev/null 2>&1 \
+    && make install > /dev/null 2>&1 \
+    && echo Python 3.9.14 installed
 RUN pip3 install httpie
 RUN curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
 RUN cd /kong \
