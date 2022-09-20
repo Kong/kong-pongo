@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # will (re)start Kong DBless from a config file; kong.y(a)ml/json
 

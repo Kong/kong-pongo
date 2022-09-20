@@ -25,8 +25,8 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
 Usage: pongo action [options...] [--] [action options...]
 
 Options (can also be added to '.pongo/pongorc'):
-  --no-cassandra     do not start cassandra db
   --no-postgres      do not start postgres db
+  --cassandra        do start cassandra db
   --grpcbin          do start grpcbin (see readme for info)
   --redis            do start redis db (see readme for info)
   --squid            do start squid forward-proxy (see readme for info)
@@ -269,8 +269,8 @@ The available dependencies are:
   - Disable it with `--no-postgres`
   - The Postgres version is controlled by the `POSTGRES` environment variable
 
-* **Cassandra** Kong datastore (started by default)
-  - Disable it with `--no-cassandra`
+* **Cassandra** Kong datastore
+  - Enable it with `--cassandra`
   - The Cassandra version is controlled by the `CASSANDRA` environment variable
 
 * **grpcbin** mock grpc backend
@@ -313,7 +313,7 @@ The available dependencies are:
     ```shell
     # clean environment, start with squid and create a shell
     pongo down
-    pongo up --squid --no-postgres --no-cassandra
+    pongo up --squid --no-postgres
     pongo shell
 
     # connect to httpbin (http), while authenticating
@@ -531,7 +531,7 @@ To modify the default behaviour there are 2 scripts that can be hooked up:
   The interpreter can be set using the regular shebang.
 
 * `.pongo/pongo-setup.sh` is ran upon container start **inside** the Kong
-  container. It will not be executed but sourced, and will run on `/bin/sh` as
+  container. It will not be executed but sourced, and will run on `/bin/bash` as
   interpreter.
 
 Both scripts will have an environment variable `PONGO_COMMAND` that will have
@@ -555,7 +555,7 @@ fi
 
 Example `.pongo/pongo-setup.sh`:
 ```shell
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # this runs in the test container upon starting it
 cd /kong-plugin/my_dependency
@@ -794,6 +794,42 @@ The result should be a new PR on the Pongo repo.
  * update version in logo at top of this `README`
  * commit as `release x.y.z`, tag as `x.y.z`
  * push commit and tags
+
+
+---
+
+## unreleased 2.x
+
+#### Upgrading
+
+* Upgrade Pongo
+
+  * run `pongo clean` using the `1.x` version of Pongo, to cleanup old artifacts
+    and images
+
+  * `cd` into the folder where Pongo resides and do a `git pull`, followed by
+    `git checkout 2.0.0`
+
+* Upgrade Plugin repositories
+
+  * on your plugin repositories run `pongo init` to update any settings (git-ignoring
+    bash history mostly)
+
+  * If you need Cassandra when testing, then ensure in the plugin repositories that
+    the `.pongo/pongorc` file contains: `--cassandra`, since it is no longer started
+    by default.
+
+  * Update init scripts `.pongo/pongo-setup.sh`. They will now be sourced in `bash`
+    instead of in `sh`.
+
+#### Changes
+
+* the Kong base image is now `Ubuntu` (previously `Alpine`). The default shell
+  now is `/bin/bash` (was `/bin/sh`)
+
+* Support for Kong versions before `2.0` is dropped
+
+* Cassandra is no longer started by default.
 
 ---
 

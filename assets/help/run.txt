@@ -5,8 +5,8 @@ not, it will automatically start the environment (and automatically build the
 Kong test images in the process).
 
 Options (see 'pongo up' for details):
-  --no-cassandra     do not start cassandra db
   --no-postgres      do not start postgres db
+  --cassandra        do not start cassandra db
   --grpcbin          do start grpcbin
   etc.
 

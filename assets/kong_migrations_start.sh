@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # will (re)start Kong with a clean database, and an optional imported config
 

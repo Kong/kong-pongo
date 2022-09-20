@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # if no file `.pongo/pongo-setup.sh` is found, then this file contains
 # the default setup actions.
