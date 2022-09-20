@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # script used to extract git branch name for the Pongo shell command prompt
 
