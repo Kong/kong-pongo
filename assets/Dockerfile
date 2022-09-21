@@ -40,6 +40,7 @@ RUN echo Installing Python $PYTHON_VERSION \
     && cd /tmp/Python-$PYTHON_VERSION \
     && ./configure > /dev/null 2>&1 \
     && make install > /dev/null 2>&1 \
+    && cd && rm -rf /tmp/Python-$PYTHON_VERSION \
     && echo Python $PYTHON_VERSION installed
 RUN pip3 install httpie
 RUN curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
