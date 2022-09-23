@@ -547,6 +547,7 @@ function get_license {
         # yet more additional dependenies like jq or similar.
         warn "failed to download the Kong Enterprise license file!
           $KONG_LICENSE_DATA"
+        unset KONG_LICENSE_DATA
       fi
     fi
   fi
