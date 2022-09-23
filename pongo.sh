@@ -110,12 +110,12 @@ function globals {
   KONG_OSS_UNOFFICIAL_TAG_PREFIX="kong/kong:"
   KONG_OSS_UNOFFICIAL_TAG_POSTFIX="-ubuntu"
 
-  # Nightly EE images repo, these require to additionally set the credentials
+  # development EE images repo, these require to additionally set the credentials
   # in $DOCKER_USERNAME and $DOCKER_PASSWORD
-  NIGHTLY_EE_TAG="kong/kong-gateway-internal:master-ubuntu"
+  DEVELOPMENT_EE_TAG="kong/kong-gateway-internal:master-ubuntu"
 
-  # Nightly CE images, these are public, no credentials needed
-  NIGHTLY_CE_TAG="kong/kong:master-ubuntu"
+  # development CE images, these are public, no credentials needed
+  DEVELOPMENT_CE_TAG="kong/kong:master-ubuntu"
 
 
   # Dependency image defaults
@@ -397,8 +397,8 @@ function validate_version {
     return
   fi
   err "Version '$version' is not supported, supported versions are:
-  Kong: ${KONG_CE_VERSIONS[*]} ($STABLE_CE $NIGHTLY_CE)
-  Kong Enterprise: ${KONG_EE_VERSIONS[*]} ($STABLE_EE $NIGHTLY_EE)
+  Kong: ${KONG_CE_VERSIONS[*]} $STABLE_CE $DEVELOPMENT_CE
+  Kong Enterprise: ${KONG_EE_VERSIONS[*]} $STABLE_EE $DEVELOPMENT_EE
 
 If the '$version' is valid but not listed, you can try to update Pongo first, and then retry."
 }
@@ -442,7 +442,7 @@ function docker_login_ee {
   echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   if [[ ! $? -eq 0 ]]; then
     docker logout
-    err "Failed to log into the nightly Kong Enterprise docker repo. Make sure to provide the
+    err "Failed to log into the private Kong Enterprise docker repo. Make sure to provide the
 proper credentials in the \$DOCKER_USERNAME and \$DOCKER_PASSWORD environment variables."
   fi
 }
@@ -453,22 +453,23 @@ function get_image {
   # NOTE: the image is an original Kong image, not a development/Pongo one.
   # Result: $KONG_IMAGE will be set to an image based on the requested version
   local image
-  if is_nightly "$KONG_VERSION"; then
-    # go and pull the nightly image here
-    if [[ "$KONG_VERSION" == "$NIGHTLY_CE" ]]; then
-      # pull the Opensource Nightly image
-      image=$NIGHTLY_CE_TAG
+  # shellcheck disable=SC2153  # will be resolved in set_variables.sh
+  if is_commit_based "$KONG_VERSION"; then
+    # go and pull the development image here
+    if [[ "$KONG_VERSION" == "$DEVELOPMENT_CE" ]]; then
+      # pull the Opensource development image
+      image=$DEVELOPMENT_CE_TAG
       docker pull "$image"
       if [[ ! $? -eq 0 ]]; then
-        err "failed to pull the Kong CE nightly image $image"
+        err "failed to pull the Kong CE development image $image"
       fi
 
     else
-      # pull the Enterprise nightly image
-      image=$NIGHTLY_EE_TAG
+      # pull the Enterprise development image
+      image=$DEVELOPMENT_EE_TAG
       docker pull "$image"
       if [[ ! $? -eq 0 ]]; then
-        warn "failed to pull the Kong Enterprise nightly image, retrying with login..."
+        warn "failed to pull the Kong Enterprise development image, retrying with login..."
         check_secret_availability "$image"
         docker_login_ee
         docker pull "$image"
@@ -560,7 +561,7 @@ function get_version {
   #
   # Result: $VERSION will be read from the image, and $KONG_TEST_IMAGE will be set.
   # NOTE1: $KONG_TEST_IMAGE is only a name, the image might not have been created yet
-  # NOTE2: if it is a nightly, then $VERSION will be a commit-id
+  # NOTE2: if it is a development tag, then $VERSION will be a commit-id
   if [[ -z $KONG_IMAGE ]]; then
     validate_version "$KONG_VERSION"
     get_image
@@ -568,8 +569,8 @@ function get_version {
 
   get_license
 
-  if is_nightly "$KONG_VERSION"; then
-    # it's a nightly; get the commit-id from the image
+  if is_commit_based "$KONG_VERSION"; then
+    # it's a development; get the commit-id from the image
     VERSION=$(docker inspect \
        --format "{{ index .Config.Labels \"org.opencontainers.image.revision\"}}" \
        "$KONG_IMAGE")
@@ -697,8 +698,8 @@ function build_image {
   # 3. do a 'make dev' and then some (see the Dockerfile)
   # 4. Tag the result as $KONG_TEST_IMAGE
   get_version
-  if is_nightly "$KONG_VERSION"; then
-    # in a nightly then $VERSION is a commit id
+  if is_commit_based "$KONG_VERSION"; then
+    # in a development then $VERSION is a commit id
     validate_version "$KONG_VERSION"
   else
     # regular version or an image provided, check $VERSION extracted from the image
@@ -715,11 +716,11 @@ function build_image {
     msg "rebuilding..."
   fi
 
-  if is_nightly "$KONG_VERSION"; then
-    # nightly; we must fetch the related development files dynamically in this case
+  if is_commit_based "$KONG_VERSION"; then
+    # development; we must fetch the related development files dynamically in this case
     # shellcheck disable=SC1090  # do not follow source
     source "${LOCAL_PATH}/assets/update_versions.sh"
-    update_nightly "$KONG_VERSION" "$VERSION"
+    update_development "$KONG_VERSION" "$VERSION"
   fi
 
   msg "starting build of image '$KONG_TEST_IMAGE'"
@@ -909,8 +910,8 @@ function pongo_status {
       versions)
         echo Available Kong versions:
         echo ========================
-        echo Kong: "${KONG_CE_VERSIONS[*]}" "$NIGHTLY_CE"
-        echo Kong Enterprise: "${KONG_EE_VERSIONS[*]}" "$NIGHTLY_EE"
+        echo Kong: "${KONG_CE_VERSIONS[*]}" "$STABLE_CE $DEVELOPMENT_CE"
+        echo Kong Enterprise: "${KONG_EE_VERSIONS[*]}" "$STABLE_EE $DEVELOPMENT_EE"
         ;;
 
       --all)
