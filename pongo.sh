@@ -149,7 +149,8 @@ function globals {
   RC_COMMANDS=( "run" "up" "restart" )
   EXTRA_ARGS=()
 
-  # resolve a '.x' to a real version; eg. "1.3.0.x" in $KONG_VERSION
+  # resolve a '.x' to a real version; eg. "1.3.0.x" in $KONG_VERSION, and replace
+  # "stable" and "stable-ee" with actual versions
   resolve_version
 
   unset CUSTOM_PLUGINS
@@ -396,8 +397,8 @@ function validate_version {
     return
   fi
   err "Version '$version' is not supported, supported versions are:
-  Kong: ${KONG_CE_VERSIONS[*]} ($NIGHTLY_CE)
-  Kong Enterprise: ${KONG_EE_VERSIONS[*]} ($NIGHTLY_EE)
+  Kong: ${KONG_CE_VERSIONS[*]} ($STABLE_CE $NIGHTLY_CE)
+  Kong Enterprise: ${KONG_EE_VERSIONS[*]} ($STABLE_EE $NIGHTLY_EE)
 
 If the '$version' is valid but not listed, you can try to update Pongo first, and then retry."
 }
@@ -561,9 +562,6 @@ function get_version {
   # NOTE1: $KONG_TEST_IMAGE is only a name, the image might not have been created yet
   # NOTE2: if it is a nightly, then $VERSION will be a commit-id
   if [[ -z $KONG_IMAGE ]]; then
-    if [[ -z $KONG_VERSION ]]; then
-      KONG_VERSION=$KONG_DEFAULT_VERSION
-    fi
     validate_version "$KONG_VERSION"
     get_image
   fi
