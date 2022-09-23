@@ -115,7 +115,7 @@ function globals {
   NIGHTLY_EE_TAG="kong/kong-gateway-internal:master-ubuntu"
 
   # Nightly CE images, these are public, no credentials needed
-  NIGHTLY_CE_TAG="kong/kong:latest"
+  NIGHTLY_CE_TAG="kong/kong:master-ubuntu"
 
 
   # Dependency image defaults
