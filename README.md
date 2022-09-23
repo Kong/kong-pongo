@@ -842,6 +842,10 @@ The result should be a new PR on the Pongo repo.
 * Feat: new tags have been defined to test against the latest stable/released
   versions of Kong and Kong Enterprise; `stable` and `stable-ee`
 
+* Fix: if the license cannot be downloaded the license variable would contain the
+  404 html response, which would cause unrelated problems. The variable is now
+  cleared upon failure.
+
 ---
 
 ## 1.3.0 released 19-Sep-2022
