@@ -815,6 +815,10 @@ The result should be a new PR on the Pongo repo.
 * Fix: Apple recently started shipping `realpath` in their OS. But it doesn't support the
   `--version` flag, so it was not detected as installed.
 
+* Fix: if the license cannot be downloaded the license variable would contain the
+  404 html response, which would cause unrelated problems. The variable is now
+  cleared upon failure.
+
 ---
 
 ## 1.3.0 released 19-Sep-2022
