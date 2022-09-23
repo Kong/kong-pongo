@@ -114,9 +114,9 @@ Example usage:
  - [Test initialization](#test-initialization)
  - [Test coverage](#test-coverage)
  - [Setting up CI](#setting-up-ci)
-     - [CI against nightly builds](#ci-against-nightly-builds)
+     - [CI against development builds](#ci-against-development-builds)
      - [CI with Kong Enterprise](#ci-with-kong-enterprise)
-     - [CI with Kong Enterprise nightly](#ci-with-kong-enterprise-nightly)
+     - [CI with Kong Enterprise development](#ci-with-kong-enterprise-development)
  - [Running Pongo in Docker](#running-pongo-in-docker)
  - [Releasing new Kong versions](#releasing-new-kong-versions)
  - [Changelog](#changelog)
@@ -174,7 +174,7 @@ For Kong-internal use there are some additional variables:
   Enterprise CI license. See [Setting up CI](#setting-up-ci) for some Pulp
   environment variable examples.
 * `GITHUB_TOKEN` the Github token to get access to the Kong Enterprise source
-  code. This is only required for development/nightly builds, not for released
+  code. This is only required for development builds, not for released
   versions of Kong.
 
 [Back to ToC](#table-of-contents)
@@ -616,18 +616,18 @@ script:
 
 [Back to ToC](#table-of-contents)
 
-### CI against nightly builds
+### CI against development builds
 
-To test against nightly builds, the CRON option for Travis-CI should be configured.
+To test against development builds, the CRON option for Travis-CI should be configured.
 This will trigger a daily test-run.
 
-In the test matrix add a job with `KONG_VERSION=nightly`, like this:
+In the test matrix add a job with `KONG_VERSION=dev`, like this:
 
 ```yaml
 jobs:
   include:
-  - name: Kong nightly master-branch
-    env: KONG_VERSION=nightly
+  - name: Kong master-branch
+    env: KONG_VERSION=dev
 ```
 
 [Back to ToC](#table-of-contents)
@@ -696,20 +696,20 @@ need to set it)
 
 [Back to ToC](#table-of-contents)
 
-### CI with Kong Enterprise nightly
+### CI with Kong Enterprise development
 
 **Note: this is NOT publicly available, only Kong internal**
 
 This build will also require a CRON job to build on a daily basis, but also
 requires additional credentials to access the Kong Enterprise master image.
-To build against the nightly Enterprise master, the version can be specified as
-`nightly-ee`, as given in this example:
+To build against the Enterprise master, the version can be specified as
+`dev-ee`, as given in this example:
 
 ```yaml
 jobs:
   include:
-  - name: Kong Enterprise nightly master-branch
-    env: KONG_VERSION=nightly-ee
+  - name: Kong Enterprise master-branch
+    env: KONG_VERSION=dev-ee
 ```
 
 For this to work the following variables must be present:
@@ -719,7 +719,7 @@ For this to work the following variables must be present:
 At least the api-key must be encrypted as a secret. Follow the instructions above
 to encrypt and add them to the `.travis.yml` file.
 
-For the Nightly builds Pongo needs to pull the Kong-EE source. If the repo
+For the development builds Pongo needs to pull the Kong-EE source. If the repo
 under test does not have access, then a valid GitHub access token is also
 required to refresh the Kong Enterprise code, and must be specified as a
 `GITHUB_TOKEN` environment variable.
@@ -815,21 +815,32 @@ The result should be a new PR on the Pongo repo.
   * on your plugin repositories run `pongo init` to update any settings (git-ignoring
     bash history mostly)
 
+  * if your test matrix for Kong versions to test against includes `nightly`
+    and/or `nightly-ee` then those should respectively be updated to `dev` and
+    `dev-ee`.
+
   * If you need Cassandra when testing, then ensure in the plugin repositories that
     the `.pongo/pongorc` file contains: `--cassandra`, since it is no longer started
     by default.
 
-  * Update init scripts `.pongo/pongo-setup.sh`. They will now be sourced in `bash`
-    instead of in `sh`.
+  * Update test inittialization scripts `.pongo/pongo-setup.sh`. They will now be
+    sourced in `bash` instead of in `sh`.
 
 #### Changes
 
-* the Kong base image is now `Ubuntu` (previously `Alpine`). The default shell
-  now is `/bin/bash` (was `/bin/sh`)
+* [BREAKING] the Kong base image is now `Ubuntu` (previously `Alpine`). The default
+  shell now is `/bin/bash` (was `/bin/sh`)
 
-* Support for Kong versions before `2.0` is dropped
+* [BREAKING] Support for Kong versions before `2.0` is dropped
 
-* Cassandra is no longer started by default.
+* [BREAKING] Cassandra is no longer started by default.
+
+* [BREAKING] The version tags to test against Kong development branches; `nightly`
+  and `nightly-ee` have been renamed to `dev` and `dev-ee` (because they are not
+  nightlies but the latest commit to the master branch)
+
+* Feat: new tags have been defined to test against the latest stable/released
+  versions of Kong and Kong Enterprise; `stable` and `stable-ee`
 
 ---
 

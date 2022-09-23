@@ -169,8 +169,8 @@ function update_artifacts {
     return 0
 }
 
-function update_nightly {
-    # $1 must be the requested version: the "NIGHTLY" special cases
+function update_development {
+    # $1 must be the requested version: the "DEV" special cases
     # $2 must be the commit id
     VERSION=$1
     COMMIT=$2

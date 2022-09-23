@@ -50,7 +50,7 @@ function versions_to_test {
 
     # step 1) add wilcard to get unique versions by major-minor (ignoring patch)
     if [[ "$VERSION" =~ ^[0-9] ]]; then
-      # numeric version, so not a nightly one; replace last digit with 'x' wildcard
+      # numeric version, so not a DEV one; replace last digit with 'x' wildcard
       VERSION="${VERSION:0:${#VERSION}-1}x"
     fi
 

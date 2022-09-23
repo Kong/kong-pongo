@@ -5,8 +5,8 @@
 # special case accepted version identifiers
 STABLE_CE=stable
 STABLE_EE=stable-ee
-NIGHTLY_CE=nightly
-NIGHTLY_EE=nightly-ee
+DEVELOPMENT_CE=dev
+DEVELOPMENT_EE=dev-ee
 
 
 function ml_message {
@@ -76,7 +76,7 @@ create_all_versions_array
 function is_enterprise {
   local check_version=$1
   local VERSION
-  for VERSION in ${KONG_EE_VERSIONS[*]} $NIGHTLY_EE $STABLE_EE; do
+  for VERSION in ${KONG_EE_VERSIONS[*]} $DEVELOPMENT_EE $STABLE_EE; do
     if [[ "$VERSION" == "$check_version" ]]; then
       return 0
     fi
@@ -84,11 +84,11 @@ function is_enterprise {
   return 1
 }
 
-# TODO: this is to detect "commit-based" versions, should rename function
-function is_nightly {
+# this is to detect "commit-based" versions; the development ones
+function is_commit_based {
   local check_version=$1
   local VERSION
-  for VERSION in $NIGHTLY_CE $NIGHTLY_EE; do
+  for VERSION in $DEVELOPMENT_CE $DEVELOPMENT_EE; do
     if [[ "$VERSION" == "$check_version" ]]; then
       return 0
     fi
@@ -100,7 +100,7 @@ function version_exists {
   local version=$1
   local entry
   # not testing for "stable" tags here, since the resolve stage changes them to actual versions
-  for entry in ${KONG_VERSIONS[*]} $NIGHTLY_CE $NIGHTLY_EE; do
+  for entry in ${KONG_VERSIONS[*]} $DEVELOPMENT_CE $DEVELOPMENT_EE; do
     if [[ "$version" == "$entry" ]]; then
       return 0
     fi
