@@ -80,7 +80,7 @@ function globals {
   local platform
   platform=$(uname -s)
   if [ "${platform:0:5}" == "MINGW" ]; then
-    # Windows requires an extra / in docker command so //bin/sh
+    # Windows requires an extra / in docker command so //bin/bash
     # https://www.reddit.com/r/docker/comments/734arg/cant_figure_out_how_to_bash_into_docker_container/
     WINDOWS_SLASH="/"
     # for terminal output we passthrough winpty
@@ -584,7 +584,7 @@ function get_version {
   else
     # regular Kong version, so extract the Kong version number
     local cmd=(
-      '/bin/sh' '-c' '/usr/local/openresty/luajit/bin/luajit -e "
+      '/bin/bash' '-c' '/usr/local/openresty/luajit/bin/luajit -e "
         local command = [[kong version]]
         local version_output = io.popen(command):read()
 
@@ -1154,7 +1154,7 @@ function main {
       -e KONG_TEST_DONT_CLEAN \
       -e LD_LIBRARY_PATH=/kong-plugin \
       kong \
-      "$WINDOWS_SLASH/bin/sh" "-c" "bin/busted --helper=$WINDOWS_SLASH/pongo/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
+      "$WINDOWS_SLASH/bin/bash" "-c" "bin/busted --helper=$WINDOWS_SLASH/pongo/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
     ;;
 
   shell)
@@ -1197,7 +1197,7 @@ function main {
         err "Not a valid script filename: $script"
       fi
       script_mount="-v $script:/kong/bin/shell_script.sh"
-      exec_cmd="$WINDOWS_SLASH/bin/sh /kong/bin/shell_script.sh"
+      exec_cmd="$WINDOWS_SLASH/bin/bash /kong/bin/shell_script.sh"
     fi
 
     local history_mount=""
