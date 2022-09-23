@@ -3,6 +3,8 @@
 # this requires LOCAL_PATH to be set to the Pongo directory
 
 # special case accepted version identifiers
+STABLE_CE=stable
+STABLE_EE=stable-ee
 NIGHTLY_CE=nightly
 NIGHTLY_EE=nightly-ee
 
@@ -70,15 +72,11 @@ function create_all_versions_array {
 }
 create_all_versions_array
 
-# take the last one as the default
-# shellcheck disable=SC2034  # Unused variable: this script is 'sourced', so a false positive
-KONG_DEFAULT_VERSION="${KONG_CE_VERSIONS[ ${#KONG_CE_VERSIONS[@]}-1 ]}"
-
 
 function is_enterprise {
   local check_version=$1
   local VERSION
-  for VERSION in ${KONG_EE_VERSIONS[*]} $NIGHTLY_EE; do
+  for VERSION in ${KONG_EE_VERSIONS[*]} $NIGHTLY_EE $STABLE_EE; do
     if [[ "$VERSION" == "$check_version" ]]; then
       return 0
     fi
@@ -86,6 +84,7 @@ function is_enterprise {
   return 1
 }
 
+# TODO: this is to detect "commit-based" versions, should rename function
 function is_nightly {
   local check_version=$1
   local VERSION
@@ -100,7 +99,8 @@ function is_nightly {
 function version_exists {
   local version=$1
   local entry
-  for entry in ${KONG_VERSIONS[*]} $NIGHTLY_CE $NIGHTLY_EE ; do
+  # not testing for "stable" tags here, since the resolve stage changes them to actual versions
+  for entry in ${KONG_VERSIONS[*]} $NIGHTLY_CE $NIGHTLY_EE; do
     if [[ "$version" == "$entry" ]]; then
       return 0
     fi
@@ -110,7 +110,22 @@ function version_exists {
 
 # resolve the KONG_VERSION in place
 function resolve_version {
-  if [[ "${KONG_VERSION: -1}" == "x" ]]; then
+  if [[ "$KONG_VERSION" == "" ]]; then
+    # default; use the latest CE release, but without displaying "resolved message"
+    KONG_VERSION="${KONG_CE_VERSIONS[ ${#KONG_CE_VERSIONS[@]}-1 ]}"
+
+  elif [[ "$KONG_VERSION" == "$STABLE_EE" ]]; then
+    # resolve the latest release EE version
+    KONG_VERSION="${KONG_EE_VERSIONS[ ${#KONG_EE_VERSIONS[@]}-1 ]}"
+    msg "Resolved Kong version '$STABLE_EE' to '$KONG_VERSION'"
+
+  elif [[ "$KONG_VERSION" == "$STABLE_CE" ]]; then
+    # resolve the latest release EE version
+    KONG_VERSION="${KONG_CE_VERSIONS[ ${#KONG_CE_VERSIONS[@]}-1 ]}"
+    msg "Resolved Kong version '$STABLE_CE' to '$KONG_VERSION'"
+
+  elif [[ "${KONG_VERSION: -1}" == "x" ]]; then
+    # resolve trailing "x" to proper version
     local new_version=$KONG_VERSION
     local entry
     for entry in ${KONG_VERSIONS[*]}; do
@@ -120,9 +135,9 @@ function resolve_version {
       fi
     done;
     if [[ "$new_version" == "$KONG_VERSION" ]]; then
-      warn "Could not resolve Kong version: $KONG_VERSION"
+      warn "Could not resolve Kong version: '$KONG_VERSION'"
     else
-      msg "Resolved Kong version $KONG_VERSION to $new_version"
+      msg "Resolved Kong version '$KONG_VERSION' to '$new_version'"
       KONG_VERSION=$new_version
     fi
   fi
