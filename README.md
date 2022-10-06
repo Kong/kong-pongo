@@ -815,6 +815,11 @@ The result should be a new PR on the Pongo repo.
   * on your plugin repositories run `pongo init` to update any settings (git-ignoring
     bash history mostly)
 
+  * if your test matrix for Kong versions to test against include Kong CE versions prior
+    to `2.0` or Kong EE versions prior to `3.0` then update the CI to use the proper
+    version of Pongo that supports those versions. So pick a Pongo version depending
+    on the Kong version being tested.
+
   * if your test matrix for Kong versions to test against includes `nightly`
     and/or `nightly-ee` then those should respectively be updated to `dev` and
     `dev-ee`.
@@ -831,7 +836,10 @@ The result should be a new PR on the Pongo repo.
 * [BREAKING] the Kong base image is now `Ubuntu` (previously `Alpine`). The default
   shell now is `/bin/bash` (was `/bin/sh`)
 
-* [BREAKING] Support for Kong versions before `2.0` is dropped
+* [BREAKING] Support for Kong Enterprise versions before `3.0` is dropped (this is
+  because for Eneterprise there were never Ubuntu images published in the 2.x range)
+
+* [BREAKING] Support for Kong opensource versions before `2.0` is dropped
 
 * [BREAKING] Cassandra is no longer started by default.
 
