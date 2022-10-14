@@ -20,7 +20,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v1.3.0
+                   |___/  v2.0.0
 
 Usage: pongo action [options...] [--] [action options...]
 
