@@ -14,6 +14,6 @@ for rockspec in $(find /kong-plugin -maxdepth 1 -type f -name '*.rockspec'); do
     luarocks remove --force "$rockname"
   fi
   # install any required dependencies
-  luarocks install --only-deps "$rockspec"
+  luarocks install --only-deps "$rockspec" EXPAT_DIR=/usr/local/kong LIBXML2_DIR=/usr/local/kong
 done
 
