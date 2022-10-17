@@ -1153,7 +1153,7 @@ function main {
     compose run --rm --use-aliases \
       -e KONG_LICENSE_DATA \
       -e KONG_TEST_DONT_CLEAN \
-      -e LD_LIBRARY_PATH=/kong-plugin \
+      -e LD_LIBRARY_PATH=/kong-plugin:/usr/local/kong/lib \
       kong \
       "$WINDOWS_SLASH/bin/bash" "-c" "bin/busted --helper=$WINDOWS_SLASH/pongo/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
     ;;
@@ -1222,6 +1222,7 @@ function main {
       -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
       -e "PS1_KONG_VERSION=$shellprompt" \
       -e "PS1_REPO_NAME=$repository_name" \
+      -e "LD_LIBRARY_PATH=/kong-plugin:/usr/local/kong/lib" \
       $script_mount \
       $history_mount \
       kong $exec_cmd
