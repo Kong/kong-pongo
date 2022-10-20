@@ -2,7 +2,7 @@
 
 | :exclamation:  Important compatibility notes |
 |:---------------------------|
-| Pongo has being switched from non-versioned to versioned on 17-Mar-2022. On 20-Oct-2022 version 2.0.0 was pushed to `master` and released. This means that breaking changes were introduced on `master`. If you experience failures, then either pin your Pongo version to 1.x or [upgrade](#upgrading) |
+| Pongo has been switched from non-versioned to versioned on 17-Mar-2022. On 20-Oct-2022 version 2.0.0 was pushed to `master` and released. This means that breaking changes were introduced on `master`. If you experience failures, then either pin your Pongo version to 1.x or [upgrade](#upgrading) |
 | The Alpine 3.13 to 3.14 update (around Kong `2.6.x`) [can break the Pongo image build](https://github.com/Kong/docker-kong/pull/495). Make sure to update Docker to `20.10.x`. |
 
 # pongo
@@ -837,7 +837,7 @@ The result should be a new PR on the Pongo repo.
   shell now is `/bin/bash` (was `/bin/sh`)
 
 * [BREAKING] Support for Kong Enterprise versions before `3.0` is dropped (this is
-  because for Eneterprise there were never Ubuntu images published in the 2.x range)
+  because for Enterprise there were never Ubuntu images published in the 2.x range)
 
 * [BREAKING] Support for Kong opensource versions before `2.0` is dropped
 
