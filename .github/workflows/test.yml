@@ -1,14 +1,18 @@
 name: Tests
 
+concurrency:
+  group: ${{ github.workflow }} ${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 on:
-  push:
+  pull_request:
     paths-ignore:
       - "*.md"
-  # pull_request:
-  #   paths-ignore:
-  #     - "*.md"
-  # this fails and seems to be similar to https://github.com/actions/checkout/issues/23
-  # the SHA checked out is not matching
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - "*.md"
 
 jobs:
   tests:
