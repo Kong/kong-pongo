@@ -1,13 +1,10 @@
-name: Tests
+name: Docker
 
 concurrency:
   group: ${{ github.workflow }} ${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 on:
-  pull_request:
-    paths-ignore:
-      - "*.md"
   push:
     branches:
       - master
@@ -21,14 +18,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: pongo shell, LuaCov
-            env: TEST_SCRIPT="assets/ci/pongo_shell.test.sh assets/ci/pongo_luacov.test.sh"
-          - name: pongo build, pongo expose
-            env: TEST_SCRIPT="assets/ci/pongo_build.test.sh assets/ci/pongo_expose.test.sh"
-          - name: pongo run (CE releases)
-            env: TEST_SCRIPT="assets/ci/pongo_run_ce.test.sh"
-          - name: pongo run (EE releases)
-            env: TEST_SCRIPT="assets/ci/pongo_run_ee.test.sh"
+          - name: pongo in docker
+            env: TEST_SCRIPT="assets/ci/pongo_docker.test.sh"
 
     steps:
     - name: Checkout source code
