@@ -2,7 +2,7 @@
 
 | :exclamation:  Important compatibility notes |
 |:---------------------------|
-| Pongo is being switched from non-versioned to versioned. This means that future changes on the `master` branch might be introducing breaking changes. So it is important to switch to a pinned version in your CI to prevent unexpected failures (Notice added 17-Mar-2022, no breaking changes expected before 17-Sep-2022) |
+| Pongo has being switched from non-versioned to versioned on 17-Mar-2022. On 20-Oct-2022 version 2.0.0 was pushed to `master` and released. This means that breaking changes were introduced on `master`. If you experience failures, then either pin your Pongo version to 1.x or [upgrade](#upgrading) |
 | The Alpine 3.13 to 3.14 update (around Kong `2.6.x`) [can break the Pongo image build](https://github.com/Kong/docker-kong/pull/495). Make sure to update Docker to `20.10.x`. |
 
 # pongo
@@ -798,7 +798,7 @@ The result should be a new PR on the Pongo repo.
 
 ---
 
-## unreleased 2.x
+## 2.0.0 released 20-Oct-2022
 
 #### Upgrading
 
@@ -828,7 +828,7 @@ The result should be a new PR on the Pongo repo.
     the `.pongo/pongorc` file contains: `--cassandra`, since it is no longer started
     by default.
 
-  * Update test inittialization scripts `.pongo/pongo-setup.sh`. They will now be
+  * Update test initialization scripts `.pongo/pongo-setup.sh`. They will now be
     sourced in `bash` instead of in `sh`.
 
 #### Changes
