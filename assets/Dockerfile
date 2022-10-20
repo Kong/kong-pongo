@@ -1,6 +1,7 @@
 ARG KONG_BASE
 FROM ${KONG_BASE}
 
+ARG PYTHON_VERSION=3.9.14
 
 # add dev files
 ARG KONG_DEV_FILES
@@ -31,11 +32,19 @@ USER root
 #   make dependencies
 # But that means hardcoding and that doesn't play well with the nature of Pongo
 # that should be independent of Kong versions.
-RUN apk update \
-    && apk add zip unzip make g++ py-pip jq git bsd-compat-headers m4 openssl-dev curl wget python3-dev shadow \
-    && curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin \
-    && pip install httpie \
-    ; cd /kong \
+
+RUN apt update \
+    && apt install -y zip make jq m4 curl build-essential wget git libssl-dev zlib1g-dev
+RUN echo Installing Python $PYTHON_VERSION \
+    && curl -L https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz | tar -xzf - -C /tmp \
+    && cd /tmp/Python-$PYTHON_VERSION \
+    && ./configure > /dev/null 2>&1 \
+    && make install > /dev/null 2>&1 \
+    && cd && rm -rf /tmp/Python-$PYTHON_VERSION \
+    && echo Python $PYTHON_VERSION installed
+RUN pip3 install httpie
+RUN curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
+RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
     && make dependencies \
     && luarocks install busted-htest \

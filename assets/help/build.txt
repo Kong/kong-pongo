@@ -8,8 +8,11 @@ The build can be customized using the following environment variables:
 
   KONG_VERSION  the specific Kong version to use when building the test image
                 (note that the patch-version can be 'x' to use latest).
-                2 special case; 'nightly' and 'nightly-ee' can be specified to
-                use the nightly builds.
+                Special cases;
+                  - 'stable' and 'stable-ee' can be specified to use the
+                    latest stable/released Kong versions.
+                  - 'dev' and 'dev-ee' can be specified to use the
+                    latest development builds.
 
   KONG_IMAGE    the base Kong Docker image to use when building the test image
 
@@ -27,5 +30,5 @@ latest Kong open source version.
 
 Example usage:
   KONG_VERSION=1.3.x pongo build --force
-  KONG_VERSION=nightly-ee pongo build
+  KONG_VERSION=dev-ee pongo build
   KONG_IMAGE=custom-kong-ee pongo build

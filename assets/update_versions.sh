@@ -122,12 +122,6 @@ function update_single_version_artifacts {
                 esac
             done
         fi
-
-        # update old Makefile if it does not have the 'dependencies' make target
-        grep "dependencies:" &> /dev/null < "../kong-versions/$VERSION/kong/Makefile"
-        if [[ ! $? -eq 0 ]]; then
-            cat ../assets/Makefile-addition >> "../kong-versions/$VERSION/kong/Makefile"
-        fi
     fi
 }
 
@@ -175,8 +169,8 @@ function update_artifacts {
     return 0
 }
 
-function update_nightly {
-    # $1 must be the requested version: the "NIGHTLY" special cases
+function update_development {
+    # $1 must be the requested version: the "DEV" special cases
     # $2 must be the commit id
     VERSION=$1
     COMMIT=$2
