@@ -808,6 +808,13 @@ The result should be a new PR on the Pongo repo.
 
 ---
 
+## unreleased
+
+* Feat: add the Pongo version that build the image to the image, and check it
+  against the used version to inform user of mismatches.
+
+---
+
 ## 2.0.0 released 20-Oct-2022
 
 #### Upgrading

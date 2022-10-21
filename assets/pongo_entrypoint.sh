@@ -127,6 +127,21 @@ if [ -d /kong-plugin ]; then
 fi
 
 
+if [ ! "$SUPPRESS_KONG_VERSION" = "true" ]; then
+  if [ "$PONGO_COMMAND" = "shell" ]; then
+    /pongo/pongo_logo.sh
+  fi
+  echo "Kong version: $(kong version)"
+  echo ""
+fi
+
+if [ ! "$PONGO_VERSION" = "$PONGO_CLIENT_VERSION" ]; then
+  echo -e "\033[0;33mWARNING: the Pongo version used ($PONGO_CLIENT_VERSION) does not match the Pongo version ($PONGO_VERSION)\033[0m"
+  echo -e "\033[0;33mthat created this test image. Consider rebuilding the images.\033[0m"
+  echo ""
+fi
+
+
 # perform any custom setup if specified
 if [ -f /kong-plugin/.pongo/pongo-setup.sh ]; then
   pongo_setup=/kong-plugin/.pongo/pongo-setup.sh
@@ -146,10 +161,6 @@ if [ -d /kong-plugin ]; then
   cd "$old_entry_pwd" || { echo "Failure to enter $old_entry_pwd"; exit 1; }
   unset old_entry_pwd
   unset pongo_setup
-fi
-
-if [ ! "$SUPPRESS_KONG_VERSION" = "true" ]; then
-  echo "Kong version: $(kong version)"
 fi
 
 exec "$@"
