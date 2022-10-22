@@ -7,6 +7,9 @@ ARG PYTHON_VERSION=3.9.14
 ARG KONG_DEV_FILES
 COPY $KONG_DEV_FILES /kong
 
+ARG PONGO_VERSION
+ENV PONGO_VERSION=$PONGO_VERSION
+
 # add helper files to workaround some issues
 COPY assets/busted_helper.lua        /pongo/busted_helper.lua
 COPY assets/pongo_entrypoint.sh      /pongo/pongo_entrypoint.sh
@@ -16,6 +19,7 @@ COPY assets/kong_migrations_start.sh /pongo/kong_migrations_start.sh
 COPY assets/kong_start_dbless.sh     /pongo/kong_start_dbless.sh
 COPY assets/kong_export.sh           /pongo/kong_export.sh
 COPY assets/parse_git_branch.sh      /pongo/parse_git_branch.sh
+COPY assets/pongo_logo.sh            /pongo/pongo_logo.sh
 COPY assets/pongo_profile.sh         /etc/profile.d/pongo_profile.sh
 
 USER root

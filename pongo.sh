@@ -201,19 +201,7 @@ function check_tools {
 
 
 function logo {
-local BLUE='\033[0;36m'
-local BROWN='\033[1;33m'
-echo -e "${BLUE}"
-echo -e "                ${BROWN}/~\\ ${BLUE}"
-echo -e "  ______       ${BROWN}C oo${BLUE}"
-echo -e "  | ___ \      ${BROWN}_( ^)${BLUE}"
-echo -e "  | |_/ /__  _${BROWN}/${BLUE}__ ${BROWN}~\ ${BLUE}__   ___"
-echo -e "  |  __/ _ \| '_ \ ${BROWN}/${BLUE} _ \`|/ _ \\"
-echo -e "  | | | (_) | | | | (_| | (_) |"
-echo -e "  \_|  \___/|_| |_|\__, |\___/"
-echo -e "                    __/ |"
-echo -e "                   |___/  ${BROWN}v$PONGO_VERSION"
-echo -e "\033[0m"
+  PONGO_VERSION=$PONGO_VERSION "$LOCAL_PATH"/assets/pongo_logo.sh
 }
 
 
@@ -734,6 +722,7 @@ function build_image {
   $WINPTY_PREFIX docker build \
     -f "$DOCKER_FILE" \
     --progress $progress_type \
+    --build-arg PONGO_VERSION="$PONGO_VERSION" \
     --build-arg http_proxy \
     --build-arg https_proxy \
     --build-arg ftp_proxy \
@@ -1153,6 +1142,7 @@ function main {
     compose run --rm --use-aliases \
       -e KONG_LICENSE_DATA \
       -e KONG_TEST_DONT_CLEAN \
+      -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
       -e LD_LIBRARY_PATH=/kong-plugin:/usr/local/kong/lib \
       kong \
       "$WINDOWS_SLASH/bin/bash" "-c" "bin/busted --helper=$WINDOWS_SLASH/pongo/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
@@ -1214,15 +1204,16 @@ function main {
     # shellcheck disable=SC2086 # we explicitly want script_mount & exec_cmd to be splitted
     compose run --rm --use-aliases \
       -e KONG_LICENSE_DATA \
+      -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
       -e KONG_LOG_LEVEL \
       -e KONG_ANONYMOUS_REPORTS \
-      -e "SUPPRESS_KONG_VERSION=$suppress_kong_version" \
-      -e "KONG_PG_DATABASE=kong_tests" \
-      -e "KONG_PLUGINS=$PLUGINS" \
-      -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
-      -e "PS1_KONG_VERSION=$shellprompt" \
-      -e "PS1_REPO_NAME=$repository_name" \
-      -e "LD_LIBRARY_PATH=/kong-plugin:/usr/local/kong/lib" \
+      -e SUPPRESS_KONG_VERSION="$suppress_kong_version" \
+      -e KONG_PG_DATABASE="kong_tests" \
+      -e KONG_PLUGINS="$PLUGINS" \
+      -e KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS" \
+      -e PS1_KONG_VERSION="$shellprompt" \
+      -e PS1_REPO_NAME="$repository_name" \
+      -e LD_LIBRARY_PATH="/kong-plugin:/usr/local/kong/lib" \
       $script_mount \
       $history_mount \
       kong $exec_cmd
@@ -1247,11 +1238,12 @@ function main {
     compose run --rm \
       --workdir="$WINDOWS_SLASH/kong-plugin" \
       -e KONG_LICENSE_DATA \
+      -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
       -e KONG_LOG_LEVEL \
       -e KONG_ANONYMOUS_REPORTS \
-      -e "KONG_PG_DATABASE=kong_tests" \
-      -e "KONG_PLUGINS=$PLUGINS" \
-      -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
+      -e KONG_PG_DATABASE="kong_tests" \
+      -e KONG_PLUGINS="$PLUGINS" \
+      -e KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS" \
       kong luacheck .
     ;;
 
@@ -1266,11 +1258,12 @@ function main {
     compose run --rm \
       --workdir="$WINDOWS_SLASH/kong-plugin" \
       -e KONG_LICENSE_DATA \
+      -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
       -e KONG_LOG_LEVEL \
       -e KONG_ANONYMOUS_REPORTS \
-      -e "KONG_PG_DATABASE=kong_tests" \
-      -e "KONG_PLUGINS=$PLUGINS" \
-      -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
+      -e KONG_PG_DATABASE="kong_tests" \
+      -e KONG_PLUGINS="$PLUGINS" \
+      -e KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS" \
       kong $WINDOWS_SLASH/pongo/pongo_pack.lua
     ;;
 
@@ -1337,8 +1330,9 @@ function main {
       compose run --rm \
         --workdir="$WINDOWS_SLASH/kong/spec" \
         -e KONG_LICENSE_DATA \
-        -e "KONG_PLUGINS=$PLUGINS" \
-        -e "KONG_CUSTOM_PLUGINS=$CUSTOM_PLUGINS" \
+        -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
+        -e KONG_PLUGINS="$PLUGINS" \
+        -e KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS" \
         kong ldoc --dir=$WINDOWS_SLASH/kong-plugin/$subd .
       if [[ ! $? -eq 0 ]]; then
         err "failed to render the Kong development docs"
