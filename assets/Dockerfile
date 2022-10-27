@@ -20,6 +20,7 @@ COPY assets/kong_start_dbless.sh     /pongo/kong_start_dbless.sh
 COPY assets/kong_export.sh           /pongo/kong_export.sh
 COPY assets/parse_git_branch.sh      /pongo/parse_git_branch.sh
 COPY assets/pongo_logo.sh            /pongo/pongo_logo.sh
+COPY assets/workspace_update.lua     /pongo/workspace_update.lua
 COPY assets/pongo_profile.sh         /etc/profile.d/pongo_profile.sh
 
 USER root

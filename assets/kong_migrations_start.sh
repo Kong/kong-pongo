@@ -21,7 +21,19 @@ else
     echo "Found \"$KMS_FILENAME\", importing declarative config..."
     # run prepare in case: https://github.com/Kong/kong/issues/9365
     kong prepare
-    kong config db_import /kong-plugin/$KMS_FILENAME
+    # check for workspace fix
+    IMPORT_FILE="/kong-plugin/$KMS_FILENAME"
+    FILE_WSID=$(lua /pongo/workspace_update.lua < "$IMPORT_FILE")
+    if [ ! "$FILE_WSID" = "" ]; then
+        echo "File contains workspaces, updating 'default' workspace uuid for import..."
+        kong start
+        KONG_WSID=$(http :8001/workspaces/default | jq .id)
+        kong stop
+        echo "Rewriting file; replacing id of 'default' workspace '$FILE_WSID' with '$KONG_WSID'"
+        lua /pongo/workspace_update.lua "$KONG_WSID" < "$IMPORT_FILE" > "/tmp/$KMS_FILENAME"
+        IMPORT_FILE="/tmp/$KMS_FILENAME"
+    fi
+    kong config db_import "$IMPORT_FILE"
     if [ $? -ne 0 ]; then
         echo "Failed to import \"$KMS_FILENAME\""
         exit 1

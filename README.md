@@ -812,6 +812,8 @@ The result should be a new PR on the Pongo repo.
 
 * Feat: add the Pongo version that build the image to the image, and check it
   against the used version to inform user of mismatches.
+* Fix: import declarative config in Enterprise versions (officially not supported)
+  in the 'kms' shell alias.
 
 ---
 
