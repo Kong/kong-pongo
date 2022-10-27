@@ -33,8 +33,11 @@ if [ -z "$KONG_ADMIN_LISTEN" ]; then
 fi
 
 
-# add the plugin code to the LUA_PATH such that the plugin will be found
-export "LUA_PATH=/kong-plugin/?.lua;/kong-plugin/?/init.lua;;"
+# add the plugin code to the LUA_PATH such that the plugin will be found, and add the default resty libs
+RESTY_LUALIB=$(dirname "$(dirname "$(command -v resty)")")/lualib
+export "LUA_PATH=/kong-plugin/?.lua;/kong-plugin/?/init.lua;$RESTY_LUALIB/?.lua;$RESTY_LUALIB/?/init.lua;;"
+export "LUA_CPATH=$RESTY_LUALIB/?.so;;"
+unset RESTY_LUALIB
 
 # many of the test config files for Kong will have a nameserver set to 8.8.8.8
 # this will clearly not work with Docker, so we need to override it. Hence we
