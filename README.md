@@ -814,6 +814,8 @@ The result should be a new PR on the Pongo repo.
   against the used version to inform user of mismatches.
 * Fix: import declarative config in Enterprise versions (officially not supported)
   in the 'kms' shell alias.
+* Style: change redis cluster service name from `rc` to `redis-clusters`.
+  Refer to PR <https://github.com/Kong/kong-pongo/pull/344>.
 
 ---
 
