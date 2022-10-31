@@ -797,6 +797,13 @@ The result should be a new PR on the Pongo repo.
 
 ---
 
+## unreleased
+
+* Style: change redis cluster service name from `rc` to `redis-clusters`.
+  Refer to <https://github.com/Kong/kong-pongo/pull/355>.
+
+---
+
 ## 1.3.0 released 19-Sep-2022
 
 * Feat: Kong Enterprise 3.0.0.0
