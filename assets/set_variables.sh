@@ -113,12 +113,7 @@ function is_commit_based {
 
 # this is to detect file system builds
 function is_file_system_based {
-  local check_version=$1
-  if [ -d $check_version ]
-  then
-    return 0
-  fi
-  return 1
+  [[ -d $1 ]]
 }
 
 function version_exists {
