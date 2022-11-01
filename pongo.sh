@@ -716,12 +716,12 @@ function build_image {
   fi
 
   if is_file_system_based "$KONG_VERSION"; then
-    local artifact_dir=$(mktemp -d pongo.XXXXX)
+    ARTIFACT_DIR="$(mktemp -d pongo.XXXXX)"
     source "${LOCAL_PATH}/assets/update_versions.sh"
-    pushd "$KONG_VERSION"
-    copy_artifacts "${LOCAL_PATH}/${artifact_dir}"
-    KONG_DEV_FILES=$artifact_dir/kong
-    popd
+    pushd > /dev/null "$KONG_VERSION"
+    copy_artifacts "${LOCAL_PATH}/${ARTIFACT_DIR}"
+    KONG_DEV_FILES="$ARTIFACT_DIR/kong"
+    popd > /dev/null
   else
     KONG_DEV_FILES="./kong-versions/$VERSION/kong"
   fi
@@ -747,7 +747,7 @@ function build_image {
     "$LOCAL_PATH" || err "Error: failed to build test environment"
 
   if is_file_system_based "$KONG_VERSION"; then
-    rm -rf $(KONG_DEV_FILES)
+    rm -rf "$ARTIFACT_DIR"
   fi
   msg "image '$KONG_TEST_IMAGE' successfully built"
 }
