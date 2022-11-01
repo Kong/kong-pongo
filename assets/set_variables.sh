@@ -73,8 +73,23 @@ function create_all_versions_array {
 create_all_versions_array
 
 
+function get_version_from_file_system {
+  local dir=$1
+  KONG_SOURCE_LOCATION=$dir $dir/distribution/grep-kong-version.sh
+}
+
 function is_enterprise {
   local check_version=$1
+  if [ -d $check_version ]
+  then
+    local kong_version=$(get_version_from_file_system $check_version)
+    if [[ $kong_version =~ [0-9]\.[0-9]\.[0-9]\.[0-9] ]]
+    then
+      return 1
+    else
+      return 0
+    fi
+  fi
   local VERSION
   for VERSION in ${KONG_EE_VERSIONS[*]} $DEVELOPMENT_EE $STABLE_EE; do
     if [[ "$VERSION" == "$check_version" ]]; then
@@ -93,6 +108,16 @@ function is_commit_based {
       return 0
     fi
   done;
+  return 1
+}
+
+# this is to detect file system builds
+function is_file_system_based {
+  local check_version=$1
+  if [ -d $check_version ]
+  then
+    return 0
+  fi
   return 1
 }
 

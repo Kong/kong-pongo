@@ -73,6 +73,42 @@ function clean_artifacts {
 }
 
 
+function copy_artifacts {
+    local DIR=$1
+    mkdir "$DIR/kong"
+    cp Makefile  "$DIR/kong/"
+    cp -R bin    "$DIR/kong/"
+
+    mkdir "$DIR/kong/spec"
+    for fname in spec/*; do
+        case $fname in
+            (spec/[0-9]*)
+            # These we skip
+            ;;
+            (*)
+                # everything else we copy
+                cp -R "$fname" "$DIR/kong/spec/"
+                ;;
+        esac
+    done
+
+    if [[ -d spec-ee ]]; then
+        mkdir "$DIR/kong/spec-ee"
+        for fname in spec-ee/*; do
+            case $fname in
+                (spec-ee/[0-9]*)
+                # These we skip
+                ;;
+                (*)
+                    # everything else we copy
+                    cp -R "$fname" "$DIR/kong/spec-ee/"
+                    ;;
+            esac
+        done
+    fi
+}
+
+
 function update_single_version_artifacts {
     # MUST be in the proper git repo before calling!
     # pass in a version tag, and optionally a commit id.
@@ -91,37 +127,7 @@ function update_single_version_artifacts {
         warn "cannot checkout version $VERSION. Is the tag missing? skipping it for now..."
     else
         mkdir "../kong-versions/$VERSION"
-        mkdir "../kong-versions/$VERSION/kong"
-        cp Makefile  "../kong-versions/$VERSION/kong/"
-        cp -R bin    "../kong-versions/$VERSION/kong/"
-
-        mkdir "../kong-versions/$VERSION/kong/spec"
-        for fname in spec/*; do
-            case $fname in
-            (spec/[0-9]*)
-                # These we skip
-                ;;
-            (*)
-                # everything else we copy
-                cp -R "$fname" "../kong-versions/$VERSION/kong/spec/"
-                ;;
-            esac
-        done
-
-        if [[ -d spec-ee ]]; then
-            mkdir "../kong-versions/$VERSION/kong/spec-ee"
-            for fname in spec-ee/*; do
-                case $fname in
-                (spec-ee/[0-9]*)
-                    # These we skip
-                    ;;
-                (*)
-                    # everything else we copy
-                    cp -R "$fname" "../kong-versions/$VERSION/kong/spec-ee/"
-                    ;;
-                esac
-            done
-        fi
+        copy_artifacts "../kong-versions/$VERSION"
     fi
 }
 

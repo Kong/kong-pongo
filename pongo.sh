@@ -687,7 +687,10 @@ function build_image {
   # 3. do a 'make dev' and then some (see the Dockerfile)
   # 4. Tag the result as $KONG_TEST_IMAGE
   get_version
-  if is_commit_based "$KONG_VERSION"; then
+  if is_file_system_based "$KONG_VERSION"; then
+    # VERSION does not need to be validated
+    true
+  elif is_commit_based "$KONG_VERSION"; then
     # in a development then $VERSION is a commit id
     validate_version "$KONG_VERSION"
   else
@@ -712,6 +715,16 @@ function build_image {
     update_development "$KONG_VERSION" "$VERSION"
   fi
 
+  if is_file_system_based "$KONG_VERSION"; then
+    KONG_DEV_FILES=$(mktemp -d pongo.XXXXX)
+    source "${LOCAL_PATH}/assets/update_versions.sh"
+    pushd "$KONG_VERSION"
+    copy_artifacts "${LOCAL_PATH}/${KONG_DEV_FILES}"
+    popd
+  else
+    KONG_DEV_FILES="./kong-versions/$VERSION/kong"
+  fi
+
   msg "starting build of image '$KONG_TEST_IMAGE'"
   local progress_type
   if [[ "$PONGO_DEBUG" == "true" ]] ; then
@@ -728,11 +741,14 @@ function build_image {
     --build-arg ftp_proxy \
     --build-arg no_proxy \
     --build-arg KONG_BASE="$KONG_IMAGE" \
-    --build-arg KONG_DEV_FILES="./kong-versions/$VERSION/kong" \
+    --build-arg KONG_DEV_FILES="$KONG_DEV_FILES" \
     --tag "$KONG_TEST_IMAGE" \
     "$LOCAL_PATH" || err "Error: failed to build test environment"
 
-  msg "image '$KONG_TEST_IMAGE' successfully build"
+  if is_file_system_based "$KONG_VERSION"; then
+    rm -rf $(KONG_DEV_FILES)
+  fi
+  msg "image '$KONG_TEST_IMAGE' successfully built"
 }
 
 
