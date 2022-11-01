@@ -75,14 +75,15 @@ create_all_versions_array
 
 function get_version_from_file_system {
   local dir=$1
-  KONG_SOURCE_LOCATION=$dir $dir/distribution/grep-kong-version.sh
+  KONG_SOURCE_LOCATION="$dir" "$dir"/distribution/grep-kong-version.sh
 }
 
 function is_enterprise {
   local check_version=$1
-  if [ -d $check_version ]
+  if [ -d "$check_version" ]
   then
-    local kong_version=$(get_version_from_file_system $check_version)
+    local kong_version
+    kong_version=$(get_version_from_file_system "$check_version")
     if [[ $kong_version =~ [0-9]\.[0-9]\.[0-9]\.[0-9] ]]
     then
       return 1

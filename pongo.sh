@@ -717,11 +717,12 @@ function build_image {
 
   if is_file_system_based "$KONG_VERSION"; then
     ARTIFACT_DIR="$(mktemp -d pongo.XXXXX)"
+    # shellcheck disable=SC1090  # do not follow source
     source "${LOCAL_PATH}/assets/update_versions.sh"
-    pushd > /dev/null "$KONG_VERSION"
+    pushd > /dev/null "$KONG_VERSION" || exit 1
     copy_artifacts "${LOCAL_PATH}/${ARTIFACT_DIR}"
     KONG_DEV_FILES="$ARTIFACT_DIR/kong"
-    popd > /dev/null
+    popd > /dev/null || exit 1
   else
     KONG_DEV_FILES="./kong-versions/$VERSION/kong"
   fi
