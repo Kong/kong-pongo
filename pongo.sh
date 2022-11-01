@@ -716,10 +716,11 @@ function build_image {
   fi
 
   if is_file_system_based "$KONG_VERSION"; then
-    KONG_DEV_FILES=$(mktemp -d pongo.XXXXX)
+    local artifact_dir=$(mktemp -d pongo.XXXXX)
     source "${LOCAL_PATH}/assets/update_versions.sh"
     pushd "$KONG_VERSION"
-    copy_artifacts "${LOCAL_PATH}/${KONG_DEV_FILES}"
+    copy_artifacts "${LOCAL_PATH}/${artifact_dir}"
+    KONG_DEV_FILES=$artifact_dir/kong
     popd
   else
     KONG_DEV_FILES="./kong-versions/$VERSION/kong"
