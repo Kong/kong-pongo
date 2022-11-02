@@ -151,7 +151,9 @@ function globals {
 
   # resolve a '.x' to a real version; eg. "1.3.0.x" in $KONG_VERSION, and replace
   # "stable" and "stable-ee" with actual versions
-  resolve_version
+  if [[ -z "$KONG_IMAGE" ]]; then
+    resolve_version
+  fi
 
   unset CUSTOM_PLUGINS
   unset PLUGINS
@@ -472,7 +474,7 @@ function get_image {
 
   else
     # regular Kong release, fetch the OSS or Enterprise version if needed
-    if is_enterprise "$KONG_VERSION"; then
+    if [[ $IS_ENTERPRISE == 1 ]]; then
       image=$KONG_EE_TAG_PREFIX$KONG_VERSION$KONG_EE_TAG_POSTFIX
     else
       image=$KONG_OSS_TAG_PREFIX$KONG_VERSION$KONG_OSS_TAG_POSTFIX
@@ -484,7 +486,7 @@ function get_image {
       if [[ ! $? -eq 0 ]]; then
         warn "failed to pull image $image."
 
-        if is_enterprise "$KONG_VERSION"; then
+        if [[ $IS_ENTERPRISE == 1 ]]; then
             # failed to pull EE image, so try the fallback to the private repo
             image=$KONG_EE_PRIVATE_TAG_PREFIX$KONG_VERSION$KONG_EE_PRIVATE_TAG_POSTFIX
             docker_login_ee
@@ -517,28 +519,25 @@ function get_image {
 
 
 function get_license {
-  # If $KONG_VERSION is recognized as an Enterprise version and no license data
-  # has been set in $KONG_LICENSE_DATA yet, then it will log into Pulp and
-  # get the required license.
-  # Result: $KONG_LICENSE_DATA will be set if it is needed
-  if is_enterprise "$KONG_VERSION"; then
-    if [[ -z $KONG_LICENSE_DATA ]]; then
-      # Enterprise version, but no license data available, try and get the license data
-      if [[ "$PULP_USERNAME" == "" ]]; then
-        warn "PULP_USERNAME is not set, might not be able to download the license!"
-      fi
-      if [[ "$PULP_PASSWORD" == "" ]]; then
-        warn "PULP_PASSWORD is not set, might not be able to download the license!"
-      fi
-      KONG_LICENSE_DATA=$(curl -s -L -u"$PULP_USERNAME:$PULP_PASSWORD" $KONG_LICENSE_URL)
-      export KONG_LICENSE_DATA
-      if [[ ! $KONG_LICENSE_DATA == *"signature"* || ! $KONG_LICENSE_DATA == *"payload"* ]]; then
-        # the check above is a bit lame, but the best we can do without requiring
-        # yet more additional dependenies like jq or similar.
-        warn "failed to download the Kong Enterprise license file!
+  # If no license data has been set in $KONG_LICENSE_DATA yet, will
+  # log into Pulp and get the required license.  Result:
+  # $KONG_LICENSE_DATA will be set if it is needed
+  if [[ -z $KONG_LICENSE_DATA ]]; then
+    # Enterprise version, but no license data available, try and get the license data
+    if [[ "$PULP_USERNAME" == "" ]]; then
+      warn "PULP_USERNAME is not set, might not be able to download the license!"
+    fi
+    if [[ "$PULP_PASSWORD" == "" ]]; then
+      warn "PULP_PASSWORD is not set, might not be able to download the license!"
+    fi
+    KONG_LICENSE_DATA=$(curl -s -L -u"$PULP_USERNAME:$PULP_PASSWORD" $KONG_LICENSE_URL)
+    export KONG_LICENSE_DATA
+    if [[ ! $KONG_LICENSE_DATA == *"signature"* || ! $KONG_LICENSE_DATA == *"payload"* ]]; then
+      # the check above is a bit lame, but the best we can do without requiring
+      # yet more additional dependenies like jq or similar.
+      warn "failed to download the Kong Enterprise license file!
           $KONG_LICENSE_DATA"
-        unset KONG_LICENSE_DATA
-      fi
+      unset KONG_LICENSE_DATA
     fi
   fi
 }
@@ -556,24 +555,33 @@ function get_version {
     get_image
   fi
 
-  get_license
+  IS_ENTERPRISE=0
 
-  if is_commit_based "$KONG_VERSION"; then
-    # it's a development; get the commit-id from the image
-    VERSION=$(docker inspect \
-       --format "{{ index .Config.Labels \"org.opencontainers.image.revision\"}}" \
-       "$KONG_IMAGE")
-    if [[ ! $? -eq 0 ]]; then
-      err "failed to read commit-id from Kong image: $KONG_IMAGE, label: org.opencontainers.image.revision"
+  if [[ $KONG_IMAGE =~ kong/kong:test(-ee)?-([0-9a-f]+) ]]; then
+    if [[ -z ${BASH_REMATCH[1]} ]]; then
+      KONG_REPO=git@github.com:Kong/kong
+    else
+      KONG_REPO=git@github.com:Kong/kong-ee
+      IS_ENTERPRISE=1
     fi
-    if [[ "$VERSION" == "" ]]; then
-      err "Got an empty commit-id from Kong image: $KONG_IMAGE, label: org.opencontainers.image.revision"
-    fi
-
+    KONG_VERSION=${BASH_REMATCH[2]}
+    VERSION="$KONG_VERSION"
   else
-    # regular Kong version, so extract the Kong version number
-    local cmd=(
-      '/bin/bash' '-c' '/usr/local/openresty/luajit/bin/luajit -e "
+    if is_commit_based "$KONG_VERSION"; then
+      # it's a development; get the commit-id from the image
+      VERSION=$(docker inspect \
+                       --format "{{ index .Config.Labels \"org.opencontainers.image.revision\"}}" \
+                       "$KONG_IMAGE")
+      if [[ ! $? -eq 0 ]]; then
+        err "failed to read commit-id from Kong image: $KONG_IMAGE, label: org.opencontainers.image.revision"
+      fi
+      if [[ "$VERSION" == "" ]]; then
+        err "Got an empty commit-id from Kong image: $KONG_IMAGE, label: org.opencontainers.image.revision"
+      fi
+    else
+      # regular Kong version, so extract the Kong version number
+      local cmd=(
+        '/bin/bash' '-c' '/usr/local/openresty/luajit/bin/luajit -e "
         local command = [[kong version]]
         local version_output = io.popen(command):read()
 
@@ -582,11 +590,16 @@ function get_version {
 
         io.stdout:write(parsed_version)
       "')
-    # shellcheck disable=SC2145  # we want WINDOWS_SLASH to be added to the first element
-    VERSION=$(docker run --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "$WINDOWS_SLASH${cmd[@]}")
-    if [[ ! $? -eq 0 ]]; then
-      err "failed to read version from Kong image: $KONG_IMAGE"
+      # shellcheck disable=SC2145  # we want WINDOWS_SLASH to be added to the first element
+      VERSION=$(docker run --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "$WINDOWS_SLASH${cmd[@]}")
+      if [[ ! $? -eq 0 ]]; then
+        err "failed to read version from Kong image: $KONG_IMAGE"
+      fi
     fi
+  fi
+
+  if [[ $IS_ENTERPRISE == 1 ]]; then
+    get_license
   fi
 
   KONG_TEST_IMAGE=$IMAGE_BASE_NAME:$VERSION
@@ -709,7 +722,7 @@ function build_image {
     # development; we must fetch the related development files dynamically in this case
     # shellcheck disable=SC1090  # do not follow source
     source "${LOCAL_PATH}/assets/update_versions.sh"
-    update_development "$KONG_VERSION" "$VERSION"
+    update_development "$KONG_VERSION" "$VERSION" "$IS_ENTERPRISE"
   fi
 
   msg "starting build of image '$KONG_TEST_IMAGE'"
@@ -1159,7 +1172,7 @@ function main {
 
     local repository_name=${KONG_TEST_PLUGIN_PATH##*/}
     local shellprompt
-    if is_enterprise "$KONG_VERSION"; then
+    if [[ $IS_ENTERPRISE == 1 ]]; then
       shellprompt="Kong-E-$KONG_VERSION"
     else
       shellprompt="Kong-$KONG_VERSION"

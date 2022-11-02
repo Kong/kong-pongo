@@ -86,25 +86,22 @@ function is_enterprise {
 
 # this is to detect "commit-based" versions; the development ones
 function is_commit_based {
-  local check_version=$1
-  local VERSION
-  for VERSION in $DEVELOPMENT_CE $DEVELOPMENT_EE; do
-    if [[ "$VERSION" == "$check_version" ]]; then
-      return 0
-    fi
-  done;
-  return 1
+  [[ $1 =~ ($DEVELOPMENT_CE|$DEVELOPMENT_EE|[0-9a-f]+) ]]
 }
 
 function version_exists {
   local version=$1
-  local entry
-  # not testing for "stable" tags here, since the resolve stage changes them to actual versions
-  for entry in ${KONG_VERSIONS[*]} $DEVELOPMENT_CE $DEVELOPMENT_EE; do
-    if [[ "$version" == "$entry" ]]; then
-      return 0
-    fi
-  done;
+  if is_commit_based $version; then
+    return 0
+  else
+    local entry
+    # not testing for "stable" tags here, since the resolve stage changes them to actual versions
+    for entry in ${KONG_VERSIONS[*]}; do
+      if [[ "$version" == "$entry" ]]; then
+        return 0
+      fi
+    done
+  fi
   return 1
 }
 
