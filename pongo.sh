@@ -558,10 +558,7 @@ function get_version {
   IS_ENTERPRISE=0
 
   if [[ $KONG_IMAGE =~ kong/kong:test(-ee)?-([0-9a-f]+) ]]; then
-    if [[ -z ${BASH_REMATCH[1]} ]]; then
-      KONG_REPO=git@github.com:Kong/kong
-    else
-      KONG_REPO=git@github.com:Kong/kong-ee
+    if [[ ${BASH_REMATCH[1]} == -ee ]]; then
       IS_ENTERPRISE=1
     fi
     KONG_VERSION=${BASH_REMATCH[2]}

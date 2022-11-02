@@ -91,7 +91,7 @@ function is_commit_based {
 
 function version_exists {
   local version=$1
-  if is_commit_based $version; then
+  if is_commit_based "$version"; then
     return 0
   else
     local entry
