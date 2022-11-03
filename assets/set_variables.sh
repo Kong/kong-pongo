@@ -86,7 +86,7 @@ function is_enterprise {
 
 # this is to detect "commit-based" versions; the development ones
 function is_commit_based {
-  [[ $1 =~ ($DEVELOPMENT_CE|$DEVELOPMENT_EE|[0-9a-f]+) ]]
+  [[ $1 =~ ^($DEVELOPMENT_CE|$DEVELOPMENT_EE|[0-9a-f]+)$ ]]
 }
 
 function version_exists {

@@ -557,7 +557,7 @@ function get_version {
 
   IS_ENTERPRISE=0
 
-  if [[ $KONG_IMAGE =~ kong/kong:test(-ee)?-([0-9a-f]+) ]]; then
+  if [[ $KONG_IMAGE =~ ^kong/kong:test(-ee)?-([0-9a-f]+)$ ]]; then
     if [[ ${BASH_REMATCH[1]} == -ee ]]; then
       IS_ENTERPRISE=1
     fi
