@@ -223,7 +223,7 @@ To run Pongo on Windows you can use [WSL2](https://docs.microsoft.com/windows/ws
 
 * install WSL2
 * install Docker for Windows
-* from the Microsoft Store install Debian (search for `wsl`)
+* from the Microsoft Store install Debian (search for `Debian`)
 * start Debian (should be in your start menu)
 * now from the prompt install Pongo and some dependencies;
 
