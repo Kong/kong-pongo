@@ -20,7 +20,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v2.0.0
+                   |___/  v2.1.0
 
 Usage: pongo action [options...] [--] [action options...]
 
@@ -808,12 +808,16 @@ The result should be a new PR on the Pongo repo.
 
 ---
 
-## unreleased
+## 2.1.0 released 15-Nov-2022
+
+* Feat: Kong OSS 3.0.1
 
 * Feat: add the Pongo version that build the image to the image, and check it
   against the used version to inform user of mismatches.
+
 * Fix: import declarative config in Enterprise versions (officially not supported)
   in the 'kms' shell alias.
+
 * Style: change redis cluster service name from `rc` to `redis-clusters`.
   Refer to PR <https://github.com/Kong/kong-pongo/pull/344>.
 
