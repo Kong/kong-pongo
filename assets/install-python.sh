@@ -23,4 +23,4 @@ else
   echo Installing Python from package source
   apt install -y python3 pip
 fi
-echo $(python3 --version) installed
+echo "$(python3 --version) installed"
