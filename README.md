@@ -20,7 +20,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v2.1.0
+                   |___/  v2.2.0
 
 Usage: pongo action [options...] [--] [action options...]
 
@@ -805,6 +805,13 @@ The result should be a new PR on the Pongo repo.
  * update Kong-Enterprise PR (created in the first step)
     * Change the Pongo version to use to the newly released version of Pongo
     * remove "draft" status.
+
+---
+
+## 2.2.0 released 18-Nov-2022
+
+* Feat: Only build Python from source if the Kong base image is based
+  on Ubuntu 16.04
 
 ---
 
