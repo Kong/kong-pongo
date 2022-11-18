@@ -1,8 +1,6 @@
 ARG KONG_BASE
 FROM ${KONG_BASE}
 
-ARG PYTHON_VERSION=3.9.14
-
 # add dev files
 ARG KONG_DEV_FILES
 COPY $KONG_DEV_FILES /kong
@@ -22,11 +20,12 @@ COPY assets/parse_git_branch.sh      /pongo/parse_git_branch.sh
 COPY assets/pongo_logo.sh            /pongo/pongo_logo.sh
 COPY assets/workspace_update.lua     /pongo/workspace_update.lua
 COPY assets/pongo_profile.sh         /etc/profile.d/pongo_profile.sh
+COPY assets/install-python.sh        /pongo/install-python.sh
 
 USER root
 # httpie and jq are genric utilities usable from the shell action.
 # LuaRocks needs (un)zip to (un)pack rocks, and dev essentials to build.
-# Setup the developemnt dependencies using the make target
+# Setup the development dependencies using the make target
 # and make the entrypoint executable
 #
 # Note: 'openssl-dev' (and m4, bsd-headers) is added to build the 'cqueue' rock.
@@ -39,14 +38,8 @@ USER root
 # that should be independent of Kong versions.
 
 RUN apt update \
-    && apt install -y zip make jq m4 curl build-essential wget git libssl-dev zlib1g-dev
-RUN echo Installing Python $PYTHON_VERSION \
-    && curl -L https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz | tar -xzf - -C /tmp \
-    && cd /tmp/Python-$PYTHON_VERSION \
-    && ./configure > /dev/null 2>&1 \
-    && make install > /dev/null 2>&1 \
-    && cd && rm -rf /tmp/Python-$PYTHON_VERSION \
-    && echo Python $PYTHON_VERSION installed
+    && apt install -y zip make jq m4 curl build-essential wget git libssl-dev zlib1g-dev lsb-release
+RUN /pongo/install-python.sh
 RUN pip3 install httpie
 RUN curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
 RUN cd /kong \
