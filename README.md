@@ -800,7 +800,7 @@ The result should be a new PR on the Pongo repo.
     * create a PR that changes Kong-Enterprise tests to use the Pongo release branch
     * add a link in the PR description to the Pongo release PR for cross-referencing
     * mark the PR as "draft"
-    * example where/how to make the change: https://github.com/Kong/kong-ee/pull/3888
+    * example where/how to make the change: https://github.com/Kong/kong-ee/pull/4156
     * make sure it passes, adjust if required
  * merge the Pongo release branch, tag as `x.y.z`, and push the tag
  * update Kong-Enterprise PR (created in the first step)
