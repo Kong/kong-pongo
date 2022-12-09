@@ -192,6 +192,7 @@ pongo run
 ```
 
 Some more elaborate examples:
+
 ```shell
 # Run against a specific version of Kong and pass
 # a number of Busted options
@@ -805,6 +806,16 @@ The result should be a new PR on the Pongo repo.
  * update Kong-Enterprise PR (created in the first step)
     * Change the Pongo version to use to the newly released version of Pongo
     * remove "draft" status.
+
+---
+
+## 2.3.0 released 9-Dec-2022
+
+* Feat: Kong Enterprise 3.1.0.0
+
+* Feat: Kong Enterprise 3.0.1.0
+
+* Feat: Kong OSS 3.1.0
 
 ---
 
