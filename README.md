@@ -22,7 +22,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v2.3.0
+                   |___/  v2.4.0
 
 Usage: pongo action [options...] [--] [action options...]
 
@@ -810,6 +810,22 @@ The result should be a new PR on the Pongo repo.
     * remove "draft" status.
 
 ---
+
+## 2.4.0 released 20-Jan-2023
+
+* Fix: Redis certificates [#370](https://github.com/Kong/kong-pongo/pull/370)
+
+* Feat: Kong Enterprise 3.1.1.1
+
+* Feat: Kong Enterprise 3.1.1.0
+
+* Feat: Kong Enterprise 3.0.2.0
+
+* Feat: Kong OSS 3.1.1
+
+* Feat: Kong OSS 3.0.2
+
+* Feat: Kong OSS 2.8.2
 
 ## 2.3.0 released 9-Dec-2022
 
