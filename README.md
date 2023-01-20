@@ -1,9 +1,11 @@
-[![Build Status](https://travis-ci.com/Kong/kong-pongo.svg?branch=master)](https://travis-ci.com/Kong/kong-pongo)
+[![Unix Tests](https://img.shields.io/github/actions/workflow/status/Kong/kong-pongo/test.yml?branch=master&label=Unix%20tests&logo=linux)](https://github.com/Kong/kong-pongo/actions/workflows/test.yml)
+[![Docker Tests](https://img.shields.io/github/actions/workflow/status/Kong/kong-pongo/test.yml?branch=master&label=Docker%20tests&logo=docker)](https://github.com/Kong/kong-pongo/actions/workflows/docker.yml)
+[![Lint](https://github.com/Kong/kong-pongo/workflows/Lint/badge.svg)](https://github.com/Kong/kong-pongo/actions/workflows/lint.yml)
+[![SemVer](https://img.shields.io/github/v/tag/Kong/kong-pongo?color=brightgreen&label=SemVer&logo=semver&sort=semver)](README.md#changelog)
 
 | :exclamation:  Important compatibility notes |
 |:---------------------------|
 | Pongo has been switched from non-versioned to versioned on 17-Mar-2022. On 20-Oct-2022 version 2.0.0 was pushed to `master` and released. This means that breaking changes were introduced on `master`. If you experience failures, then either pin your Pongo version to 1.x or [upgrade](#upgrading) |
-| The Alpine 3.13 to 3.14 update (around Kong `2.6.x`) [can break the Pongo image build](https://github.com/Kong/docker-kong/pull/495). Make sure to update Docker to `20.10.x`. |
 
 # pongo
 
@@ -20,7 +22,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v2.2.0
+                   |___/  v2.3.0
 
 Usage: pongo action [options...] [--] [action options...]
 
