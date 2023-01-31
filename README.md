@@ -811,6 +811,14 @@ The result should be a new PR on the Pongo repo.
 
 ---
 
+## 2.x.0 unreleased
+
+* Feat: Kong Enterprise 3.1.1.3
+
+* Feat: Kong Enterprise 3.1.1.2
+
+---
+
 ## 2.4.0 released 20-Jan-2023
 
 * Fix: Redis certificates [#370](https://github.com/Kong/kong-pongo/pull/370)
