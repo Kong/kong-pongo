@@ -813,6 +813,9 @@ The result should be a new PR on the Pongo repo.
 
 ## 2.x.0 unreleased
 
+* Fix: Apple recently started shipping `realpath` in their OS. But it doesn't support the
+  `--version` flag, so it was not detected as installed.
+
 * Feat: Kong Enterprise 3.1.1.3
 
 * Feat: Kong Enterprise 3.1.1.2

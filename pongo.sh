@@ -181,7 +181,7 @@ function check_tools {
     COMPOSE_COMMAND="docker-compose"
   fi
 
-  realpath --version > /dev/null 2>&1
+  realpath . > /dev/null 2>&1
   if [[ ! $? -eq 0 ]]; then
     >&2 echo "'realpath' command not found, please install it, and make it available in the path (on Mac use Brew to install the 'coreutils' package)."
     missing=true
