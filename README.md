@@ -22,7 +22,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v2.4.0
+                   |___/  v2.5.0
 
 Usage: pongo action [options...] [--] [action options...]
 
@@ -811,10 +811,11 @@ The result should be a new PR on the Pongo repo.
 
 ---
 
-## 2.x.0 unreleased
+## 2.5.0 unreleased
 
 * Fix: Apple recently started shipping `realpath` in their OS. But it doesn't support the
-  `--version` flag, so it was not detected as installed.
+  `--version` flag, so it was not detected as installed
+  [#380](https://github.com/Kong/kong-pongo/pull/380).
 
 * Feat: Kong Enterprise 3.1.1.3
 
