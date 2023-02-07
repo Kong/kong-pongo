@@ -4,7 +4,7 @@
 
 function globals {
   # Project related global variables
-  PONGO_VERSION=2.4.0
+  PONGO_VERSION=2.5.0
 
   local script_path
   # explicitly resolve the link because realpath doesn't do it on Windows
