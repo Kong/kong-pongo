@@ -789,11 +789,29 @@ The result should be a new PR on the Pongo repo.
 
 #### releasing new versions
 
- * update the changelog below
- * update version in `pongo.sh`
- * update version in logo at top of this `README`
- * commit as `release x.y.z`, tag as `x.y.z`
- * push commit and tags
+ * create a release branch for Pongo; `release/x.y.z`
+    * update the changelog below
+    * update version in logo at top of this `README`
+    * update version in `pongo.sh`
+    * commit as `release x.y.z`
+    * push the release branch, and create a Pongo PR
+ * manually test with Kong-Enterprise
+    * create a PR that changes Kong-Enterprise tests to use the Pongo release branch
+    * add a link in the PR description to the Pongo release PR for cross-referencing
+    * mark the PR as "draft"
+    * example where/how to make the change: https://github.com/Kong/kong-ee/pull/4156. Copy the to-do list from the PR description!
+    * make sure it passes, adjust if required
+ * merge the Pongo release branch, tag as `x.y.z`, and push the tag
+ * update Kong-Enterprise PR (created in the first step)
+    * Change the Pongo version to use to the newly released version of Pongo
+    * remove "draft" status.
+
+---
+
+## unreleased
+
+* Fix: Apple recently started shipping `realpath` in their OS. But it doesn't support the
+  `--version` flag, so it was not detected as installed.
 
 ---
 
