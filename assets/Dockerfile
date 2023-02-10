@@ -35,6 +35,7 @@ RUN pip3 install httpie
 RUN curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
 RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
+    && export KONG_PREFIX=${KONG_PREFIX:-/usr/local/kong} \
     && make dependencies CRYPTO_DIR=$KONG_PREFIX \
                          OPENSSL_DIR=$KONG_PREFIX \
     && luarocks install busted-htest \
