@@ -8,7 +8,7 @@ COPY $KONG_DEV_FILES /kong
 ARG PONGO_VERSION
 ENV PONGO_VERSION=$PONGO_VERSION
 
-ARG OPENSSL_DIR /usr/local/kong
+ARG OPENSSL_DIR=/usr/local/kong
 ENV OPENSSL_DIR=$OPENSSL_DIR
 
 # add helper files to workaround some issues
