@@ -8,6 +8,9 @@ COPY $KONG_DEV_FILES /kong
 ARG PONGO_VERSION
 ENV PONGO_VERSION=$PONGO_VERSION
 
+ARG OPENSSL_DIR /usr/local/kong
+ENV OPENSSL_DIR=$OPENSSL_DIR
+
 # add helper files to workaround some issues
 COPY assets/busted_helper.lua        /pongo/busted_helper.lua
 COPY assets/pongo_entrypoint.sh      /pongo/pongo_entrypoint.sh
@@ -35,8 +38,8 @@ RUN pip3 install httpie
 RUN curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
 RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
-    && make dependencies CRYPTO_DIR=/usr/local/kong \
-                         OPENSSL_DIR=/usr/local/kong \
+    && make dependencies CRYPTO_DIR=$OPENSSL_DIR \
+                         OPENSSL_DIR=$OPENSSL_DIR \
     && luarocks install busted-htest \
     && luarocks install luacov
 
