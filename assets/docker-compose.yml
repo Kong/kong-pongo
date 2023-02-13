@@ -152,3 +152,10 @@ services:
           - ${SERVICE_NETWORK_NAME}-kong.${SERVICE_NETWORK_NAME}
     volumes:
       - ${PONGO_WD}:/kong-plugin
+      - type: bind
+        source: /coredumps
+        target: /coredumps
+    ulimits:
+      core:
+        soft: -1
+        hard: -1
