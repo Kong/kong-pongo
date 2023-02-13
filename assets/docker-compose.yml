@@ -155,6 +155,8 @@ services:
       - type: bind
         source: /coredumps
         target: /coredumps
+    security_opt:
+      - seccomp:unconfined
     ulimits:
       core:
         soft: -1
