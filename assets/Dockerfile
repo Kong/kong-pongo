@@ -37,8 +37,11 @@ USER root
 # But that means hardcoding and that doesn't play well with the nature of Pongo
 # that should be independent of Kong versions.
 
+# psmisc: provides `fuser`
+# net-tools: provides `netstat`
+
 RUN apt update \
-    && apt install -y zip make jq m4 curl build-essential wget git libssl-dev zlib1g-dev lsb-release
+    && apt install -y zip make jq m4 curl build-essential wget git libssl-dev zlib1g-dev lsb-release psmisc net-tools
 RUN /pongo/install-python.sh
 RUN pip3 install httpie
 RUN curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
