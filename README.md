@@ -821,6 +821,8 @@ The result should be a new PR on the Pongo repo.
 
 * Feat: Kong Enterprise 3.1.1.2
 
+* Fix: Add missing `fuser` and `netstat` utility that is required for certain test functions.
+
 ---
 
 ## 2.4.0 released 20-Jan-2023
