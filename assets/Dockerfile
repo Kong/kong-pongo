@@ -28,11 +28,11 @@ USER root
 # Setup the development dependencies using the make target
 # and make the entrypoint executable
 
-ARG KONG_PREFIX=/usr/local/kong
-ENV KONG_PREFIX $KONG_PREFIX
+ARG KONG_LIBRARY_PREFIX=/usr/local/kong
+ENV KONG_LIBRARY_PREFIX $KONG_LIBRARY_PREFIX
 
-ENV LUAROCKS_CRYPTO_DIR=$KONG_PREFIX
-ENV LUAROCKS_OPENSSL_DIR=$KONG_PREFIX
+ENV LUAROCKS_CRYPTO_DIR=$KONG_LIBRARY_PREFIX
+ENV LUAROCKS_OPENSSL_DIR=$KONG_LIBRARY_PREFIX
 
 RUN apt update \
     && apt install -y zip make m4 jq curl build-essential wget git zlib1g-dev lsb-release
@@ -41,7 +41,6 @@ RUN pip3 install httpie
 RUN curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
 RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
-    && export KONG_PREFIX=${KONG_PREFIX:-/usr/local/kong} \
     && make dependencies CRYPTO_DIR=$LUAROCKS_CRYPTO_DIR \
                          OPENSSL_DIR=$LUAROCKS_OPENSSL_DIR \
     && luarocks install busted-htest \
