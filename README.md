@@ -811,7 +811,13 @@ The result should be a new PR on the Pongo repo.
 
 ---
 
-## 2.5.0 unreleased
+## 2.5.x unreleased
+
+* Fix: Add missing `fuser` and `netstat` utility that is required for certain test functions.
+
+---
+
+## 2.5.0 released 7-Feb-2023
 
 * Fix: Apple recently started shipping `realpath` in their OS. But it doesn't support the
   `--version` flag, so it was not detected as installed
