@@ -813,7 +813,10 @@ The result should be a new PR on the Pongo repo.
 
 ## 2.5.x unreleased
 
-* Fix: Add missing `fuser` and `netstat` utility that is required for certain test functions.
+* Fix: Add missing `fuser` and `netstat` utility that is required for certain test functions
+  [#384](https://github.com/Kong/kong-pongo/pull/384).
+* Fix: compile rocks using the Kong shipped crypto libraries
+  [#382](https://github.com/Kong/kong-pongo/pull/382).
 
 ---
 

@@ -27,15 +27,14 @@ USER root
 # LuaRocks needs (un)zip to (un)pack rocks, and dev essentials to build.
 # Setup the development dependencies using the make target
 # and make the entrypoint executable
-#
-# Note: 'openssl-dev' (and m4, bsd-headers) is added to build the 'cqueue' rock.
-# It provides the headers in the system location for 'make dependencies' to succeed.
-# The proper thing to do would be the included ones by specifying them like so:
-#   CRYPTO_DIR=/usr/local/kong \
-#   OPENSSL_DIR=/usr/local/kong \
-#   make dependencies
-# But that means hardcoding and that doesn't play well with the nature of Pongo
-# that should be independent of Kong versions.
+
+ARG KONG_LIBRARY_PREFIX=/usr/local/kong
+ENV KONG_LIBRARY_PREFIX $KONG_LIBRARY_PREFIX
+
+ENV LUAROCKS_CRYPTO_DIR=$KONG_LIBRARY_PREFIX
+ENV LUAROCKS_OPENSSL_DIR=$KONG_LIBRARY_PREFIX
+
+ENV LUAROCKS_OPTS="CRYPTO_DIR=$LUAROCKS_CRYPTO_DIR OPENSSL_DIR=$LUAROCKS_OPENSSL_DIR"
 
 # psmisc: provides `fuser`
 # net-tools: provides `netstat`
@@ -47,7 +46,7 @@ RUN pip3 install httpie
 RUN curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
 RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
-    && make dependencies \
+    && make dependencies $LUAROCKS_OPTS \
     && luarocks install busted-htest \
     && luarocks install luacov
 
