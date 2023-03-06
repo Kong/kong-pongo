@@ -34,6 +34,8 @@ ENV KONG_LIBRARY_PREFIX $KONG_LIBRARY_PREFIX
 ENV LUAROCKS_CRYPTO_DIR=$KONG_LIBRARY_PREFIX
 ENV LUAROCKS_OPENSSL_DIR=$KONG_LIBRARY_PREFIX
 
+ENV LUAROCKS_OPTS="CRYPTO_DIR=$LUAROCKS_CRYPTO_DIR OPENSSL_DIR=$LUAROCKS_OPENSSL_DIR"
+
 # psmisc: provides `fuser`
 # net-tools: provides `netstat`
 
@@ -44,8 +46,7 @@ RUN pip3 install httpie
 RUN curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
 RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
-    && make dependencies CRYPTO_DIR=$LUAROCKS_CRYPTO_DIR \
-                         OPENSSL_DIR=$LUAROCKS_OPENSSL_DIR \
+    && make dependencies $LUAROCKS_OPTS \
     && luarocks install busted-htest \
     && luarocks install luacov
 
