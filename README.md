@@ -817,6 +817,9 @@ The result should be a new PR on the Pongo repo.
   [#384](https://github.com/Kong/kong-pongo/pull/384).
 * Fix: compile rocks using the Kong shipped crypto libraries
   [#382](https://github.com/Kong/kong-pongo/pull/382).
+* Fix: setting the LD_PATH broke some other tools. If needed now has to be set
+  on a per-plugin basis.
+  [#390](https://github.com/Kong/kong-pongo/pull/390).
 
 ---
 
