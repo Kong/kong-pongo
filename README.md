@@ -22,7 +22,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v2.5.0
+                   |___/  v2.6.0
 
 Usage: pongo action [options...] [--] [action options...]
 
@@ -811,12 +811,20 @@ The result should be a new PR on the Pongo repo.
 
 ---
 
-## 2.5.x unreleased
+## 2.6.0 released 23-Mar-2023
+
+* Feat: Kong OSS 3.2.2
+
+* Feat: Kong Enterprise 3.2.2.0
+
+* Feat: Kong Enterprise 3.2.1.0
 
 * Fix: Add missing `fuser` and `netstat` utility that is required for certain test functions
   [#384](https://github.com/Kong/kong-pongo/pull/384).
+
 * Fix: compile rocks using the Kong shipped crypto libraries
   [#382](https://github.com/Kong/kong-pongo/pull/382).
+
 * Fix: setting the LD_PATH broke some other tools. If needed now has to be set
   on a per-plugin basis.
   [#390](https://github.com/Kong/kong-pongo/pull/390).
