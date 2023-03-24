@@ -15,14 +15,26 @@ elif [ -f /kong-plugin/kong.json ]; then
     KMS_FILENAME=kong.json
 fi
 
-if [ "$KMS_FILENAME" = "" ]; then
-    echo 'Declarative file "kong.yml/yaml/json" not found, skipping import'
-else
-    echo "Found \"$KMS_FILENAME\", importing declarative config..."
+if [ ! "$KMS_FILENAME" = "" ]; then
+    if [ ! "$1" = "-y" ]; then
+        echo "Found file \"$KMS_FILENAME\", import? (y/n, or use \"-y\") "
+        old_stty_cfg=$(stty -g)
+        stty raw -echo
+        answer=$( while ! head -c 1 | grep -i '[ny]' ;do true ;done )
+        stty "$old_stty_cfg"
+        if ! echo "$answer" | grep -iq "^y" ;then
+            echo "Skipping import..."
+            unset KMS_FILENAME
+        fi
+    fi
+fi
+
+if [ ! "$KMS_FILENAME" = "" ]; then
+    IMPORT_FILE="/kong-plugin/$KMS_FILENAME"
+    echo "Importing declarative config from \"$IMPORT_FILE\""
     # run prepare in case: https://github.com/Kong/kong/issues/9365
     kong prepare
     # check for workspace fix
-    IMPORT_FILE="/kong-plugin/$KMS_FILENAME"
     FILE_WSID=$(lua /pongo/workspace_update.lua < "$IMPORT_FILE")
     if [ ! "$FILE_WSID" = "" ]; then
         echo "File contains workspaces, updating 'default' workspace uuid for import..."
