@@ -811,6 +811,13 @@ The result should be a new PR on the Pongo repo.
 
 ---
 
+## 2.x.0 unreleased
+
+* Feat: add alias to enable authentication when in a Pongo shell
+  [#392](https://github.com/Kong/kong-pongo/pull/392).
+
+---
+
 ## 2.6.0 released 23-Mar-2023
 
 * Feat: Kong OSS 3.2.2

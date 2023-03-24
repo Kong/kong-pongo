@@ -27,7 +27,7 @@ else
     if [ ! "$FILE_WSID" = "" ]; then
         echo "File contains workspaces, updating 'default' workspace uuid for import..."
         kong start
-        KONG_WSID=$(http :8001/workspaces/default | jq .id)
+        KONG_WSID=$(http :8001/workspaces/default "Kong-Admin-Token:$KONG_PASSWORD" | jq .id)
         kong stop
         echo "Rewriting file; replacing id of 'default' workspace '$FILE_WSID' with '$KONG_WSID'"
         lua /pongo/workspace_update.lua "$KONG_WSID" < "$IMPORT_FILE" > "/tmp/$KMS_FILENAME"

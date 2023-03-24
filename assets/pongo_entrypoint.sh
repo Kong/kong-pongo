@@ -133,6 +133,10 @@ fi
 if [ ! "$SUPPRESS_KONG_VERSION" = "true" ]; then
   if [ "$PONGO_COMMAND" = "shell" ]; then
     /pongo/pongo_logo.sh
+
+    # setup a password, only when in a shell, we do not want to risk it interfering
+    # with automated tests.
+    export KONG_PASSWORD="pongo"
   fi
   echo "Kong version: $(kong version)"
   echo ""
