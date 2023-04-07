@@ -185,7 +185,7 @@ end
 --- Returns the Dev Portal port.
 -- @function get_portal_api_port
 -- @param ssl (boolean) if `true` returns the ssl port
-local function get_portal_api_port(ssl)
+function _M.get_portal_api_port(ssl)
   if ssl == nil then ssl = false end
   for _, entry in ipairs(_M.portal_api_listeners) do
     if entry.ssl == ssl then
@@ -213,7 +213,7 @@ end
 --- Returns the Dev Portal port.
 -- @function get_portal_gui_port
 -- @param ssl (boolean) if `true` returns the ssl port
-local function get_portal_gui_port(ssl)
+function _M.get_portal_gui_port(ssl)
   if ssl == nil then ssl = false end
   for _, entry in ipairs(_M.portal_gui_listeners) do
     if entry.ssl == ssl then
@@ -243,7 +243,7 @@ end
 -- @param timeout (optional, number) the timeout to use
 function _M.portal_api_client(timeout)
   local portal_ip = get_portal_api_ip()
-  local portal_port = get_portal_api_port()
+  local portal_port = _M.get_portal_api_port()
   assert(portal_ip, "No portal_ip found in the configuration")
   return helpers.http_client(portal_ip, portal_port, timeout)
 end
@@ -254,7 +254,7 @@ end
 -- @param timeout (optional, number) the timeout to use
 function _M.portal_gui_client(timeout)
   local portal_ip = get_portal_gui_ip()
-  local portal_port = get_portal_gui_port()
+  local portal_port = _M.get_portal_gui_port()
   assert(portal_ip, "No portal_ip found in the configuration")
   return helpers.http_client(portal_ip, portal_port, timeout)
 end
