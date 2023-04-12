@@ -18,7 +18,7 @@ echo 'PS1="\[\e[00m\]\[\033[1;34m\][$PS1_KONG_VERSION:\[\e[91m\]$PS1_REPO_NAME\$
 echo ""
 echo "Get started quickly with the following aliases/shortcuts:"
 echo "  kms   - kong migrations start; wipe/initialize the database and start Kong clean,"
-echo "          importing declarative configuration if available."
+echo "          optionally importing declarative configuration if available."
 echo "  kdbl  - kong start dbless; start Kong in dbless mode, requires a declarative configuration."
 echo "  ks    - kong start; starts Kong with the existing database contents (actually a restart)."
 echo "  kp    - kong stop; stop Kong."

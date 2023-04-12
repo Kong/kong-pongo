@@ -816,6 +816,9 @@ The result should be a new PR on the Pongo repo.
 * Feat: add alias to enable authentication when in a Pongo shell
   [#392](https://github.com/Kong/kong-pongo/pull/392).
 
+* Feat: the 'kms' alias will now confirm importing a file if found
+  [#393](https://github.com/Kong/kong-pongo/pull/393).
+
 ---
 
 ## 2.6.0 released 23-Mar-2023
