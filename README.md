@@ -822,6 +822,9 @@ The result should be a new PR on the Pongo repo.
 * Feat: in a shell, add symlink `/rockstree` pointing to the LuaRocks tree
   [#402](https://github.com/Kong/kong-pongo/pull/402).
 
+* Feat: support disabling dependency health checks globally by setting ENV `SERVICE_DISABLE_HEALTHCHECK=true`
+  [#404](https://github.com/Kong/kong-pongo/pull/404).
+
 ---
 
 ## 2.6.0 released 23-Mar-2023
