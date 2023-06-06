@@ -618,7 +618,8 @@ function healthy {
 
   if [[ "${SERVICE_DISABLE_HEALTHCHECK}" == "true" ]]; then
       local wait=${SERVICE_DISABLE_HEALTHCHECK_WAIT:-5}
-      msg "Health checks disabled. Wait $wait seconds for $dep and continue .."
+      local logService=${dep:-$iid}
+      msg "Health checks disabled. Wait $wait seconds for $logService and continue .."
       sleep "$wait"
       return 0
   fi
