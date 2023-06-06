@@ -615,6 +615,14 @@ function compose {
 function healthy {
   local iid=$1
   [[ -z $iid ]] && return 1
+
+  if [[ "${SERVICE_DISABLE_HEALTHCHECK}" == "true" ]]; then
+      local wait=${SERVICE_DISABLE_HEALTHCHECK_WAIT:-5}
+      msg "Health checks disabled. Wait $wait seconds for $dep and continue .."
+      sleep "$wait"
+      return 0
+  fi
+
   local state
   state=$(docker inspect "$iid")
 
