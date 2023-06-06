@@ -364,7 +364,7 @@ for example
       - --username=kong
       disable: ${SERVICE_DISABLE_HEALTHCHECK:-false}
 ```
-Furthermore, if health checks disabled the `pongo.sh` will wait 5 seconds for any dependency to become healthy. This cae be adjusted setting the environment variable `SERVICE_DISABLE_HEALTHCHECK_WAIT`, additionally.
+Furthermore, if health checks are disabled the `pongo.sh` will wait 5 seconds for any dependency to become healthy. This can be adjusted setting the environment variable `SERVICE_DISABLE_HEALTHCHECK_WAIT`, additionally.
 
 ### Dependency troubleshooting
 
