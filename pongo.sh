@@ -71,7 +71,7 @@ function globals {
 
   NETWORK_NAME=pongo-test-network
   SERVICE_NETWORK_PREFIX="pongo-"
-  SERVICE_NETWORK_NAME=${SERVICE_NETWORK_PREFIX}${PROJECT_ID}
+  SERVICE_NETWORK_NAME=kong-pongo
 
   KONG_LICENSE_URL="https://download.konghq.com/internal/kong-gateway/license.json"
 
@@ -789,7 +789,7 @@ function pongo_down {
     PROJECT_NAME=${PROJECT_NAME_PREFIX}${PROJECT_ID}
     SERVICE_NETWORK_NAME=${SERVICE_NETWORK_PREFIX}${PROJECT_ID}
     compose down --remove-orphans
-  done < <(docker network ls --filter 'name='$SERVICE_NETWORK_PREFIX --format '{{.Name}}')
+  done < <(docker network ls --filter name=kong-pongo)
 
   PROJECT_ID=$p_id
   PROJECT_NAME=$p_name
@@ -1119,6 +1119,7 @@ function main {
 
     local busted_params=()
     local busted_files=()
+    local collect_coverage_report=false
     index=1
     for arg in "${EXTRA_ARGS[@]}"; do
       if [[ "$index" -lt "$files_start_index" ]]; then
@@ -1139,12 +1140,18 @@ function main {
 
     do_prerun_script
 
+    local coverage_report=""
+        if $collect_coverage_report; then
+          coverage_report="; cp /kong-plugin/.luacov /kong/.luacov; luacov; mkdir -p luacov-html; cp -R luacov-html /kong-plugin/; cp luacov.report.out /kong-plugin/"
+        fi
+
     compose run --rm --use-aliases \
       -e KONG_LICENSE_DATA \
       -e KONG_TEST_DONT_CLEAN \
+      -e KONG_TEST_PLUGIN_PATH \
       -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
       kong \
-      "$WINDOWS_SLASH/bin/bash" "-c" "bin/busted --helper=$WINDOWS_SLASH/pongo/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
+      "$WINDOWS_SLASH/bin/bash" "-c" "apk add nettle-dev; bin/busted --helper=$WINDOWS_SLASH/pongo/busted_helper.lua ${busted_params[*]} ${busted_files[*] ${coverage_report}"
     ;;
 
   shell)
