@@ -644,11 +644,6 @@ function wait_for_dependency {
   local iid
   local dep="$1"
 
-  if [[ "${SERVICE_DISABLE_HEALTHCHECK}" == "true" ]]; then
-    msg "Health checks disabled, won't wait for $dep .."
-    return 0
-  fi
-
   iid=$(cid "$dep")
 
   if healthy "$iid"; then return; fi
