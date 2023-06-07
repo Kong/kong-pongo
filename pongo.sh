@@ -617,11 +617,8 @@ function healthy {
   [[ -z $iid ]] && return 1
 
   if [[ "${SERVICE_DISABLE_HEALTHCHECK}" == "true" ]]; then
-      local wait=${SERVICE_DISABLE_HEALTHCHECK_WAIT:-5}
-      local logService=${dep:-$iid}
-      msg "Health checks disabled. Wait $wait seconds for $logService and continue .."
-      sleep "$wait"
-      return 0
+    msg "Health checks disabled, won't wait for $iid and continue .."
+    return 0
   fi
 
   local state
@@ -646,6 +643,11 @@ function cid {
 function wait_for_dependency {
   local iid
   local dep="$1"
+
+  if [[ "${SERVICE_DISABLE_HEALTHCHECK}" == "true" ]]; then
+    msg "Health checks disabled, won't wait for $dep .."
+    return 0
+  fi
 
   iid=$(cid "$dep")
 

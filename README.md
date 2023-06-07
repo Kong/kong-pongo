@@ -352,6 +352,7 @@ a `.pongo/pongorc` file for a plugin that only needs Postgres and Redis:
 [Back to ToC](#table-of-contents)
 
 ### Disable Service Health Checks
+
 When unable to leverage container health checks, they can be disabled setting the environment variable `SERVICE_DISABLE_HEALTHCHECK=true`
 This will disable the service health checks for the Pongo services in the docker composer files
 for example
@@ -364,7 +365,11 @@ for example
       - --username=kong
       disable: ${SERVICE_DISABLE_HEALTHCHECK:-false}
 ```
-Furthermore, if health checks are disabled the `pongo.sh` will wait 5 seconds for any dependency to become healthy. This can be adjusted setting the environment variable `SERVICE_DISABLE_HEALTHCHECK_WAIT`, additionally.
+To wait for the environment and run the tests one could run
+```
+export SERVICE_DISABLE_HEALTHCHECK=true
+pongo up && sleep 10 && pongo run
+```
 
 ### Dependency troubleshooting
 
