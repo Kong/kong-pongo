@@ -1220,7 +1220,7 @@ function main {
       -e ftp_proxy \
       -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
       kong \
-      "$WINDOWS_SLASH/bin/bash" "-c" "apk add nettle-dev; bin/busted --helper=$WINDOWS_SLASH/pongo/busted_helper.lua ${busted_params[*]} ${busted_files[*] ${coverage_report}"
+      "$WINDOWS_SLASH/bin/bash" "-c" "apk add nettle-dev; bin/busted --helper=$WINDOWS_SLASH/pongo/busted_helper.lua ${busted_params[*]} ${busted_files[*]} ${coverage_report}"
     ;;
 
   shell)
