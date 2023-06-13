@@ -33,7 +33,7 @@ Environment variables:
   SQUID_IMAGE      the Squid dependency to use (default sameersbn/squid:3.5.27-2)
   GRPCBIN_IMAGE    the Grpcbin dependency to use (default moul/grpcbin:latest)
   SERVICE_DISABLE_HEALTHCHECK
-                   set true to disable dependency health checks globally
+                   set to 'true' to disable dependency health checks globally
 Custom dependencies may have their own variables.
 
 

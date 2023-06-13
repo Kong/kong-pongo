@@ -616,8 +616,14 @@ function healthy {
   local iid=$1
   [[ -z $iid ]] && return 1
 
+  local name=$2
+  if [[ "$name" == "" ]]; then
+    # no name provided, use container id
+    name=$iid
+  fi
+
   if [[ "${SERVICE_DISABLE_HEALTHCHECK}" == "true" ]]; then
-    msg "Health checks disabled, won't wait for $iid and continue .."
+    msg "Health checks disabled, won't wait for '$name' to be healthy"
     return 0
   fi
 
@@ -627,6 +633,7 @@ function healthy {
   echo "$state" | grep \"Health\" &> /dev/null
   if [[ ! $? -eq 0 ]]; then
     # no healthcheck defined, assume healthy
+    msg "No health check available for '$name', assuming healthy"
     return 0
   fi
 
@@ -646,11 +653,11 @@ function wait_for_dependency {
 
   iid=$(cid "$dep")
 
-  if healthy "$iid"; then return; fi
+  if healthy "$iid" "$dep"; then return; fi
 
   msg "Waiting for $dep"
 
-  while ! healthy "$iid"; do
+  while ! healthy "$iid" "$dep"; do
     sleep 0.5
   done
 }
@@ -660,7 +667,7 @@ function compose_up {
   docker_login
   local dependency
   for dependency in ${KONG_DEPS_START[*]}; do
-    healthy "$(cid "$dependency")" || compose up -d "$dependency"
+    healthy "$(cid "$dependency")" "$dependency" || compose up -d "$dependency"
   done;
 }
 
@@ -832,7 +839,7 @@ function pongo_clean {
 
 function pongo_expose {
   local dependency="expose"
-  healthy "$(cid "$dependency")" || compose up -d "$dependency"
+  healthy "$(cid "$dependency")" "$dependency" || compose up -d "$dependency"
   wait_for_dependency "$dependency"
 }
 
