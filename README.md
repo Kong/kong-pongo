@@ -819,6 +819,9 @@ The result should be a new PR on the Pongo repo.
 * Feat: the 'kms' alias will now confirm importing a file if found
   [#393](https://github.com/Kong/kong-pongo/pull/393).
 
+* Feat: in a shell, add symlink `/rockstree` pointing to the LuaRocks tree
+  [#402](https://github.com/Kong/kong-pongo/pull/402).
+
 ---
 
 ## 2.6.0 released 23-Mar-2023
