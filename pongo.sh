@@ -167,18 +167,18 @@ function check_tools {
     missing=true
   fi
 
-  docker-compose -v > /dev/null 2>&1
+  docker compose > /dev/null 2>&1
   if [[ ! $? -eq 0 ]]; then
-    docker compose > /dev/null 2>&1
+    docker-compose -v > /dev/null 2>&1
     if [[ ! $? -eq 0 ]]; then
       >&2 echo "'docker-compose' and 'docker compose' commands not found, please upgrade docker or install docker-compose and make it available in the path."
       missing=true
     fi
-    # newer version; compose is a subcommand of docker
-    COMPOSE_COMMAND="docker compose"
-  else
     # old deprecated way; using docker-compose as a separate command
     COMPOSE_COMMAND="docker-compose"
+  else
+    # newer version; compose is a subcommand of docker
+    COMPOSE_COMMAND="docker compose"
   fi
 
   realpath . > /dev/null 2>&1
