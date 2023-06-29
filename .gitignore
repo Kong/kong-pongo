@@ -1,5 +1,7 @@
 kong-versions/nightly-ee/*
+kong-versions/dev-ee/*
 kong-versions/nightly/*
+kong-versions/dev/*
 servroot
 .pongo
 kong.yml
