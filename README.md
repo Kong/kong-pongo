@@ -810,6 +810,8 @@ The result should be a new PR on the Pongo repo.
 
 ## unreleased
 
+* Fix: issue with broken curl package on Alpine.
+
 * Fix: Apple recently started shipping `realpath` in their OS. But it doesn't support the
   `--version` flag, so it was not detected as installed.
 

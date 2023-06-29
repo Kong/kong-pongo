@@ -32,7 +32,8 @@ USER root
 # But that means hardcoding and that doesn't play well with the nature of Pongo
 # that should be independent of Kong versions.
 RUN apk update \
-    && apk add zip unzip make g++ py-pip jq git bsd-compat-headers m4 openssl-dev curl wget python3-dev shadow \
+    && apk add --upgrade curl \
+    && apk add zip unzip make g++ py-pip jq git bsd-compat-headers m4 openssl-dev wget python3-dev shadow \
     && curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin \
     && pip install httpie \
     ; cd /kong \
