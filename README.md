@@ -810,6 +810,8 @@ The result should be a new PR on the Pongo repo.
 
 ## unreleased
 
+* Feat: Kong Enterprise; 2.8.2.0, 2.8.2.1, 2.8.2.2, 2.8.2.3, 2.8.2.4, 2.8.4.0, 2.8.4.1
+
 * Fix: issue with broken curl package on Alpine.
 
 * Fix: Apple recently started shipping `realpath` in their OS. But it doesn't support the
