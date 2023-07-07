@@ -1,0 +1,33 @@
+-- This software is copyright Kong Inc. and its licensors.
+-- Use of the software is subject to the agreement between your organization
+-- and Kong Inc. If there is no such agreement, use is governed by and
+-- subject to the terms of the Kong Master Software License Agreement found
+-- at https://konghq.com/enterprisesoftwarelicense/.
+-- [ END OF LICENSE 0867164ffc95e54f04670b5169c09574bdbd9bba ]
+
+local typedefs = require "kong.db.schema.typedefs"
+
+-- TODO: At the moment this tests the happy case. Perhaps it could be extended to work
+--      even with unhappy cases, e.g. together with error-generator plugin. Or the plugin
+--      could be made to error by itself.
+return {
+  name = "ctx-tests",
+  fields = {
+    {
+      protocols = typedefs.protocols { default = { "http", "https", "tcp", "tls", "grpc", "grpcs" } },
+    },
+    {
+      config = {
+        type = "record",
+        fields = {
+          {
+            buffered = {
+              type = "boolean",
+              default = false,
+            },
+          }
+        },
+      },
+    },
+  },
+}
