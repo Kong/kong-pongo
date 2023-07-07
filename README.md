@@ -22,7 +22,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v2.6.0
+                   |___/  v2.7.0
 
 Usage: pongo action [options...] [--] [action options...]
 
@@ -832,7 +832,14 @@ The result should be a new PR on the Pongo repo.
 
 ---
 
-## 2.x.0 unreleased
+## 2.7.0 released 7-Jul-2023
+
+* Feat: Kong Enterprise 2.8.4.2, which means that Pongo 2.x will support the
+  Kong Enterprise 2.8.x.x LTS releases
+
+* Feat: Kong Enterprise 3.3.0.0
+
+* Feat: Kong OSS 3.3.0
 
 * Feat: add alias to enable authentication when in a Pongo shell
   [#392](https://github.com/Kong/kong-pongo/pull/392).
