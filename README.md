@@ -826,6 +826,7 @@ The result should be a new PR on the Pongo repo.
     * example where/how to make the change: https://github.com/Kong/kong-ee/pull/4156. Copy the to-do list from the PR description!
     * make sure it passes, adjust if required
  * merge the Pongo release branch, tag as `x.y.z`, and push the tag
+ * in Github UI create a release from the tag
  * update Kong-Enterprise PR (created in the first step)
     * Change the Pongo version to use to the newly released version of Pongo
     * remove "draft" status.
