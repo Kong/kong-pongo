@@ -146,6 +146,10 @@ services:
 
   kong:
     image: ${KONG_TEST_IMAGE:-ignore_if_not_provided}
+    ulimits:
+      core:
+        soft: -1
+        hard: -1
     environment:
       - KONG_CASSANDRA_CONTACT_POINTS=${SERVICE_NETWORK_NAME}-cassandra.${SERVICE_NETWORK_NAME}
       - KONG_PG_HOST=${SERVICE_NETWORK_NAME}-postgres.${SERVICE_NETWORK_NAME}
