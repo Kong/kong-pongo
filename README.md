@@ -440,7 +440,6 @@ the above `zipkin` example we create a file named `.pongo/zipkin.yml`.
         - wget
         - localhost:9411/health
         timeout: 10s
-        disable: ${SERVICE_DISABLE_HEALTHCHECK:-false}
       restart: on-failure
       stop_signal: SIGKILL
       networks:
@@ -516,7 +515,7 @@ the log to the Travis console.
 To directly access Kong from the host, or the datastores, the `pongo expose`
 command can be used to expose the internal ports to the host.
 
-This allows for example to connect to Postgres on port `5432` to validate
+This allows for example to connect to the Postgres on port `5432` to validate
 the contents of the database. Or when running `pongo shell` to manually
 start Kong, you can access all the regular Kong ports from the host, including
 the GUI's.
