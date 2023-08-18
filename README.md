@@ -22,7 +22,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v2.6.0
+                   |___/  v2.7.0
 
 Usage: pongo action [options...] [--] [action options...]
 
@@ -351,6 +351,26 @@ a `.pongo/pongorc` file for a plugin that only needs Postgres and Redis:
 
 [Back to ToC](#table-of-contents)
 
+### Disable Service Health Checks
+
+When unable to leverage container health checks, they can be disabled setting the environment variable `SERVICE_DISABLE_HEALTHCHECK=true`
+This will disable the service health checks for the Pongo services in the docker composer files
+for example
+```
+    healthcheck:
+      test:
+      - CMD
+      - pg_isready
+      - --dbname=kong_tests
+      - --username=kong
+      disable: ${SERVICE_DISABLE_HEALTHCHECK:-false}
+```
+To wait for the environment and run the tests one could run
+```
+export SERVICE_DISABLE_HEALTHCHECK=true
+pongo up && sleep 10 && pongo run
+```
+
 ### Dependency troubleshooting
 
 When dependency containers are causing trouble, the logs can be accessed using
@@ -412,6 +432,7 @@ the above `zipkin` example we create a file named `.pongo/zipkin.yml`.
         - wget
         - localhost:9411/health
         timeout: 10s
+        disable: ${SERVICE_DISABLE_HEALTHCHECK:-false}
       restart: on-failure
       stop_signal: SIGKILL
       networks:
@@ -487,7 +508,7 @@ the log to the Travis console.
 To directly access Kong from the host, or the datastores, the `pongo expose`
 command can be used to expose the internal ports to the host.
 
-This allows for example to connect to the Postgres on port `5432` to validate
+This allows for example to connect to Postgres on port `5432` to validate
 the contents of the database. Or when running `pongo shell` to manually
 start Kong, you can access all the regular Kong ports from the host, including
 the GUI's.
@@ -805,13 +826,21 @@ The result should be a new PR on the Pongo repo.
     * example where/how to make the change: https://github.com/Kong/kong-ee/pull/4156. Copy the to-do list from the PR description!
     * make sure it passes, adjust if required
  * merge the Pongo release branch, tag as `x.y.z`, and push the tag
+ * in Github UI create a release from the tag
  * update Kong-Enterprise PR (created in the first step)
     * Change the Pongo version to use to the newly released version of Pongo
     * remove "draft" status.
 
 ---
 
-## 2.x.0 unreleased
+## 2.7.0 released 7-Jul-2023
+
+* Feat: Kong Enterprise 2.8.4.2, which means that Pongo 2.x will support the
+  Kong Enterprise 2.8.x.x LTS releases
+
+* Feat: Kong Enterprise 3.3.0.0
+
+* Feat: Kong OSS 3.3.0
 
 * Feat: add alias to enable authentication when in a Pongo shell
   [#392](https://github.com/Kong/kong-pongo/pull/392).
@@ -821,6 +850,9 @@ The result should be a new PR on the Pongo repo.
 
 * Feat: in a shell, add symlink `/rockstree` pointing to the LuaRocks tree
   [#402](https://github.com/Kong/kong-pongo/pull/402).
+
+* Feat: support disabling dependency health checks globally by setting ENV `SERVICE_DISABLE_HEALTHCHECK=true`
+  [#404](https://github.com/Kong/kong-pongo/pull/404).
 
 ---
 
