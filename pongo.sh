@@ -167,18 +167,18 @@ function check_tools {
     missing=true
   fi
 
-  docker compose > /dev/null 2>&1
+  docker-compose -v > /dev/null 2>&1
   if [[ ! $? -eq 0 ]]; then
-    docker-compose -v > /dev/null 2>&1
+    docker compose > /dev/null 2>&1
     if [[ ! $? -eq 0 ]]; then
       >&2 echo "'docker-compose' and 'docker compose' commands not found, please upgrade docker or install docker-compose and make it available in the path."
       missing=true
     fi
-    # old deprecated way; using docker-compose as a separate command
-    COMPOSE_COMMAND="docker-compose"
-  else
     # newer version; compose is a subcommand of docker
     COMPOSE_COMMAND="docker compose"
+  else
+    # old deprecated way; using docker-compose as a separate command
+    COMPOSE_COMMAND="docker-compose"
   fi
 
   realpath . > /dev/null 2>&1
@@ -615,25 +615,12 @@ function compose {
 function healthy {
   local iid=$1
   [[ -z $iid ]] && return 1
-
-  local name=$2
-  if [[ "$name" == "" ]]; then
-    # no name provided, use container id
-    name=$iid
-  fi
-
-  if [[ "${SERVICE_DISABLE_HEALTHCHECK}" == "true" ]]; then
-    msg "Health checks disabled, won't wait for '$name' to be healthy"
-    return 0
-  fi
-
   local state
   state=$(docker inspect "$iid")
 
   echo "$state" | grep \"Health\" &> /dev/null
   if [[ ! $? -eq 0 ]]; then
     # no healthcheck defined, assume healthy
-    msg "No health check available for '$name', assuming healthy"
     return 0
   fi
 
@@ -653,11 +640,11 @@ function wait_for_dependency {
 
   iid=$(cid "$dep")
 
-  if healthy "$iid" "$dep"; then return; fi
+  if healthy "$iid"; then return; fi
 
   msg "Waiting for $dep"
 
-  while ! healthy "$iid" "$dep"; do
+  while ! healthy "$iid"; do
     sleep 0.5
   done
 }
@@ -667,7 +654,7 @@ function compose_up {
   docker_login
   local dependency
   for dependency in ${KONG_DEPS_START[*]}; do
-    healthy "$(cid "$dependency")" "$dependency" || compose up -d "$dependency"
+    healthy "$(cid "$dependency")" || compose up -d "$dependency"
   done;
 }
 
@@ -839,7 +826,7 @@ function pongo_clean {
 
 function pongo_expose {
   local dependency="expose"
-  healthy "$(cid "$dependency")" "$dependency" || compose up -d "$dependency"
+  healthy "$(cid "$dependency")" || compose up -d "$dependency"
   wait_for_dependency "$dependency"
 }
 
