@@ -21,6 +21,6 @@ then
   rm -rf /tmp/Python-$PYTHON_SRC_VERSION
 else
   echo Installing Python from package source
-  apt install -y python3 python3-pip
+  apt install -y python3 python3-pip --no-install-recommends
 fi
 echo "$(python3 --version) installed"
