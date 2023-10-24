@@ -788,7 +788,7 @@ function pongo_down {
   # if '--all' is passed then kill all environments, otherwise just current
   if [[ ! "$1" == "--all" ]]; then
     # just current env
-    compose down --remove-orphans
+    compose down --remove-orphans --volumes
     exit
   fi
 
@@ -801,7 +801,7 @@ function pongo_down {
     PROJECT_ID=${network: -8}
     PROJECT_NAME=${PROJECT_NAME_PREFIX}${PROJECT_ID}
     SERVICE_NETWORK_NAME=${SERVICE_NETWORK_PREFIX}${PROJECT_ID}
-    compose down --remove-orphans
+    compose down --remove-orphans --volumes
   done < <(docker network ls --filter 'name='$SERVICE_NETWORK_PREFIX --format '{{.Name}}')
 
   PROJECT_ID=$p_id
@@ -1081,7 +1081,7 @@ function main {
     ;;
 
   restart)
-    compose down --remove-orphans
+    compose down --remove-orphans --volumes
     compose_up
     ;;
 
