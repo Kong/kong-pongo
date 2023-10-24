@@ -22,7 +22,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v2.7.0
+                   |___/  v2.8.0
 
 Usage: pongo action [options...] [--] [action options...]
 
@@ -849,8 +849,49 @@ The result should be a new PR on the Pongo repo.
 * Fix: `pongo down` would not remove volumes. This
   caused orphaned volumes on long running VMs as well as on personal
   machines.
+  [#448](https://github.com/Kong/kong-pongo/pull/448).
+
 * Fix: drop the `--progress` flag from docker commands when building. Since
   the flag isn't always available.
+  [#449](https://github.com/Kong/kong-pongo/pull/449).
+
+* Feat: Kong Enterprise 3.4.1.1
+
+* Feat: Kong Enterprise 3.4.1.0
+
+* Feat: Kong Enterprise 3.4.0.0
+
+* Feat: Kong Enterprise 3.3.1.1
+
+* Feat: Kong Enterprise 3.3.1.0
+
+* Feat: Kong Enterprise 3.2.2.1
+
+* Feat: Kong Enterprise 3.2.2.2
+
+* Feat: Kong Enterprise 3.2.2.3
+
+* Feat: Kong Enterprise 3.2.2.4
+
+* Feat: Kong Enterprise 3.2.2.5
+
+* Feat: Kong Enterprise 3.1.1.6
+
+* Feat: Kong Enterprise 3.1.1.5
+
+* Feat: Kong Enterprise 2.8.4.4
+
+* Feat: Kong Enterprise 2.8.4.3
+
+* Feat: Kong OSS 3.4.2
+
+* Feat: Kong OSS 3.4.1
+
+* Feat: Kong OSS 3.4.0
+
+* Feat: Kong OSS 3.3.1
+
+* Feat: Kong OSS 2.8.4
 
 ---
 
