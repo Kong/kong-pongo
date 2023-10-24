@@ -812,6 +812,16 @@ The result should be a new PR on the Pongo repo.
 
 ---
 
+## unreleased
+
+* Fix: `pongo down` would not remove volumes. This
+  caused orphaned volumes on long running VMs as well as on personal
+  machines.
+* Fix: drop the `--progress` flag from docker commands when building. Since
+  the flag isn't always available.
+
+---
+
 ## 2.7.0 released 7-Jul-2023
 
 * Feat: Kong Enterprise 2.8.4.2, which means that Pongo 2.x will support the
