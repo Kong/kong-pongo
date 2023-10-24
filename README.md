@@ -844,7 +844,7 @@ The result should be a new PR on the Pongo repo.
 
 ---
 
-## unreleased
+## 2.8.0 released 24-Oct-2023
 
 * Fix: `pongo down` would not remove volumes. This
   caused orphaned volumes on long running VMs as well as on personal
