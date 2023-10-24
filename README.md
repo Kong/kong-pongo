@@ -838,6 +838,8 @@ The result should be a new PR on the Pongo repo.
 * Fix: `pongo down` would not remove volumes. This
   caused orphaned volumes on long running VMs as well as on personal
   machines.
+* Fix: drop the `--progress` flag from docker commands when building. Since
+  the flag isn't always available.
 
 ---
 
