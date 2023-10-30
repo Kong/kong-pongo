@@ -22,7 +22,13 @@
 
 ---
 
-## unreleased
+## 3.0.0 unreleased
+
+* BREAKING: `pongo expose` will no longer expose the Cassandra ports. This fixes
+  an [issue with ports in use](https://developer.apple.com/forums/thread/682332) on MacOS.
+  This will have an impact only if you use Cassandra AND directly access Cassandra
+  by exposing the ports using `pongo expose` and then connect to the Cassandra DB directly.
+  [#455](https://github.com/Kong/kong-pongo/pull/455).
 
 * Fix: include the Pongo version in the generated image names to prevent running
   older images after a Pongo upgrade. A new image will automatically be build now.
