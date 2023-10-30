@@ -844,6 +844,13 @@ The result should be a new PR on the Pongo repo.
 
 ---
 
+## unreleased
+
+* Fix: health-checks on Pongo container. Use proper prefix.
+  [#456](https://github.com/Kong/kong-pongo/pull/456).
+
+---
+
 ## 2.9.0 released 08-Nov-2023
 
 * Feat: Kong Enterprise 3.5.0.0
