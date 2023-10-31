@@ -41,7 +41,7 @@ ENV LUAROCKS_OPTS="CRYPTO_DIR=$LUAROCKS_CRYPTO_DIR OPENSSL_DIR=$LUAROCKS_OPENSSL
 # net-tools: provides `netstat`
 
 RUN apt update \
-    && apt install -y zip make jq m4 curl build-essential wget git libssl-dev zlib1g-dev lsb-release psmisc net-tools
+    && apt install -y zip make jq m4 curl build-essential wget git libssl-dev zlib1g-dev lsb-release psmisc net-tools nodejs npm
 RUN /pongo/install-python.sh
 RUN pip3 install httpie
 RUN curl -k -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
@@ -49,7 +49,8 @@ RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
     && make dependencies $LUAROCKS_OPTS \
     && luarocks install busted-htest \
-    && luarocks install luacov
+    && luarocks install luacov \
+    && luarocks install lua-resty-jwt
 
 
 # make sure resty, LuaJIT, and our custom Busted are in our path
