@@ -4,7 +4,7 @@
 
 function globals {
   # Project related global variables
-  PONGO_VERSION=2.7.0
+  PONGO_VERSION=2.8.0
 
   local script_path
   # explicitly resolve the link because realpath doesn't do it on Windows
@@ -365,7 +365,7 @@ function parse_args {
           args_done=1
           ;;
         --debug)
-          PONGO_DEBUG=true
+          # PONGO_DEBUG=true
           set -x
           ;;
         *)
@@ -726,15 +726,16 @@ function build_image {
   fi
 
   msg "starting build of image '$KONG_TEST_IMAGE'"
-  local progress_type
-  if [[ "$PONGO_DEBUG" == "true" ]] ; then
-    progress_type=plain
-  else
-    progress_type=auto
-  fi
+  # local progress_type
+  # if [[ "$PONGO_DEBUG" == "true" ]] ; then
+  #   progress_type=plain
+  # else
+  #   progress_type=auto
+  # fi
+  # The following line caused issues on newer Docker releases, so we're disabling it for now
+  # --progress $progress_type \
   $WINPTY_PREFIX docker build \
     -f "$DOCKER_FILE" \
-    --progress $progress_type \
     --build-arg PONGO_VERSION="$PONGO_VERSION" \
     --build-arg http_proxy \
     --build-arg https_proxy \
@@ -788,7 +789,7 @@ function pongo_down {
   # if '--all' is passed then kill all environments, otherwise just current
   if [[ ! "$1" == "--all" ]]; then
     # just current env
-    compose down --remove-orphans
+    compose down --remove-orphans --volumes
     exit
   fi
 
@@ -801,7 +802,7 @@ function pongo_down {
     PROJECT_ID=${network: -8}
     PROJECT_NAME=${PROJECT_NAME_PREFIX}${PROJECT_ID}
     SERVICE_NETWORK_NAME=${SERVICE_NETWORK_PREFIX}${PROJECT_ID}
-    compose down --remove-orphans
+    compose down --remove-orphans --volumes
   done < <(docker network ls --filter 'name='$SERVICE_NETWORK_PREFIX --format '{{.Name}}')
 
   PROJECT_ID=$p_id
@@ -1081,7 +1082,7 @@ function main {
     ;;
 
   restart)
-    compose down --remove-orphans
+    compose down --remove-orphans --volumes
     compose_up
     ;;
 

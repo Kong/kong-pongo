@@ -22,7 +22,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v2.7.0
+                   |___/  v2.8.0
 
 Usage: pongo action [options...] [--] [action options...]
 
@@ -198,10 +198,14 @@ Some more elaborate examples:
 ```shell
 # Run against a specific version of Kong and pass
 # a number of Busted options
-KONG_VERSION=0.36-1 pongo run -v -o gtest ./spec
+KONG_VERSION=3.2.2 pongo run -- -v -o gtest ./spec
 
 # Run against the latest patch version of a Kong release using '.x'
-KONG_VERSION=1.2.x pongo run -v -o gtest ./spec
+KONG_VERSION=3.4.x pongo run
+
+# Run against the latest stable version, using special label 'stable'
+# (available labels are: 'stable', 'stable-ee', 'dev', and 'dev-ee')
+KONG_VERSION=stable pongo run
 
 # Run against a local image of Kong
 KONG_IMAGE=kong-ee pongo run ./spec
@@ -613,7 +617,10 @@ After the test run the output files `luacov.*.out` files should be available.
 Pongo is easily added to a CI setup. The examples below will asume Travis-CI, but
 can be easily converted to other engines.
 
-**Note**: if your engine of preference runs itself in Docker, then checkout [Pongo in Docker](#running-pongo-in-docker).
+**Note:**
+
+* For Github the best option is to use [the Pongo Github Action](https://github.com/Kong/kong-pongo-action)
+* if your engine of preference runs itself in Docker, then checkout [Pongo in Docker](#running-pongo-in-docker).
 
 Here's a base setup for an open-source plugin that will test against 2 Kong versions:
 ```yaml
@@ -623,10 +630,12 @@ dist: bionic
 
 jobs:
   include:
-  - name: Kong CE 2.0.x
-    env: KONG_VERSION=2.0.x
-  - name: Kong CE 1.5.x
-    env: KONG_VERSION=1.5.x
+  - name: Kong CE 3.3.x
+    env: KONG_VERSION=3.3.x
+  - name: Kong CE 3.4.x
+    env: KONG_VERSION=3.4.x
+  - name: Kong CE development
+    env: KONG_VERSION=dev
 
 install:
 - git clone --single-branch https://github.com/Kong/kong-pongo ../kong-pongo
@@ -653,6 +662,8 @@ jobs:
   - name: Kong master-branch
     env: KONG_VERSION=dev
 ```
+
+**Note**: there is also a "`dev-ee`" label, but that is for Kong internal use only.
 
 [Back to ToC](#table-of-contents)
 
@@ -830,6 +841,57 @@ The result should be a new PR on the Pongo repo.
  * update Kong-Enterprise PR (created in the first step)
     * Change the Pongo version to use to the newly released version of Pongo
     * remove "draft" status.
+
+---
+
+## 2.8.0 released 24-Oct-2023
+
+* Fix: `pongo down` would not remove volumes. This
+  caused orphaned volumes on long running VMs as well as on personal
+  machines.
+  [#448](https://github.com/Kong/kong-pongo/pull/448).
+
+* Fix: drop the `--progress` flag from docker commands when building. Since
+  the flag isn't always available.
+  [#449](https://github.com/Kong/kong-pongo/pull/449).
+
+* Feat: Kong Enterprise 3.4.1.1
+
+* Feat: Kong Enterprise 3.4.1.0
+
+* Feat: Kong Enterprise 3.4.0.0
+
+* Feat: Kong Enterprise 3.3.1.1
+
+* Feat: Kong Enterprise 3.3.1.0
+
+* Feat: Kong Enterprise 3.2.2.1
+
+* Feat: Kong Enterprise 3.2.2.2
+
+* Feat: Kong Enterprise 3.2.2.3
+
+* Feat: Kong Enterprise 3.2.2.4
+
+* Feat: Kong Enterprise 3.2.2.5
+
+* Feat: Kong Enterprise 3.1.1.6
+
+* Feat: Kong Enterprise 3.1.1.5
+
+* Feat: Kong Enterprise 2.8.4.4
+
+* Feat: Kong Enterprise 2.8.4.3
+
+* Feat: Kong OSS 3.4.2
+
+* Feat: Kong OSS 3.4.1
+
+* Feat: Kong OSS 3.4.0
+
+* Feat: Kong OSS 3.3.1
+
+* Feat: Kong OSS 2.8.4
 
 ---
 
