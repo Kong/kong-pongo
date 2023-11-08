@@ -22,7 +22,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v2.8.0
+                   |___/  v2.9.0
 
 Usage: pongo action [options...] [--] [action options...]
 
@@ -841,6 +841,14 @@ The result should be a new PR on the Pongo repo.
  * update Kong-Enterprise PR (created in the first step)
     * Change the Pongo version to use to the newly released version of Pongo
     * remove "draft" status.
+
+---
+
+## 2.9.0 released 08-Nov-2023
+
+* Feat: Kong Enterprise 3.5.0.0
+
+* Feat: Kong OSS 3.5.0
 
 ---
 
