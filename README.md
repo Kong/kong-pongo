@@ -848,6 +848,8 @@ The result should be a new PR on the Pongo repo.
 
 * Fix: health-checks on Pongo container. Use proper prefix.
   [#456](https://github.com/Kong/kong-pongo/pull/456).
+* Feat: support access to host runner's services.
+  [#473](https://github.com/Kong/kong-pongo/pull/473).
 
 ---
 

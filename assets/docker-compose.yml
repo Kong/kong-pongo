@@ -162,6 +162,8 @@ services:
       - --prefix=/kong-plugin/servroot/
       timeout: 10s
       disable: ${SERVICE_DISABLE_HEALTHCHECK:-false}
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
     networks:
       pongo-test-network:
         aliases:
