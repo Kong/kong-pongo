@@ -112,7 +112,7 @@ function globals {
 
   # development EE images repo, these require to additionally set the credentials
   # in $DOCKER_USERNAME and $DOCKER_PASSWORD
-  DEVELOPMENT_EE_TAG="kong/kong-gateway-internal:master-ubuntu"
+  DEVELOPMENT_EE_TAG="kong/kong-gateway-dev:master-ubuntu"
 
   # development CE images, these are public, no credentials needed
   DEVELOPMENT_CE_TAG="kong/kong:master-ubuntu"
@@ -457,16 +457,7 @@ function get_image {
       image=$DEVELOPMENT_EE_TAG
       docker pull "$image"
       if [[ ! $? -eq 0 ]]; then
-        warn "failed to pull the Kong Enterprise development image, retrying with login..."
-        check_secret_availability "$image"
-        docker_login_ee
-        docker pull "$image"
-        if [[ ! $? -eq 0 ]]; then
-          docker logout
-          err "failed to pull: $image"
-        fi
-        msg "pull with login succeeded"
-        docker logout
+        err "failed to pull: $image"
       fi
     fi
 
