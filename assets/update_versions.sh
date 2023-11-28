@@ -172,11 +172,13 @@ function update_artifacts {
 function update_development {
     # $1 must be the requested version: the "DEV" special cases
     # $2 must be the commit id
+    # $3 must be 1 for Kong Enterprise
     VERSION=$1
     COMMIT=$2
+    IS_ENTERPRISE=$3
 
     local repo
-    if is_enterprise "$VERSION"; then
+    if [[ $IS_ENTERPRISE == 1 ]]; then
       repo=kong-ee
     else
       repo=kong
