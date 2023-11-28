@@ -163,8 +163,7 @@ git pull
 Several environment variables are available for configuration:
 
 * Docker credentials; `DOCKER_USERNAME` and `DOCKER_PASSWORD` to prevent rate-
-  limits when pulling images, but also for testing against older Kong Enterprise
-  images that are not publicly available.
+  limits when pulling images.
 * Kong license; set `KONG_LICENSE_DATA` with the Enterprise license to enable
   Enterprise features.
 * Specify a custom image; set the image name/tag in `KONG_IMAGE` and make sure
@@ -733,10 +732,7 @@ need to set it)
 
 ### CI with Kong Enterprise development
 
-**Note: this is NOT publicly available, only Kong internal**
-
-This build will also require a CRON job to build on a daily basis, but also
-requires additional credentials to access the Kong Enterprise master image.
+This build will also require a CRON job to build on a daily basis.
 To build against the Enterprise master, the version can be specified as
 `dev-ee`, as given in this example:
 
@@ -746,10 +742,6 @@ jobs:
   - name: Kong Enterprise master-branch
     env: KONG_VERSION=dev-ee
 ```
-
-For this to work the following variables must be present:
-- `DOCKER_USERNAME=<your_docker_username>`
-- `DOCKER_PASSWORD<your_docker_password>`
 
 At least the api-key must be encrypted as a secret. Follow the instructions above
 to encrypt and add them to the `.travis.yml` file.
