@@ -116,9 +116,6 @@ Example usage:
  - [Test initialization](#test-initialization)
  - [Test coverage](#test-coverage)
  - [Setting up CI](#setting-up-ci)
-     - [CI against development builds](#ci-against-development-builds)
-     - [CI with Kong Enterprise](#ci-with-kong-enterprise)
-     - [CI with Kong Enterprise development](#ci-with-kong-enterprise-development)
  - [Running Pongo in Docker](#running-pongo-in-docker)
  - [Releasing new Kong versions](#releasing-new-kong-versions)
  - [Changelog](#changelog)
@@ -128,7 +125,7 @@ Example usage:
 Tools Pongo needs to run:
 * `docker-compose` (and hence `docker`)
 * `curl`
-* `realpath`, for MacOS you need the [`coreutils`](https://www.gnu.org/software/coreutils/coreutils.html)
+* `realpath`, for older MacOS versions you need the [`coreutils`](https://www.gnu.org/software/coreutils/coreutils.html)
   to be installed. This is easiest via the [Homebrew package manager](https://brew.sh/) by doing:
   ```
   brew install coreutils
@@ -221,10 +218,12 @@ pongo down
 
 ## Pongo on Windows
 
-Beta: Pongo should run in Git-BASH if you have [Git for Windows](https://gitforwindows.org/)
-installed (and Docker for Windows). Please report any issues.
+Pongo should run in Git-BASH if you have [Git for Windows](https://gitforwindows.org/)
+installed (and Docker for Windows).
 
-To run Pongo on Windows you can use [WSL2](https://docs.microsoft.com/windows/wsl/)
+### using WSL2
+
+An alternative to run Pongo on Windows is [WSL2](https://docs.microsoft.com/windows/wsl/)
 (Windows Subsystem for Linux).
 
 * install WSL2
@@ -613,145 +612,64 @@ After the test run the output files `luacov.*.out` files should be available.
 
 ## Setting up CI
 
-Pongo is easily added to a CI setup. The examples below will asume Travis-CI, but
+Pongo is easily added to a CI setup. The examples below will assume Github Actions, but
 can be easily converted to other engines.
-
-**Note:**
 
 * For Github the best option is to use [the Pongo Github Action](https://github.com/Kong/kong-pongo-action)
 * if your engine of preference runs itself in Docker, then checkout [Pongo in Docker](#running-pongo-in-docker).
+* to test against development images add a job with `KONG_VERSION=dev`,
 
-Here's a base setup for an open-source plugin that will test against 2 Kong versions:
+**Note:** there is also a "`dev-ee`" for Kong Enterprise. But this requires a GitHub access token to
+fetch the Kong Enterprise source code, and must be specified as a `GITHUB_TOKEN` environment variable.
+
+Here's a base setup for a plugin that will test against multiple Kong versions:
 ```yaml
-# .travis.yml
+# .github/workflows/test.yml
 
-dist: bionic
+name: "Test"
+
+concurrency:
+  group: ${{ github.workflow }} ${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+on:
+  pull_request: {}
+  push:
+    branches:
+    - master
+  schedule:
+  - cron: '0 0 * * *'  # every day at midnight, to test against development
 
 jobs:
-  include:
-  - name: Kong CE 3.3.x
-    env: KONG_VERSION=3.3.x
-  - name: Kong CE 3.4.x
-    env: KONG_VERSION=3.4.x
-  - name: Kong CE development
-    env: KONG_VERSION=dev
+  test:
+    runs-on: ubuntu-latest
 
-install:
-- git clone --single-branch https://github.com/Kong/kong-pongo ../kong-pongo
-- "../kong-pongo/pongo.sh up"
-- "../kong-pongo/pongo.sh build"
+    strategy:
+      fail-fast: false
+      matrix:
+        kongVersion:
+        - "2.8.x"
+        - "3.5.x"
+        - "dev"
+        - "3.5.0.x"
+        #- "dev-ee"    # Kong internal only, requires access to source code
 
-script:
-- "../kong-pongo/pongo.sh lint"
-- "../kong-pongo/pongo.sh run"
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: Kong/kong-pongo-action@v1
+      with:
+        pongo_version: master
+        kong_version: ${{ matrix.kongVersion }}
+        # Kong internal users can use the Kong/kong-license action to get the license
+        license: ${{ secrets.KONG_LICENSE_DATA }}
+
+    - run: pongo run
+
 ```
 
 [Back to ToC](#table-of-contents)
 
-### CI against development builds
-
-To test against development builds, the CRON option for Travis-CI should be configured.
-This will trigger a daily test-run.
-
-In the test matrix add a job with `KONG_VERSION=dev`, like this:
-
-```yaml
-jobs:
-  include:
-  - name: Kong master-branch
-    env: KONG_VERSION=dev
-```
-
-**Note**: there is also a "`dev-ee`" label, but that is for Kong internal use only.
-
-[Back to ToC](#table-of-contents)
-
-### CI with Kong Enterprise
-
-To test against an Enterprise version of Kong the same base setup can be used, but
-some secrets need to be added. With the secrets in place Pongo will be able to
-download the proper Kong Enterprise images and license keys. See [Configuration](#configuration)
-for details on the environment variables.
-
-The environment variables:
-- `DOCKER_USERNAME=<your_docker_username>`
-- `DOCKER_PASSWORD=<your_docker_password>`
-- `KONG_LICENSE_DATA=<your_license_data>`
-
-Kong internal only:
-- `PULP_USERNAME=<your_pulp_username>` (Optional, if KONG_LICENSE_DATA not set)
-- `PULP_PASSWORD=<your_pulp_password>` (Optional, if KONG_LICENSE_DATA not set)
-
-To test the Pulp values try the following command, if succesful it will display
-your license key:
-```
-$ curl -L -u"$PULP_USERNAME:$PULP_PASSWORD" "https://download.konghq.com/internal/kong-gateway/license.json"
-```
-
-Once the test command is succesful you can add the secrets to the Travis-CI
-configuration. To add those secrets install the
-[Travis command line utility](https://github.com/travis-ci/travis.rb), and
-follow these steps:
-- Copy the `.travis.yml` file above into your plugin repo
-- Enter the main directory of your plugins repo
-- Add the encrypted values by doing:
-
-  - `travis encrypt --pro DOCKER_USERNAME=<your_docker_username> --add`
-  - `travis encrypt --pro DOCKER_PASSWORD=<your_docker_password> --add`
-  - `travis encrypt --pro KONG_LICENSE_DATA=<your_license_data> --add`
-  - `travis encrypt --pro PULP_USERNAME=<your_pulp_username> --add`
-  - `travis encrypt --pro PULP_PASSWORD=<your_pulp_password> --add`
-
-After completing the steps above, the `.travis.yml` file should now be updated
-and have this additional section:
-
-```yaml
-env:
-  global:
-  - PONGO_SECRETS_AVAILABLE=$TRAVIS_SECURE_ENV_VARS
-  - secure: Xa6htQZoS/4K...and some more gibberish
-  - secure: o8VSj7hFGm2L...and some more gibberish
-  - secure: nQDng6c5xIBJ...and some more gibberish
-```
-
-Now you can update the `jobs` section and add Kong Enterprise version numbers.
-
-**Note**: the variable PONGO_SECRETS_AVAILABLE works the same as [TRAVIS_SECURE_ENV_VARS](https://docs.travis-ci.com/user/environment-variables/#default-environment-variables).
-If you receive PR's from outside your organization, then the secrets will not be
-available on a CI run, this will cause the build to always fail. If you set this
-variable to `false` then Pongo will print only a warning and exit with success.
-Effectively this means that external PR's are only tested against Kong opensource
-versions, and internal PR's will be tested against opensource and Enterprise
-versions of Kong.
-
-(It is mentioned for completeness in the example above, since Pongo will
-automatically fall back on the Travis-CI variable, on other CI engines you will
-need to set it)
-
-[Back to ToC](#table-of-contents)
-
-### CI with Kong Enterprise development
-
-This build will also require a CRON job to build on a daily basis.
-To build against the Enterprise master, the version can be specified as
-`dev-ee`, as given in this example:
-
-```yaml
-jobs:
-  include:
-  - name: Kong Enterprise master-branch
-    env: KONG_VERSION=dev-ee
-```
-
-At least the api-key must be encrypted as a secret. Follow the instructions above
-to encrypt and add them to the `.travis.yml` file.
-
-For the development builds Pongo needs to pull the Kong-EE source. If the repo
-under test does not have access, then a valid GitHub access token is also
-required to refresh the Kong Enterprise code, and must be specified as a
-`GITHUB_TOKEN` environment variable.
-
-[Back to ToC](#table-of-contents)
 
 ## Running Pongo in Docker
 
