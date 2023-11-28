@@ -98,9 +98,10 @@ function globals {
   KONG_EE_TAG_PREFIX="kong/kong-gateway:"
   KONG_EE_TAG_POSTFIX="-ubuntu"
 
-  # all Kong Enterprise images repo (tag is build as $PREFIX$VERSION$POSTFIX).
-  KONG_EE_PRIVATE_TAG_PREFIX="kong/kong-gateway-private:"
-  KONG_EE_PRIVATE_TAG_POSTFIX="-ubuntu"
+  # # all Kong Enterprise images repo (tag is build as $PREFIX$VERSION$POSTFIX).
+  # # these are private, credentials are needed
+  # KONG_EE_PRIVATE_TAG_PREFIX="kong/kong-gateway-private:"
+  # KONG_EE_PRIVATE_TAG_POSTFIX="-ubuntu"
 
   # regular Kong CE images repo (tag is build as $PREFIX$VERSION$POSTFIX)
   KONG_OSS_TAG_PREFIX="kong:"
@@ -110,8 +111,7 @@ function globals {
   KONG_OSS_UNOFFICIAL_TAG_PREFIX="kong/kong:"
   KONG_OSS_UNOFFICIAL_TAG_POSTFIX="-ubuntu"
 
-  # development EE images repo, these require to additionally set the credentials
-  # in $DOCKER_USERNAME and $DOCKER_PASSWORD
+  # development EE images repo, these are public, no credentials needed
   DEVELOPMENT_EE_TAG="kong/kong-gateway-dev:master-ubuntu"
 
   # development CE images, these are public, no credentials needed
@@ -475,17 +475,19 @@ function get_image {
       if [[ ! $? -eq 0 ]]; then
         warn "failed to pull image $image."
 
-        if is_enterprise "$KONG_VERSION"; then
-            # failed to pull EE image, so try the fallback to the private repo
-            image=$KONG_EE_PRIVATE_TAG_PREFIX$KONG_VERSION$KONG_EE_PRIVATE_TAG_POSTFIX
-            docker_login_ee
-            docker pull "$image"
-            if [[ ! $? -eq 0 ]]; then
-              docker logout
-              err "failed to pull: $image"
-            fi
-            docker logout
-        else
+        # TODO: if this is no longer required, we can remove the whole, but let's
+        #       give it a couple of months, to see if it is still needed. (dd 28-nov-2023)
+        # if is_enterprise "$KONG_VERSION"; then
+        #     # failed to pull EE image, so try the fallback to the private repo
+        #     image=$KONG_EE_PRIVATE_TAG_PREFIX$KONG_VERSION$KONG_EE_PRIVATE_TAG_POSTFIX
+        #     docker_login_ee
+        #     docker pull "$image"
+        #     if [[ ! $? -eq 0 ]]; then
+        #       docker logout
+        #       err "failed to pull: $image"
+        #     fi
+        #     docker logout
+        # else
           # failed to pull CE image, so try the fallback
           # NOTE: new releases take a while (days) to become available in the
           # official docker hub repo. Hence we fall back on the unofficial Kong
@@ -498,7 +500,7 @@ function get_image {
             err "failed to pull: $image"
           fi
           msg "pulling unofficial image succeeded"
-        fi
+        # fi
       fi
     fi
   fi
