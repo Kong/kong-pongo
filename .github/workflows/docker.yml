@@ -5,6 +5,9 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 on:
+  pull_request:
+    paths-ignore:
+      - "*.md"
   push:
     branches:
       - master
