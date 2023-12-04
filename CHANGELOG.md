@@ -27,6 +27,10 @@
 * Fix: health-checks on Pongo container. Use proper prefix.
   [#456](https://github.com/Kong/kong-pongo/pull/456).
 
+* Fix: version resolving, EE versions have 2 patch versions, now Pongo will resolve
+  them both. So 3.4.1.x now resolves to latest within 3.4, being 3.4.2.0.
+  [#477](https://github.com/Kong/kong-pongo/pull/477).
+
 * Feat: support access to host runner's services.
   [#473](https://github.com/Kong/kong-pongo/pull/473).
 

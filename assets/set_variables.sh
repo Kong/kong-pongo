@@ -128,12 +128,28 @@ function resolve_version {
     # resolve trailing "x" to proper version
     local new_version=$KONG_VERSION
     local entry
-    for entry in ${KONG_VERSIONS[*]}; do
-      if [[ "${KONG_VERSION:0:${#KONG_VERSION}-1}" == "${entry:0:${#entry}-1}" ]]; then
-        # keep replacing, last one wins
-        new_version=$entry
-      fi
-    done;
+
+    local segments
+    segments=$(( $(echo "$KONG_VERSION" | tr -cd '.' | wc -c) + 1 ))
+
+    if ((segments == 4)); then
+      # this is a 4 segment version, which means it is an EE version.
+      # For an EE version we need to resolve the last 2 segments
+      for entry in ${KONG_VERSIONS[*]}; do
+        if [[ "${KONG_VERSION:0:${#KONG_VERSION}-3}" == "${entry:0:${#entry}-3}" ]]; then
+          # keep replacing, last one wins
+          new_version=$entry
+        fi
+      done;
+    else
+      # this should then be an OSS version
+      for entry in ${KONG_VERSIONS[*]}; do
+        if [[ "${KONG_VERSION:0:${#KONG_VERSION}-1}" == "${entry:0:${#entry}-1}" ]]; then
+          # keep replacing, last one wins
+          new_version=$entry
+        fi
+      done;
+    fi
     if [[ "$new_version" == "$KONG_VERSION" ]]; then
       warn "Could not resolve Kong version: '$KONG_VERSION'"
     else
