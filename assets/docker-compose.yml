@@ -170,4 +170,3 @@ services:
           - ${SERVICE_NETWORK_NAME}-kong.${SERVICE_NETWORK_NAME}
     volumes:
       - ${PONGO_WD}:/kong-plugin
-      - ${PONGO_WD}/servroot/logs:/kong-prefix/logs
