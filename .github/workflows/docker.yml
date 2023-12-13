@@ -28,6 +28,7 @@ jobs:
     - uses: Kong/kong-license@master
       with:
         password: ${{ secrets.PULP_PASSWORD }}
+        op-token: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
 
     - name: Install
       run: |
