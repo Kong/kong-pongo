@@ -25,6 +25,14 @@ function globals {
 
   DOCKER_FILE=${PONGO_DOCKER_FILE:-$LOCAL_PATH/assets/Dockerfile}
   DOCKER_COMPOSE_FILES="-f ${LOCAL_PATH}/assets/docker-compose.yml"
+  # macOS or WSL working on a drvfs mount doesn't support named pipes or Unix Domain Socket
+  if [ "$(uname -s)" == "Darwin" ] || ! (rm -f .pongo_test.sock; mkfifo .pongo_test.sock) 2>/dev/null; then
+    rm -f .pongo_test.sock
+    DOCKER_COMPOSE_FILES="$DOCKER_COMPOSE_FILES -f ${LOCAL_PATH}/assets/docker-compose-nonlinux-extend.yml"
+  else
+    DOCKER_COMPOSE_FILES="$DOCKER_COMPOSE_FILES -f ${LOCAL_PATH}/assets/docker-compose-linux-extend.yml"
+  fi
+
   IMAGE_BASE_NAME=kong-pongo-test
 
   # the path where the plugin source is located, as seen from Pongo (this script)
