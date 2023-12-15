@@ -3,3 +3,6 @@ kong-versions/dev/*
 servroot
 .pongo
 kong.yml
+kong.yaml
+kong.json
+assets/ci/kong-plugin
