@@ -1,6 +1,0 @@
-version: '3.5'
-
-services:
-  kong:
-    volumes:
-      - ${PONGO_WD}/servroot:/kong-prefix
