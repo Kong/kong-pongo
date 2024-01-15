@@ -3,7 +3,7 @@
 # will (re)start Kong with a clean database, and an optional imported config
 
 kong stop
-kong migrations bootstrap --force
+kong migrations bootstrap --force || exit 1
 
 echo ''
 unset KMS_FILENAME
