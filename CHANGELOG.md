@@ -27,6 +27,10 @@
 * Fix: kms alias will exit when starting Kong fails.
   [#503](https://github.com/Kong/kong-pongo/pull/503).
 
+* Feat: add automatic reloads for interactive shells. This will watch plugin files as
+  well as the dbless config file and reload upon changes.
+  [#504](https://github.com/Kong/kong-pongo/pull/504).
+
 * Fix: health-checks on Pongo container. Use proper prefix.
   [#456](https://github.com/Kong/kong-pongo/pull/456).
 

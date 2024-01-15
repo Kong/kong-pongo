@@ -15,6 +15,17 @@ if [ -d /usr/local/share/lua/5.1/ ]; then
   ln -s /usr/local/share/lua/5.1/ /rockstree
 fi
 
+# enable the dbless-reload plugin for auto reloading on plugin/config changes
+if [ "$KONG_PLUGINS" != "" ]; then
+  export KONG_PLUGINS=$KONG_PLUGINS,dbless-reload
+else
+  export KONG_PLUGINS=dbless-reload
+fi
+echo "Kong auto-reload is enabled for custom-plugins and dbless-configurations. Once you"
+echo "have started Kong, it will automatically reload to reflect any changes in the files."
+echo "Use 'pongo tail' on the host to verify, or do 'export KONG_RELOAD_CHECK_INTERVAL=0' in"
+echo "this shell to disable it."
+
 # We want this to output without expanding variables
 # shellcheck disable=SC2016
 echo 'PS1="\[\e[00m\]\[\033[1;34m\][$PS1_KONG_VERSION:\[\e[91m\]$PS1_REPO_NAME\$(/pongo/parse_git_branch.sh)\[\033[1;34m\]:\[\033[1;92m\]\w\[\033[1;34m\]]$\[\033[00m\] "' >> /root/.bashrc

@@ -49,7 +49,8 @@ RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
     && make dependencies $LUAROCKS_OPTS \
     && luarocks install busted-htest \
-    && luarocks install luacov
+    && luarocks install luacov \
+    && luarocks install kong-plugin-dbless-reload 0.1.0
 
 
 # make sure resty, LuaJIT, and our custom Busted are in our path
