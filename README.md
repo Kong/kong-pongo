@@ -3,10 +3,6 @@
 [![Lint](https://github.com/Kong/kong-pongo/workflows/Lint/badge.svg)](https://github.com/Kong/kong-pongo/actions/workflows/lint.yml)
 [![SemVer](https://img.shields.io/github/v/tag/Kong/kong-pongo?color=brightgreen&label=SemVer&logo=semver&sort=semver)](CHANGELOG.md)
 
-| :exclamation:  Important compatibility notes |
-|:---------------------------|
-| Pongo has been switched from non-versioned to versioned on 17-Mar-2022. On 20-Oct-2022 version 2.0.0 was pushed to `master` and released. This means that breaking changes were introduced on `master`. If you experience failures, then either pin your Pongo version to 1.x or [upgrade](#upgrading) |
-
 # pongo
 
 Pongo provides a simple way of testing Kong plugins. For a complete walkthrough
