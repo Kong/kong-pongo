@@ -24,6 +24,9 @@
 
 ## unreleased
 
+* Fix: kms alias will exit when starting Kong fails.
+  [#503](https://github.com/Kong/kong-pongo/pull/503).
+
 * Fix: health-checks on Pongo container. Use proper prefix.
   [#456](https://github.com/Kong/kong-pongo/pull/456).
 
