@@ -139,6 +139,10 @@ git clone https://github.com/Kong/kong-pongo.git
 mkdir -p ~/.local/bin
 ln -s $(realpath kong-pongo/pongo.sh) ~/.local/bin/pongo
 ```
+### Proxies
+
+When Pongo builds images, it might fail when it is behind proxies and cannot verify the certificates. See [configuration](#configuration)
+on how to disable verification.
 
 ## Update
 
@@ -161,6 +165,10 @@ Several environment variables are available for configuration:
   Enterprise features.
 * Specify a custom image; set the image name/tag in `KONG_IMAGE` and make sure
   the image is locally available
+* When the variable `PONGO_INSECURE` is set to anything else than `'false'`, it
+  will configure curl and git (during the build) to switch off ssl verification.
+  Please ensure you understand the security consequences when using this option!
+  See also `pongo build --help`.
 
 For Kong-internal use there are some additional variables:
 

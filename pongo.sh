@@ -744,6 +744,7 @@ function build_image {
     --build-arg https_proxy="$https_proxy" \
     --build-arg ftp_proxy="$ftp_proxy" \
     --build-arg no_proxy="$no_proxy" \
+    --build-arg PONGO_INSECURE="$PONGO_INSECURE" \
     --build-arg KONG_BASE="$KONG_IMAGE" \
     --build-arg KONG_DEV_FILES="./kong-versions/$VERSION/kong" \
     --tag "$KONG_TEST_IMAGE" \
