@@ -367,6 +367,7 @@ function parse_args {
         --debug)
           # PONGO_DEBUG=true
           set -x
+          export BUILDKIT_PROGRESS=plain
           ;;
         *)
           handle_dep_arg "$pongo_arg" || EXTRA_ARGS+=("$pongo_arg")
@@ -719,14 +720,6 @@ function build_image {
   fi
 
   msg "starting build of image '$KONG_TEST_IMAGE'"
-  # local progress_type
-  # if [[ "$PONGO_DEBUG" == "true" ]] ; then
-  #   progress_type=plain
-  # else
-  #   progress_type=auto
-  # fi
-  # The following line caused issues on newer Docker releases, so we're disabling it for now
-  # --progress $progress_type \
   $WINPTY_PREFIX docker build \
     -f "$DOCKER_FILE" \
     --build-arg PONGO_VERSION="$PONGO_VERSION" \
