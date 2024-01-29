@@ -24,6 +24,9 @@
 
 ## unreleased
 
+* Fix: the --debug option will now output full buildlogs again using buildkit
+  [#513](https://github.com/Kong/kong-pongo/pull/513).
+
 * Fix: kms alias will exit when starting Kong fails.
   [#503](https://github.com/Kong/kong-pongo/pull/503).
 
