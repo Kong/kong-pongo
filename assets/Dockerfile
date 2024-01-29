@@ -37,6 +37,11 @@ ENV LUAROCKS_OPENSSL_DIR=$KONG_LIBRARY_PREFIX
 
 ENV LUAROCKS_OPTS="CRYPTO_DIR=$LUAROCKS_CRYPTO_DIR OPENSSL_DIR=$LUAROCKS_OPENSSL_DIR"
 
+ARG http_proxy
+ARG https_proxy
+ARG no_proxy
+ARG ftp_proxy
+
 # psmisc: provides `fuser`
 # net-tools: provides `netstat`
 

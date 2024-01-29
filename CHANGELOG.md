@@ -30,6 +30,9 @@
 * Fix: kms alias will exit when starting Kong fails.
   [#503](https://github.com/Kong/kong-pongo/pull/503).
 
+* Fix: proxy config will be passed upon build and again on run.
+  [#514](https://github.com/Kong/kong-pongo/pull/514).
+
 * Feat: add automatic reloads for interactive shells. This will watch plugin files as
   well as the dbless config file and reload upon changes.
   [#504](https://github.com/Kong/kong-pongo/pull/504).
