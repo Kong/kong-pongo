@@ -24,6 +24,10 @@
 
 ## unreleased
 
+* Fix: include the Pongo version in the generated image names to prevent running
+  older images after a Pongo upgrade. A new image will automatically be build now.
+  [#516](https://github.com/Kong/kong-pongo/pull/516).
+
 * Fix: do not fail the build if httpie cannot be installed. Now continues the
   build since it is optional.
   [#515](https://github.com/Kong/kong-pongo/pull/515).

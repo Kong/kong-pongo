@@ -25,7 +25,8 @@ function globals {
 
   DOCKER_FILE=${PONGO_DOCKER_FILE:-$LOCAL_PATH/assets/Dockerfile}
   DOCKER_COMPOSE_FILES="-f ${LOCAL_PATH}/assets/docker-compose.yml"
-  IMAGE_BASE_NAME=kong-pongo-test
+  IMAGE_BASE_PREFIX="kong-pongo-"
+  IMAGE_BASE_NAME=$IMAGE_BASE_PREFIX$PONGO_VERSION
 
   # the path where the plugin source is located, as seen from Pongo (this script)
   KONG_TEST_PLUGIN_PATH=$(realpath .)
@@ -818,10 +819,10 @@ function pongo_down {
 function pongo_clean {
   pongo_down --all
 
-  docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "found: {{.ID}}" | grep found
+  docker images --filter=reference="${IMAGE_BASE_PREFIX}*:*" --format "found: {{.ID}}" | grep found
   if [[ $? -eq 0 ]]; then
     # shellcheck disable=SC2046  # we want the image ids to be word-splitted
-    docker rmi $(docker images --filter=reference="${IMAGE_BASE_NAME}:*" --format "{{.ID}}")
+    docker rmi $(docker images --filter=reference="${IMAGE_BASE_PREFIX}*:*" --format "{{.ID}}")
   fi
 
   docker images --filter=reference="pongo-expose:*" --format "found: {{.ID}}" | grep found
@@ -912,7 +913,7 @@ function pongo_status {
       images)
         echo Pongo cached images:
         echo ====================
-        docker images "${IMAGE_BASE_NAME}"
+        docker images --filter=reference="${IMAGE_BASE_PREFIX}*:*"
         ;;
 
       versions)
