@@ -24,6 +24,10 @@
 
 ## unreleased
 
+* Fix: do not fail the build if httpie cannot be installed. Now continues the
+  build since it is optional.
+  [#515](https://github.com/Kong/kong-pongo/pull/515).
+
 * Fix: the --debug option will now output full buildlogs again using buildkit
   [#513](https://github.com/Kong/kong-pongo/pull/513).
 
