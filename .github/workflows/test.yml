@@ -16,6 +16,7 @@ on:
 
 jobs:
   tests:
+    timeout-minutes: ${{ fromJSON(vars.GHA_DEFAULT_TIMEOUT) }}
     name: Tests
     runs-on: ubuntu-20.04
     strategy:
