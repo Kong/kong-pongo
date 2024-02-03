@@ -12,6 +12,7 @@ on:
 
 jobs:
   lint:
+    timeout-minutes: ${{ fromJSON(vars.GHA_DEFAULT_TIMEOUT) }}
     name: Lint
     runs-on: ubuntu-20.04
 
