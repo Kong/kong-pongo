@@ -28,6 +28,10 @@
   older images after a Pongo upgrade. A new image will automatically be build now.
   [#516](https://github.com/Kong/kong-pongo/pull/516).
 
+* Fix: fail if the compose-up command fails. To prevent hanging while waiting for a
+  health-check to go healthy.
+  [#522](https://github.com/Kong/kong-pongo/pull/522).
+
 * Fix: do not fail the build if httpie cannot be installed. Now continues the
   build since it is optional.
   [#515](https://github.com/Kong/kong-pongo/pull/515).
