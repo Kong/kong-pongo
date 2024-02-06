@@ -694,7 +694,7 @@ function ensure_available {
   fi
   if [[ ! $? -eq 0 ]]; then
     msg "auto-starting the test environment, use the 'pongo down' action to stop it"
-    compose_up
+    compose_up || err "failed to start the test environment"
   fi
 
   local dependency
@@ -845,7 +845,7 @@ function pongo_clean {
 
 function pongo_expose {
   local dependency="expose"
-  healthy "$(cid "$dependency")" "$dependency" || compose up -d "$dependency"
+  healthy "$(cid "$dependency")" "$dependency" || compose up -d "$dependency" || err "failed to start '$dependency'"
   wait_for_dependency "$dependency"
 }
 
