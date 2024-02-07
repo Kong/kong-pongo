@@ -83,6 +83,9 @@
 * Chore: remove deprecated docker repo.
   [#475](https://github.com/Kong/kong-pongo/pull/475).
 
+* Chore: remove some deadcode and remnants of Pulp usage.
+  [#523](https://github.com/Kong/kong-pongo/pull/523).
+
 ---
 
 ## 2.9.0 released 08-Nov-2023
