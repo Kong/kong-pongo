@@ -556,6 +556,7 @@ function get_license {
 }
 
 
+GET_VERSION_RAN=false
 function get_version {
   # if $KONG_IMAGE is not yet set, it will get the image (see get_image).
   # Then it will read the Kong version from the image (by executing "kong version")
@@ -563,9 +564,16 @@ function get_version {
   # Result: $VERSION will be read from the image, and $KONG_TEST_IMAGE will be set.
   # NOTE1: $KONG_TEST_IMAGE is only a name, the image might not have been created yet
   # NOTE2: if it is a development tag, then $VERSION will be a commit-id
+  local custom_image=false
   if [[ -z $KONG_IMAGE ]]; then
     validate_version "$KONG_VERSION"
     get_image
+  else
+    custom_image=true
+    if [[ "$GET_VERSION_RAN" == "false" ]]; then
+      # display message only once
+      msg "using provided Kong image '$KONG_IMAGE'"
+    fi
   fi
 
   get_license
@@ -580,6 +588,10 @@ function get_version {
     fi
     if [[ "$VERSION" == "" ]]; then
       err "Got an empty commit-id from Kong image: $KONG_IMAGE, label: org.opencontainers.image.revision"
+    fi
+    if [[ "$GET_VERSION_RAN" == "false" ]]; then
+      # display message only once
+      msg "using Kong development/commit based version '$VERSION'"
     fi
 
   else
@@ -599,8 +611,17 @@ function get_version {
     if [[ ! $? -eq 0 ]]; then
       err "failed to read version from Kong image: $KONG_IMAGE"
     fi
+
+    # if a custom_iamge, report the version found
+    if [[ "$custom_image" == "true" ]]; then
+      if [[ "$GET_VERSION_RAN" == "false" ]]; then
+        # display message only once
+        msg "Kong image '$KONG_IMAGE' reported version '$VERSION'"
+      fi
+    fi
   fi
 
+  GET_VERSION_RAN=true
   KONG_TEST_IMAGE=$IMAGE_BASE_NAME:$VERSION
 }
 
