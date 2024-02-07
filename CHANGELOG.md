@@ -24,6 +24,34 @@
 
 ## unreleased
 
+* Feat: add automatic reloads for interactive shells. This will watch plugin files as
+  well as the dbless config file and reload upon changes.
+  [#504](https://github.com/Kong/kong-pongo/pull/504).
+
+* Feat: support access to host runner's services.
+  [#473](https://github.com/Kong/kong-pongo/pull/473).
+
+* Feat: provide more feedback when using a custom image.
+  [#524](https://github.com/Kong/kong-pongo/pull/524).
+
+* Feat: Kong Enterprise 3.5.0.3
+
+* Feat: Kong Enterprise 3.5.0.2
+
+* Feat: Kong Enterprise 3.5.0.1
+
+* Feat: Kong Enterprise 3.4.3.3
+
+* Feat: Kong Enterprise 3.4.3.2
+
+* Feat: Kong Enterprise 3.4.3.1
+
+* Feat: Kong Enterprise 3.4.2.0
+
+* Feat: Kong Enterprise 2.8.4.6
+
+* Feat: Kong Enterprise 2.8.4.5
+
 * Fix: include the Pongo version in the generated image names to prevent running
   older images after a Pongo upgrade. A new image will automatically be build now.
   [#516](https://github.com/Kong/kong-pongo/pull/516).
@@ -45,19 +73,12 @@
 * Fix: proxy config will be passed upon build and again on run.
   [#514](https://github.com/Kong/kong-pongo/pull/514).
 
-* Feat: add automatic reloads for interactive shells. This will watch plugin files as
-  well as the dbless config file and reload upon changes.
-  [#504](https://github.com/Kong/kong-pongo/pull/504).
-
 * Fix: health-checks on Pongo container. Use proper prefix.
   [#456](https://github.com/Kong/kong-pongo/pull/456).
 
 * Fix: version resolving, EE versions have 2 patch versions, now Pongo will resolve
   them both. So 3.4.1.x now resolves to latest within 3.4, being 3.4.2.0.
   [#477](https://github.com/Kong/kong-pongo/pull/477).
-
-* Feat: support access to host runner's services.
-  [#473](https://github.com/Kong/kong-pongo/pull/473).
 
 * Chore: remove deprecated docker repo.
   [#475](https://github.com/Kong/kong-pongo/pull/475).
