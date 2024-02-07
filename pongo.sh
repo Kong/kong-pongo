@@ -74,8 +74,6 @@ function globals {
   SERVICE_NETWORK_PREFIX="pongo-"
   SERVICE_NETWORK_NAME=${SERVICE_NETWORK_PREFIX}${PROJECT_ID}
 
-  KONG_LICENSE_URL="https://download.konghq.com/internal/kong-gateway/license.json"
-
   unset WINDOWS_SLASH
   unset WINPTY_PREFIX
   local platform
@@ -492,67 +490,23 @@ function get_image {
     if [[ ! $? -eq 0 ]]; then
       docker pull "$image"
       if [[ ! $? -eq 0 ]]; then
-        warn "failed to pull image $image."
-
-        # TODO: if this is no longer required, we can remove the whole, but let's
-        #       give it a couple of months, to see if it is still needed. (dd 28-nov-2023)
-        # if is_enterprise "$KONG_VERSION"; then
-        #     # failed to pull EE image, so try the fallback to the private repo
-        #     image=$KONG_EE_PRIVATE_TAG_PREFIX$KONG_VERSION$KONG_EE_PRIVATE_TAG_POSTFIX
-        #     docker_login_ee
-        #     docker pull "$image"
-        #     if [[ ! $? -eq 0 ]]; then
-        #       docker logout
-        #       err "failed to pull: $image"
-        #     fi
-        #     docker logout
-        # else
-          # failed to pull CE image, so try the fallback
-          # NOTE: new releases take a while (days) to become available in the
-          # official docker hub repo. Hence we fall back on the unofficial Kong
-          # repo that is immediately available for each release. This will
-          # prevent any CI from failing in the mean time.
-          msg "failed to pull: $image from the official repo, retrying unofficial..."
-          image=$KONG_OSS_UNOFFICIAL_TAG_PREFIX$KONG_VERSION$KONG_OSS_UNOFFICIAL_TAG_POSTFIX
-          docker pull "$image"
-          if [[ ! $? -eq 0 ]]; then
-            err "failed to pull: $image"
-          fi
-          msg "pulling unofficial image succeeded"
-        # fi
+        # failed to pull CE image, so try the fallback
+        # NOTE: new releases take a while (days) to become available in the
+        # official docker hub repo. Hence we fall back on the unofficial Kong
+        # repo that is immediately available for each release. This will
+        # prevent any CI from failing in the mean time.
+        msg "failed to pull: $image from the official repo, retrying unofficial..."
+        image=$KONG_OSS_UNOFFICIAL_TAG_PREFIX$KONG_VERSION$KONG_OSS_UNOFFICIAL_TAG_POSTFIX
+        docker pull "$image"
+        if [[ ! $? -eq 0 ]]; then
+          err "failed to pull: $image"
+        fi
+        msg "pulling unofficial image succeeded"
       fi
     fi
   fi
 
   KONG_IMAGE=$image
-}
-
-
-function get_license {
-  # If $KONG_VERSION is recognized as an Enterprise version and no license data
-  # has been set in $KONG_LICENSE_DATA yet, then it will log into Pulp and
-  # get the required license.
-  # Result: $KONG_LICENSE_DATA will be set if it is needed
-  if is_enterprise "$KONG_VERSION"; then
-    if [[ -z $KONG_LICENSE_DATA ]]; then
-      # Enterprise version, but no license data available, try and get the license data
-      if [[ "$PULP_USERNAME" == "" ]]; then
-        warn "PULP_USERNAME is not set, might not be able to download the license!"
-      fi
-      if [[ "$PULP_PASSWORD" == "" ]]; then
-        warn "PULP_PASSWORD is not set, might not be able to download the license!"
-      fi
-      KONG_LICENSE_DATA=$(curl -s -L -u"$PULP_USERNAME:$PULP_PASSWORD" $KONG_LICENSE_URL)
-      export KONG_LICENSE_DATA
-      if [[ ! $KONG_LICENSE_DATA == *"signature"* || ! $KONG_LICENSE_DATA == *"payload"* ]]; then
-        # the check above is a bit lame, but the best we can do without requiring
-        # yet more additional dependenies like jq or similar.
-        warn "failed to download the Kong Enterprise license file!
-          $KONG_LICENSE_DATA"
-        unset KONG_LICENSE_DATA
-      fi
-    fi
-  fi
 }
 
 
@@ -575,8 +529,6 @@ function get_version {
       msg "using provided Kong image '$KONG_IMAGE'"
     fi
   fi
-
-  get_license
 
   if is_commit_based "$KONG_VERSION"; then
     # it's a development; get the commit-id from the image

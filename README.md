@@ -172,9 +172,6 @@ Several environment variables are available for configuration:
 
 For Kong-internal use there are some additional variables:
 
-* `PULP_USERNAME` and `PULP_PASSWORD` to automatically download the Kong
-  Enterprise CI license. See [Setting up CI](#setting-up-ci) for some Pulp
-  environment variable examples.
 * `GITHUB_TOKEN` the Github token to get access to the Kong Enterprise source
   code. This is only required for development builds, not for released
   versions of Kong.
