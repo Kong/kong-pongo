@@ -22,7 +22,7 @@
 
 ---
 
-## unreleased
+## 2.10.0 released 08-Feb-2024
 
 * Feat: add automatic reloads for interactive shells. This will watch plugin files as
   well as the dbless config file and reload upon changes.
