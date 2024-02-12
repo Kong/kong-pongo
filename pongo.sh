@@ -28,16 +28,6 @@ function globals {
   IMAGE_BASE_PREFIX="kong-pongo-"
   IMAGE_BASE_NAME=$IMAGE_BASE_PREFIX$PONGO_VERSION
 
-  # macOS or WSL working on a drvfs mount doesn't support named pipes or Unix Domain Socket
-  if [ "$(uname -s)" == "Darwin" ] || ! (rm -f .pongo_test.sock; mkfifo .pongo_test.sock) 2>/dev/null; then
-    rm -f .pongo_test.sock
-    DOCKER_COMPOSE_FILES="$DOCKER_COMPOSE_FILES -f ${LOCAL_PATH}/assets/docker-compose-nonlinux-extend.yml"
-  else
-    DOCKER_COMPOSE_FILES="$DOCKER_COMPOSE_FILES -f ${LOCAL_PATH}/assets/docker-compose-linux-extend.yml"
-  fi
-
-  IMAGE_BASE_NAME=kong-pongo-test
-
   # the path where the plugin source is located, as seen from Pongo (this script)
   KONG_TEST_PLUGIN_PATH=$(realpath .)
 
@@ -106,6 +96,13 @@ function globals {
     export PONGO_PLATFORM="WINDOWS"
   else
     export PONGO_PLATFORM="LINUX"
+  fi
+
+  # macOS or WSL working on a drvfs mount doesn't support named pipes or Unix Domain Socket
+  if [ "$PONGO_PLATFORM" == "LINUX" ]; then
+    DOCKER_COMPOSE_FILES="$DOCKER_COMPOSE_FILES -f ${LOCAL_PATH}/assets/docker-compose-linux-extend.yml"
+  else
+    DOCKER_COMPOSE_FILES="$DOCKER_COMPOSE_FILES -f ${LOCAL_PATH}/assets/docker-compose-nonlinux-extend.yml"
   fi
 
   # when running CI do we have the required secrets available? (used for EE only)
