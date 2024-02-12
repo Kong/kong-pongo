@@ -76,15 +76,27 @@ function globals {
 
   unset WINDOWS_SLASH
   unset WINPTY_PREFIX
-  local platform
-  platform=$(uname -s)
-  if [ "${platform:0:5}" == "MINGW" ]; then
-    # Windows requires an extra / in docker command so //bin/bash
+  unset PONGO_PLATFORM
+  if [ "$(uname -s)" == "Darwin" ]; then
+    # all Apple platforms
+    export PONGO_PLATFORM="APPLE"
+  elif uname -s | grep -q "MINGW"; then
+    # Git Bash for Windows
+    # Msys (not supported!)
+    export PONGO_PLATFORM="WINDOWS"
+    # Windows/MinGW requires an extra / in docker command so //bin/bash
     # https://www.reddit.com/r/docker/comments/734arg/cant_figure_out_how_to_bash_into_docker_container/
     WINDOWS_SLASH="/"
-    # for terminal output we passthrough winpty
-    WINPTY_PREFIX=winpty
-  fi;
+    if winpty --help > /dev/null; then
+      # for terminal output we passthrough winpty
+      WINPTY_PREFIX="winpty"
+    fi
+  elif grep -q WSL < /proc/version; then
+    # WSL and WSL2
+    export PONGO_PLATFORM="WINDOWS"
+  else
+    export PONGO_PLATFORM="LINUX"
+  fi
 
   # when running CI do we have the required secrets available? (used for EE only)
   # secrets are unavailable for PR's from outside the organization (untrusted)
