@@ -20,4 +20,4 @@ Example usage:
   pongo shell
   pongo shell @./scripts/myscript.sh
   KONG_VERSION=2.1.x pongo shell kong version
-  pongo up && pongo shell kong migrations bootstrap
+  pongo up && sleep 10 && pongo shell kong migrations bootstrap
