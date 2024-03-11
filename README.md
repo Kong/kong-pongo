@@ -1,11 +1,7 @@
 [![Unix Tests](https://img.shields.io/github/actions/workflow/status/Kong/kong-pongo/test.yml?branch=master&label=Unix%20tests&logo=linux)](https://github.com/Kong/kong-pongo/actions/workflows/test.yml)
 [![Docker Tests](https://img.shields.io/github/actions/workflow/status/Kong/kong-pongo/test.yml?branch=master&label=Docker%20tests&logo=docker)](https://github.com/Kong/kong-pongo/actions/workflows/docker.yml)
 [![Lint](https://github.com/Kong/kong-pongo/workflows/Lint/badge.svg)](https://github.com/Kong/kong-pongo/actions/workflows/lint.yml)
-[![SemVer](https://img.shields.io/github/v/tag/Kong/kong-pongo?color=brightgreen&label=SemVer&logo=semver&sort=semver)](README.md#changelog)
-
-| :exclamation:  Important compatibility notes |
-|:---------------------------|
-| Pongo has been switched from non-versioned to versioned on 17-Mar-2022. On 20-Oct-2022 version 2.0.0 was pushed to `master` and released. This means that breaking changes were introduced on `master`. If you experience failures, then either pin your Pongo version to 1.x or [upgrade](#upgrading) |
+[![SemVer](https://img.shields.io/github/v/tag/Kong/kong-pongo?color=brightgreen&label=SemVer&logo=semver&sort=semver)](CHANGELOG.md)
 
 # pongo
 
@@ -22,7 +18,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v2.7.0
+                   |___/  v2.10.0
 
 Usage: pongo action [options...] [--] [action options...]
 
@@ -116,19 +112,16 @@ Example usage:
  - [Test initialization](#test-initialization)
  - [Test coverage](#test-coverage)
  - [Setting up CI](#setting-up-ci)
-     - [CI against development builds](#ci-against-development-builds)
-     - [CI with Kong Enterprise](#ci-with-kong-enterprise)
-     - [CI with Kong Enterprise development](#ci-with-kong-enterprise-development)
  - [Running Pongo in Docker](#running-pongo-in-docker)
  - [Releasing new Kong versions](#releasing-new-kong-versions)
- - [Changelog](#changelog)
+ - [Changelog](CHANGELOG.md)
 
 ## Requirements
 
 Tools Pongo needs to run:
 * `docker-compose` (and hence `docker`)
 * `curl`
-* `realpath`, for MacOS you need the [`coreutils`](https://www.gnu.org/software/coreutils/coreutils.html)
+* `realpath`, for older MacOS versions you need the [`coreutils`](https://www.gnu.org/software/coreutils/coreutils.html)
   to be installed. This is easiest via the [Homebrew package manager](https://brew.sh/) by doing:
   ```
   brew install coreutils
@@ -146,6 +139,10 @@ git clone https://github.com/Kong/kong-pongo.git
 mkdir -p ~/.local/bin
 ln -s $(realpath kong-pongo/pongo.sh) ~/.local/bin/pongo
 ```
+### Proxies
+
+When Pongo builds images, it might fail when it is behind proxies and cannot verify the certificates. See [configuration](#configuration)
+on how to disable verification.
 
 ## Update
 
@@ -163,18 +160,18 @@ git pull
 Several environment variables are available for configuration:
 
 * Docker credentials; `DOCKER_USERNAME` and `DOCKER_PASSWORD` to prevent rate-
-  limits when pulling images, but also for testing against older Kong Enterprise
-  images that are not publicly available.
+  limits when pulling images.
 * Kong license; set `KONG_LICENSE_DATA` with the Enterprise license to enable
   Enterprise features.
 * Specify a custom image; set the image name/tag in `KONG_IMAGE` and make sure
   the image is locally available
+* When the variable `PONGO_INSECURE` is set to anything else than `'false'`, it
+  will configure curl and git (during the build) to switch off ssl verification.
+  Please ensure you understand the security consequences when using this option!
+  See also `pongo build --help`.
 
 For Kong-internal use there are some additional variables:
 
-* `PULP_USERNAME` and `PULP_PASSWORD` to automatically download the Kong
-  Enterprise CI license. See [Setting up CI](#setting-up-ci) for some Pulp
-  environment variable examples.
 * `GITHUB_TOKEN` the Github token to get access to the Kong Enterprise source
   code. This is only required for development builds, not for released
   versions of Kong.
@@ -198,10 +195,14 @@ Some more elaborate examples:
 ```shell
 # Run against a specific version of Kong and pass
 # a number of Busted options
-KONG_VERSION=0.36-1 pongo run -v -o gtest ./spec
+KONG_VERSION=3.2.2 pongo run -- -v -o gtest ./spec
 
 # Run against the latest patch version of a Kong release using '.x'
-KONG_VERSION=1.2.x pongo run -v -o gtest ./spec
+KONG_VERSION=3.4.x pongo run
+
+# Run against the latest stable version, using special label 'stable'
+# (available labels are: 'stable', 'stable-ee', 'dev', and 'dev-ee')
+KONG_VERSION=stable pongo run
 
 # Run against a local image of Kong
 KONG_IMAGE=kong-ee pongo run ./spec
@@ -218,10 +219,12 @@ pongo down
 
 ## Pongo on Windows
 
-Beta: Pongo should run in Git-BASH if you have [Git for Windows](https://gitforwindows.org/)
-installed (and Docker for Windows). Please report any issues.
+Pongo should run in Git-BASH if you have [Git for Windows](https://gitforwindows.org/)
+installed (and Docker for Windows).
 
-To run Pongo on Windows you can use [WSL2](https://docs.microsoft.com/windows/wsl/)
+### using WSL2
+
+An alternative to run Pongo on Windows is [WSL2](https://docs.microsoft.com/windows/wsl/)
 (Windows Subsystem for Linux).
 
 * install WSL2
@@ -589,145 +592,64 @@ After the test run the output files `luacov.*.out` files should be available.
 
 ## Setting up CI
 
-Pongo is easily added to a CI setup. The examples below will asume Travis-CI, but
+Pongo is easily added to a CI setup. The examples below will assume Github Actions, but
 can be easily converted to other engines.
 
-**Note**: if your engine of preference runs itself in Docker, then checkout [Pongo in Docker](#running-pongo-in-docker).
+* For Github the best option is to use [the Pongo Github Action](https://github.com/Kong/kong-pongo-action)
+* if your engine of preference runs itself in Docker, then checkout [Pongo in Docker](#running-pongo-in-docker).
+* to test against development images add a job with `KONG_VERSION=dev`,
 
-Here's a base setup for an open-source plugin that will test against 2 Kong versions:
+**Note:** there is also a "`dev-ee`" for Kong Enterprise. But this requires a GitHub access token to
+fetch the Kong Enterprise source code, and must be specified as a `GITHUB_TOKEN` environment variable.
+
+Here's a base setup for a plugin that will test against multiple Kong versions:
 ```yaml
-# .travis.yml
+# .github/workflows/test.yml
 
-dist: bionic
+name: "Test"
+
+concurrency:
+  group: ${{ github.workflow }} ${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+on:
+  pull_request: {}
+  push:
+    branches:
+    - master
+  schedule:
+  - cron: '0 0 * * *'  # every day at midnight, to test against development
 
 jobs:
-  include:
-  - name: Kong CE 2.0.x
-    env: KONG_VERSION=2.0.x
-  - name: Kong CE 1.5.x
-    env: KONG_VERSION=1.5.x
+  test:
+    runs-on: ubuntu-latest
 
-install:
-- git clone --single-branch https://github.com/Kong/kong-pongo ../kong-pongo
-- "../kong-pongo/pongo.sh up"
-- "../kong-pongo/pongo.sh build"
+    strategy:
+      fail-fast: false
+      matrix:
+        kongVersion:
+        - "2.8.x"
+        - "3.5.x"
+        - "dev"
+        - "3.5.x.x"
+        #- "dev-ee"    # Kong internal only, requires access to source code
 
-script:
-- "../kong-pongo/pongo.sh lint"
-- "../kong-pongo/pongo.sh run"
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: Kong/kong-pongo-action@v1
+      with:
+        pongo_version: master
+        kong_version: ${{ matrix.kongVersion }}
+        # Kong internal users can use the Kong/kong-license action to get the license
+        license: ${{ secrets.KONG_LICENSE_DATA }}
+
+    - run: pongo run
+
 ```
 
 [Back to ToC](#table-of-contents)
 
-### CI against development builds
-
-To test against development builds, the CRON option for Travis-CI should be configured.
-This will trigger a daily test-run.
-
-In the test matrix add a job with `KONG_VERSION=dev`, like this:
-
-```yaml
-jobs:
-  include:
-  - name: Kong master-branch
-    env: KONG_VERSION=dev
-```
-
-[Back to ToC](#table-of-contents)
-
-### CI with Kong Enterprise
-
-To test against an Enterprise version of Kong the same base setup can be used, but
-some secrets need to be added. With the secrets in place Pongo will be able to
-download the proper Kong Enterprise images and license keys. See [Configuration](#configuration)
-for details on the environment variables.
-
-The environment variables:
-- `DOCKER_USERNAME=<your_docker_username>`
-- `DOCKER_PASSWORD=<your_docker_password>`
-- `KONG_LICENSE_DATA=<your_license_data>`
-
-Kong internal only:
-- `PULP_USERNAME=<your_pulp_username>` (Optional, if KONG_LICENSE_DATA not set)
-- `PULP_PASSWORD=<your_pulp_password>` (Optional, if KONG_LICENSE_DATA not set)
-
-To test the Pulp values try the following command, if succesful it will display
-your license key:
-```
-$ curl -L -u"$PULP_USERNAME:$PULP_PASSWORD" "https://download.konghq.com/internal/kong-gateway/license.json"
-```
-
-Once the test command is succesful you can add the secrets to the Travis-CI
-configuration. To add those secrets install the
-[Travis command line utility](https://github.com/travis-ci/travis.rb), and
-follow these steps:
-- Copy the `.travis.yml` file above into your plugin repo
-- Enter the main directory of your plugins repo
-- Add the encrypted values by doing:
-
-  - `travis encrypt --pro DOCKER_USERNAME=<your_docker_username> --add`
-  - `travis encrypt --pro DOCKER_PASSWORD=<your_docker_password> --add`
-  - `travis encrypt --pro KONG_LICENSE_DATA=<your_license_data> --add`
-  - `travis encrypt --pro PULP_USERNAME=<your_pulp_username> --add`
-  - `travis encrypt --pro PULP_PASSWORD=<your_pulp_password> --add`
-
-After completing the steps above, the `.travis.yml` file should now be updated
-and have this additional section:
-
-```yaml
-env:
-  global:
-  - PONGO_SECRETS_AVAILABLE=$TRAVIS_SECURE_ENV_VARS
-  - secure: Xa6htQZoS/4K...and some more gibberish
-  - secure: o8VSj7hFGm2L...and some more gibberish
-  - secure: nQDng6c5xIBJ...and some more gibberish
-```
-
-Now you can update the `jobs` section and add Kong Enterprise version numbers.
-
-**Note**: the variable PONGO_SECRETS_AVAILABLE works the same as [TRAVIS_SECURE_ENV_VARS](https://docs.travis-ci.com/user/environment-variables/#default-environment-variables).
-If you receive PR's from outside your organization, then the secrets will not be
-available on a CI run, this will cause the build to always fail. If you set this
-variable to `false` then Pongo will print only a warning and exit with success.
-Effectively this means that external PR's are only tested against Kong opensource
-versions, and internal PR's will be tested against opensource and Enterprise
-versions of Kong.
-
-(It is mentioned for completeness in the example above, since Pongo will
-automatically fall back on the Travis-CI variable, on other CI engines you will
-need to set it)
-
-[Back to ToC](#table-of-contents)
-
-### CI with Kong Enterprise development
-
-**Note: this is NOT publicly available, only Kong internal**
-
-This build will also require a CRON job to build on a daily basis, but also
-requires additional credentials to access the Kong Enterprise master image.
-To build against the Enterprise master, the version can be specified as
-`dev-ee`, as given in this example:
-
-```yaml
-jobs:
-  include:
-  - name: Kong Enterprise master-branch
-    env: KONG_VERSION=dev-ee
-```
-
-For this to work the following variables must be present:
-- `DOCKER_USERNAME=<your_docker_username>`
-- `DOCKER_PASSWORD<your_docker_password>`
-
-At least the api-key must be encrypted as a secret. Follow the instructions above
-to encrypt and add them to the `.travis.yml` file.
-
-For the development builds Pongo needs to pull the Kong-EE source. If the repo
-under test does not have access, then a valid GitHub access token is also
-required to refresh the Kong Enterprise code, and must be specified as a
-`GITHUB_TOKEN` environment variable.
-
-[Back to ToC](#table-of-contents)
 
 ## Running Pongo in Docker
 
@@ -785,282 +707,5 @@ git clone --single-branch https://github.com/Kong/kong-pongo $TMPDIR/kong-pongo 
 ```
 
 The result should be a new PR on the Pongo repo.
-
-[Back to ToC](#table-of-contents)
-
-# Changelog
-
-#### releasing new versions
-
- * create a release branch for Pongo; `release/x.y.z`
-    * update the changelog below
-    * update version in logo at top of this `README`
-    * update version in `pongo.sh`
-    * commit as `release x.y.z`
-    * push the release branch, and create a Pongo PR
- * manually test with Kong-Enterprise
-    * create a PR that changes Kong-Enterprise tests to use the Pongo release branch
-    * add a link in the PR description to the Pongo release PR for cross-referencing
-    * mark the PR as "draft"
-    * example where/how to make the change: https://github.com/Kong/kong-ee/pull/4156. Copy the to-do list from the PR description!
-    * make sure it passes, adjust if required
- * merge the Pongo release branch, tag as `x.y.z`, and push the tag
- * in Github UI create a release from the tag
- * update Kong-Enterprise PR (created in the first step)
-    * Change the Pongo version to use to the newly released version of Pongo
-    * remove "draft" status.
-
----
-
-## unreleased
-
-* Fix: `pongo down` would not remove volumes. This
-  caused orphaned volumes on long running VMs as well as on personal
-  machines.
-* Fix: drop the `--progress` flag from docker commands when building. Since
-  the flag isn't always available.
-
----
-
-## 2.7.0 released 7-Jul-2023
-
-* Feat: Kong Enterprise 2.8.4.2, which means that Pongo 2.x will support the
-  Kong Enterprise 2.8.x.x LTS releases
-
-* Feat: Kong Enterprise 3.3.0.0
-
-* Feat: Kong OSS 3.3.0
-
-* Feat: add alias to enable authentication when in a Pongo shell
-  [#392](https://github.com/Kong/kong-pongo/pull/392).
-
-* Feat: the 'kms' alias will now confirm importing a file if found
-  [#393](https://github.com/Kong/kong-pongo/pull/393).
-
-* Feat: in a shell, add symlink `/rockstree` pointing to the LuaRocks tree
-  [#402](https://github.com/Kong/kong-pongo/pull/402).
-
----
-
-## 2.6.0 released 23-Mar-2023
-
-* Feat: Kong OSS 3.2.2
-
-* Feat: Kong Enterprise 3.2.2.0
-
-* Feat: Kong Enterprise 3.2.1.0
-
-* Fix: Add missing `fuser` and `netstat` utility that is required for certain test functions
-  [#384](https://github.com/Kong/kong-pongo/pull/384).
-
-* Fix: compile rocks using the Kong shipped crypto libraries
-  [#382](https://github.com/Kong/kong-pongo/pull/382).
-
-* Fix: setting the LD_PATH broke some other tools. If needed now has to be set
-  on a per-plugin basis.
-  [#390](https://github.com/Kong/kong-pongo/pull/390).
-
----
-
-## 2.5.0 released 7-Feb-2023
-
-* Fix: Apple recently started shipping `realpath` in their OS. But it doesn't support the
-  `--version` flag, so it was not detected as installed
-  [#380](https://github.com/Kong/kong-pongo/pull/380).
-
-* Feat: Kong Enterprise 3.1.1.3
-
-* Feat: Kong Enterprise 3.1.1.2
-
----
-
-## 2.4.0 released 20-Jan-2023
-
-* Fix: Redis certificates [#370](https://github.com/Kong/kong-pongo/pull/370)
-
-* Feat: Kong Enterprise 3.1.1.1
-
-* Feat: Kong Enterprise 3.1.1.0
-
-* Feat: Kong Enterprise 3.0.2.0
-
-* Feat: Kong OSS 3.1.1
-
-* Feat: Kong OSS 3.0.2
-
-* Feat: Kong OSS 2.8.2
-
-## 2.3.0 released 9-Dec-2022
-
-* Feat: Kong Enterprise 3.1.0.0
-
-* Feat: Kong Enterprise 3.0.1.0
-
-* Feat: Kong OSS 3.1.0
-
----
-
-## 2.2.0 released 18-Nov-2022
-
-* Feat: Only build Python from source if the Kong base image is based
-  on Ubuntu 16.04
-
----
-
-## 2.1.0 released 15-Nov-2022
-
-* Feat: Kong OSS 3.0.1
-
-* Feat: add the Pongo version that build the image to the image, and check it
-  against the used version to inform user of mismatches.
-
-* Fix: import declarative config in Enterprise versions (officially not supported)
-  in the 'kms' shell alias.
-
-* Style: change redis cluster service name from `rc` to `redis-clusters`.
-  Refer to PR <https://github.com/Kong/kong-pongo/pull/344>.
-
----
-
-## 2.0.0 released 20-Oct-2022
-
-#### Upgrading
-
-* Upgrade Pongo
-
-  * run `pongo clean` using the `1.x` version of Pongo, to cleanup old artifacts
-    and images
-
-  * `cd` into the folder where Pongo resides and do a `git pull`, followed by
-    `git checkout 2.0.0`
-
-* Upgrade Plugin repositories
-
-  * on your plugin repositories run `pongo init` to update any settings (git-ignoring
-    bash history mostly)
-
-  * if your test matrix for Kong versions to test against include Kong CE versions prior
-    to `2.0` or Kong EE versions prior to `3.0` then update the CI to use the proper
-    version of Pongo that supports those versions. So pick a Pongo version depending
-    on the Kong version being tested.
-
-  * if your test matrix for Kong versions to test against includes `nightly`
-    and/or `nightly-ee` then those should respectively be updated to `dev` and
-    `dev-ee`.
-
-  * If you need Cassandra when testing, then ensure in the plugin repositories that
-    the `.pongo/pongorc` file contains: `--cassandra`, since it is no longer started
-    by default.
-
-  * Update test initialization scripts `.pongo/pongo-setup.sh`. They will now be
-    sourced in `bash` instead of in `sh`.
-
-#### Changes
-
-* [BREAKING] the Kong base image is now `Ubuntu` (previously `Alpine`). The default
-  shell now is `/bin/bash` (was `/bin/sh`)
-
-* [BREAKING] Support for Kong Enterprise versions before `3.0` is dropped (this is
-  because for Enterprise there were never Ubuntu images published in the 2.x range)
-
-* [BREAKING] Support for Kong opensource versions before `2.0` is dropped
-
-* [BREAKING] Cassandra is no longer started by default.
-
-* [BREAKING] The version tags to test against Kong development branches; `nightly`
-  and `nightly-ee` have been renamed to `dev` and `dev-ee` (because they are not
-  nightlies but the latest commit to the master branch)
-
-* Feat: new tags have been defined to test against the latest stable/released
-  versions of Kong and Kong Enterprise; `stable` and `stable-ee`
-
-* Fix: if the license cannot be downloaded the license variable would contain the
-  404 html response, which would cause unrelated problems. The variable is now
-  cleared upon failure.
-
----
-
-## 1.3.0 released 19-Sep-2022
-
-* Feat: Kong Enterprise 3.0.0.0
-
-* Feat: Kong OSS 3.0.0
-
-* Fix: change the `kong` user to the ID of the `/kong-plugin` folder owner, to
-  prevent permission issues when starting Kong (access to the `servroot` working
-  directory which is located in the mounted folder)
-  [#321](https://github.com/Kong/kong-pongo/pull/321)
-
-* Fix: location of the unofficial Kong image (used between releasing and
-  Docker hub availability).
-
----
-
-## 1.2.1 released 09-Sep-2022
-
- * Fix: format for reedis cluster support
-   [#318](https://github.com/Kong/kong-pongo/pull/318)
-
- * Fix: workaround for https://github.com/Kong/kong/issues/9365
-   [#314](https://github.com/Kong/kong-pongo/pull/314)
-
----
-
-## 1.2.0 released 01-Sep-2022
-
-* Feat: Kong Enterprise 2.8.1.2, 2.8.1.3, 2.8.1.4
-
-* Added a Pongo github action, see the [marketplace](https://github.com/marketplace/actions/kong-pongo)
-
-* Enabled redis cluster tests
-  [#305](https://github.com/Kong/kong-pongo/pull/305)
-
-* Export the new `KONG_SPEC_TEST_REDIS_HOST` variable to be compatible with Kong 3.0.0+
-  [#290](https://github.com/Kong/kong-pongo/pull/290)
-
-* Aliases now support `.yml` and `.json` extension for declarative config file
-  [#296](https://github.com/Kong/kong-pongo/pull/296)
-
-* Changed nightly-ee image to the new `master` tag
-  [#300](https://github.com/Kong/kong-pongo/pull/300)
-
-* Added new alias "kx" for export, and added explanation when shelling
-  [#311](https://github.com/Kong/kong-pongo/pull/311)
-
----
-
-## 1.1.0 released 14-Jun-2022
-
-* Feat: Kong Enterprise 2.6.1.0, 2.7.2.0, 2.8.0.0, 2.8.1.0, 2.8.1.1
-
-* Feat: Kong OSS 2.4.2, 2.5.2, 2.6.1, 2.7.2, 2.8.0, 2.8.1
-
-* Feat: Enable SSL for Redis on port `6380`
-  [#270](https://github.com/Kong/kong-pongo/pull/270)
-
-* Feat: The `--debug` flag now also sets docker build command to `--progress plain`
-  for easier debugging of the build. It also does `set -x` so be careful not
-  to copy-paste secrets somewhere!!
-  [#283](https://github.com/Kong/kong-pongo/pull/283)
-
-* Change: Upgrade image `redis:5.0.4-alpine` to `redis:6.2.6-alpine`
-
-* Fix: Packing rocks was limited to single-digit rockspec revisions
-  [#289](https://github.com/Kong/kong-pongo/pull/289)
-
-* Fix: Add `python3-dev` package to fix the `httpie` installation
-  [#283](https://github.com/Kong/kong-pongo/pull/283)
-
-* Fix: Fix rock installation issue due to unauthenticated Git protocol
-  [#266](https://github.com/Kong/kong-pongo/pull/266)
-
-* Fix: Upgrade cassandra image from 3.9 to 3.11 for M1 chip
-  [#269](https://github.com/Kong/kong-pongo/pull/269)
-
----
-
-## 1.0.0 released 1-Feb-2022
-
-* Initial versioned release of Pongo
 
 [Back to ToC](#table-of-contents)

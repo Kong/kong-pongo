@@ -20,9 +20,15 @@ The build can be customized using the following environment variables:
                      default is "[pongo]/assets/Dockerfile'. Use that file as a
                      base for any customizations.
 
-  PONGO_FORCE_BUILD  if set to anything else than 'false' it will force a
+  PONGO_FORCE_BUILD  If set to anything else than 'false' it will force a
                      rebuild. This is equivalent to the '--force' flag, but will
                      also work with 'pongo run'.
+
+  PONGO_INSECURE  If set to anything else than 'false' it will configure curl
+                  and git to turn of tls verification when downloading files
+                  during the build. This can be used with issues around
+                  certificate validation behind proxies. Make sure you
+                  understand the security consequences when using this option!
 
 If neither KONG_VERSION nor KONG_IMAGE is specified it will default to the
 latest Kong open source version.

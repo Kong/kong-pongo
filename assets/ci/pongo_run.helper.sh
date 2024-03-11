@@ -50,8 +50,17 @@ function versions_to_test {
 
     # step 1) add wilcard to get unique versions by major-minor (ignoring patch)
     if [[ "$VERSION" =~ ^[0-9] ]]; then
-      # numeric version, so not a DEV one; replace last digit with 'x' wildcard
-      VERSION="${VERSION:0:${#VERSION}-1}x"
+      # numeric version, so not a DEV one; replace last digits with 'x' wildcard
+      local segments
+      segments=$(( $(echo "$VERSION" | tr -cd '.' | wc -c) + 1 ))
+      if ((segments == 4)); then
+        # this is a 4 segment version, which means it is an EE version.
+        # For an EE version we need to replace the last 2 digits
+        VERSION="${VERSION:0:${#VERSION}-3}x.x"
+      else
+        # this should then be an OSS version, replace 1 digit
+        VERSION="${VERSION:0:${#VERSION}-1}x"
+      fi
     fi
 
     # step 2) store version if not already in our CLEAN_VERSIONS array

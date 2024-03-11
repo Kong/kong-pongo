@@ -157,6 +157,18 @@ services:
       - PONGO_COMMAND=${ACTION}
       - PONGO_NETWORK=${SERVICE_NETWORK_NAME}
       - PONGO_ID=${PROJECT_ID}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD
+      - kong
+      - health
+      - --prefix=/kong-plugin/servroot/
+      timeout: 10s
+      disable: ${SERVICE_DISABLE_HEALTHCHECK:-false}
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
     networks:
       pongo-test-network:
         aliases:
