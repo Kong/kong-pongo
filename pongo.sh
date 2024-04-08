@@ -609,7 +609,7 @@ function compose {
 }
 
 
-function healthy {
+function status {
   local iid=$1
   [[ -z $iid ]] && return 1
 
@@ -625,19 +625,25 @@ function healthy {
   fi
 
   local state
-  state=$(docker inspect "$iid")
+  state=$(docker inspect --format='{{.State.Health.Status}}' "$iid")
 
-  echo "$state" | grep \"Health\" &> /dev/null
   if [[ ! $? -eq 0 ]]; then
     # no healthcheck defined, assume healthy
     msg "No health check available for '$name', assuming healthy"
     return 0
   fi
 
-  echo "$state" | grep \"healthy\" &> /dev/null
-  return $?
+  return "$state"
 }
 
+
+function healthy {
+  if [ "$(status "$1" "$2")" == "healthy" ]; then
+    return 0  # return true in Bash
+  else
+    return 1  # return false in Bash
+  fi
+}
 
 function cid {
   compose ps -q "$1" 2> /dev/null
@@ -650,13 +656,18 @@ function wait_for_dependency {
 
   iid=$(cid "$dep")
 
-  if healthy "$iid" "$dep"; then return; fi
-
   msg "Waiting for $dep"
 
-  while ! healthy "$iid" "$dep"; do
+  while [ "$(status "$iid" "$dep")" == "starting" ]; do
     sleep 0.5
   done
+
+  local state
+  state=$(status "$iid" "$dep")
+
+  if [[ "$state" != "healthy" ]]; then
+    msg "Dependency $dep is $state"
+  fi
 }
 
 
