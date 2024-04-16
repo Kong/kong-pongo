@@ -610,6 +610,11 @@ function compose {
 
 
 function status {
+  if [[ "${SERVICE_DISABLE_HEALTHCHECK}" == "true" ]]; then
+    msg "Health checks disabled"
+    return "undetermined"
+  fi
+
   local iid=$1
   [[ -z $iid ]] && return 1
 
@@ -619,18 +624,11 @@ function status {
     name=$iid
   fi
 
-  if [[ "${SERVICE_DISABLE_HEALTHCHECK}" == "true" ]]; then
-    msg "Health checks disabled, won't wait for '$name' to be healthy"
-    return 0
-  fi
-
   local state
   state=$(docker inspect --format='{{.State.Health.Status}}' "$iid")
 
   if [[ ! $? -eq 0 ]]; then
-    # no healthcheck defined, assume healthy
-    msg "No health check available for '$name', assuming healthy"
-    return 0
+    return "undetermined"
   fi
 
   return "$state"
@@ -638,8 +636,14 @@ function status {
 
 
 function healthy {
-  if [ "$(status "$1" "$2")" == "healthy" ]; then
+  local state
+  state=$(status "$1" "$2")
+  if [ "$state" == "healthy" ]; then
     return 0  # return true in Bash
+  elif [ "$state" == "undertermined" ] then
+    # no healthcheck defined, assume healthy
+    msg "No health check available for '$name', assuming healthy"
+    return 0
   else
     return 1  # return false in Bash
   fi
@@ -658,8 +662,12 @@ function wait_for_dependency {
 
   msg "Waiting for $dep"
 
-  while [ "$(status "$iid" "$dep")" == "starting" ]; do
+  local wait_count=0
+  local timeout=${2:-60}
+  local timeout_count=$((timeout*2))
+  while [ "$(status "$iid" "$dep")" == "starting" ] && [ $wait_count -le $timeout_count ]; do
     sleep 0.5
+    wait_count=$((wait_count+1))
   done
 
   local state
