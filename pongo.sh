@@ -129,6 +129,17 @@ function globals {
   DEVELOPMENT_CE_TAG="kong/kong:master-ubuntu"
 
 
+  # dependency health checks
+  if [[ -z $HEALTH_TIMEOUT ]]; then
+    export HEALTH_TIMEOUT=60
+  fi
+  if [[ $HEALTH_TIMEOUT -lt 0 ]]; then
+    export HEALTH_TIMEOUT=0
+  fi
+  if [[ $HEALTH_TIMEOUT -eq 0 ]]; then
+    export SERVICE_DISABLE_HEALTHCHECK=true
+  fi
+
   # Dependency image defaults
   if [[ -z $POSTGRES_IMAGE ]] && [[ -n $POSTGRES ]]; then
     # backward compat; POSTGRES replaced by POSTGRES_IMAGE
@@ -609,6 +620,10 @@ function compose {
 }
 
 
+# checks health status of a container. 2 args:
+# 1. container id (required)
+# 2. container name (optional, defaults to the id)
+# returns 0 (success) if healthy, 1 for all other states; starting, unhealthy, stopping, etc.
 function healthy {
   local iid=$1
   [[ -z $iid ]] && return 1
@@ -620,43 +635,55 @@ function healthy {
   fi
 
   if [[ "${SERVICE_DISABLE_HEALTHCHECK}" == "true" ]]; then
-    msg "Health checks disabled, won't wait for '$name' to be healthy"
     return 0
   fi
 
   local state
-  state=$(docker inspect "$iid")
+  state=$(docker inspect --format='{{.State.Health.Status}}' "$iid")
 
-  echo "$state" | grep \"Health\" &> /dev/null
-  if [[ ! $? -eq 0 ]]; then
-    # no healthcheck defined, assume healthy
-    msg "No health check available for '$name', assuming healthy"
+  if [ "$state" == "healthy" ]; then
     return 0
   fi
-
-  echo "$state" | grep \"healthy\" &> /dev/null
-  return $?
+  return 1
 }
 
 
+# takes a container name and returns its id
 function cid {
   compose ps -q "$1" 2> /dev/null
 }
 
 
+# Waits for a dependency to be healthy. 1 arg:
+# 1. dependency name
+# returns 0 (success) if healthy, throws an error if there was a timeout
 function wait_for_dependency {
   local iid
   local dep="$1"
 
+  if [[ "${SERVICE_DISABLE_HEALTHCHECK}" == "true" ]]; then
+    msg "Health checks disabled, won't wait for '$dep' to be healthy"
+    return 0
+  fi
+
   iid=$(cid "$dep")
 
-  if healthy "$iid" "$dep"; then return; fi
+  if healthy "$iid" "$dep"; then
+    return 0
+  fi
 
-  msg "Waiting for $dep"
+  msg "Waiting for '$dep' to become healthy"
 
-  while ! healthy "$iid" "$dep"; do
+  local timeout_count=$((HEALTH_TIMEOUT*2))
+  while [ $timeout_count -ge 0 ]; do
     sleep 0.5
+    if healthy "$iid" "$dep"; then
+      return 0
+    fi
+    timeout_count=$((timeout_count-1))
   done
+
+  err "Timeout waiting for '$dep' to become healthy"
 }
 
 
