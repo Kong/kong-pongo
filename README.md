@@ -84,7 +84,7 @@ Environment variables:
 
 Example usage:
   pongo run
-  KONG_VERSION=1.3.x pongo run -v -o gtest ./spec/02-access_spec.lua
+  KONG_VERSION=3.3.x pongo run -v -o gtest ./spec/02-access_spec.lua
   POSTGRES=10 KONG_IMAGE=kong-ee pongo run
   pongo down
 ```
@@ -356,9 +356,11 @@ a `.pongo/pongorc` file for a plugin that only needs Postgres and Redis:
 
 ### Disable Service Health Checks
 
-When unable to leverage container health checks, they can be disabled setting the environment variable `SERVICE_DISABLE_HEALTHCHECK=true`
-This will disable the service health checks for the Pongo services in the docker composer files
-for example
+When unable to leverage container health checks, they can be disabled setting the environment variable `HEALTH_TIMEOUT=0`.
+This will set the variable `SERVICE_DISABLE_HEALTHCHECK=true`, which can be used to disable the service health checks for
+the Pongo services in the docker composer files.
+
+For example:
 ```
     healthcheck:
       test:
@@ -370,7 +372,7 @@ for example
 ```
 To wait for the environment and run the tests one could run
 ```
-export SERVICE_DISABLE_HEALTHCHECK=true
+export HEALTH_TIMEOUT=0
 pongo up && sleep 10 && pongo run
 ```
 

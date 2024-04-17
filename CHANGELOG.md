@@ -22,6 +22,15 @@
 
 ---
 
+## unreleased
+
+* Feat: add `HEALTH_TIMEOUT` option to not hang forever if a dependency container
+  fails to start properly. Defaults to 60 (seconds). Also deprecates `SERVICE_DISABLE_HEALTCHECK`,
+  since that can now be done using `HEALTH_TIMEOUT=0`.
+  [#554](https://github.com/Kong/kong-pongo/pull/554).
+
+---
+
 ## 2.10.0 released 08-Feb-2024
 
 * Feat: add automatic reloads for interactive shells. This will watch plugin files as

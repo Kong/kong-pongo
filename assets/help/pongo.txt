@@ -64,6 +64,6 @@ Environment variables:
 
 Example usage:
   pongo run
-  KONG_VERSION=1.3.x pongo run -v -o gtest ./spec/02-access_spec.lua
+  KONG_VERSION=3.3.x pongo run -v -o gtest ./spec/02-access_spec.lua
   POSTGRES_IMAGE=postgres:10 KONG_IMAGE=kong-ee pongo run
   pongo down

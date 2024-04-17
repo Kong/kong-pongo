@@ -35,6 +35,6 @@ latest Kong open source version.
 
 
 Example usage:
-  KONG_VERSION=1.3.x pongo build --force
+  KONG_VERSION=3.3.x pongo build --force
   KONG_VERSION=dev-ee pongo build
   KONG_IMAGE=custom-kong-ee pongo build
