@@ -640,6 +640,9 @@ function healthy {
 
   local state
   state=$(docker inspect --format='{{.State.Health.Status}}' "$iid")
+  list=$(docker ps)
+  _log=$(docker logs $iid)
+  echo "##@@@@@@@@@@@@ !!!!!!!!!!!!!!!!!![$1]!!!!!!!!!!!!!!!!!!![$2]!!!!!!!!!!!!!!!!!!![$state]!!!!!!!!![$list]!!!!!!!!!!!!!![$_log]"
 
   if [ "$state" == "healthy" ]; then
     return 0
