@@ -22,12 +22,44 @@
 
 ---
 
-## unreleased
+## 2.11.0 released 29-May-2024
 
 * Feat: add `HEALTH_TIMEOUT` option to not hang forever if a dependency container
   fails to start properly. Defaults to 60 (seconds). Also deprecates `SERVICE_DISABLE_HEALTCHECK`,
   since that can now be done using `HEALTH_TIMEOUT=0`.
   [#554](https://github.com/Kong/kong-pongo/pull/554).
+
+* Feat: Kong Enterprise 2.8.4.7
+
+* Feat: Kong Enterprise 2.8.4.8
+
+* Feat: Kong Enterprise 2.8.4.9
+
+* Feat: Kong Enterprise 3.4.3.4
+
+* Feat: Kong Enterprise 3.4.3.5
+
+* Feat: Kong Enterprise 3.4.3.6
+
+* Feat: Kong Enterprise 3.6.0.0
+
+* Feat: Kong Enterprise 3.6.1.0
+
+* Feat: Kong Enterprise 3.6.1.1
+
+* Feat: Kong Enterprise 3.6.1.2
+
+* Feat: Kong Enterprise 3.6.1.3
+
+* Feat: Kong Enterprise 3.7.0.0
+
+* Feat: Kong OSS 3.6.0
+
+* Feat: Kong OSS 3.6.1
+
+* Feat: Kong OSS 3.7.0
+
+* Feat: Kong OSS 3.7.0
 
 ---
 
