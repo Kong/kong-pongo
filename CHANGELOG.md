@@ -22,7 +22,13 @@
 
 ---
 
-## unreleased
+## 3.0.0 unreleased
+
+* BREAKING: `pongo expose` will no longer expose the Cassandra ports. This fixes
+  an [issue with ports in use](https://developer.apple.com/forums/thread/682332) on MacOS.
+  This will have an impact only if you use Cassandra AND directly access Cassandra
+  by exposing the ports using `pongo expose` and then connect to the Cassandra DB directly.
+  [#455](https://github.com/Kong/kong-pongo/pull/455).
 
 * Feat: add `HEALTH_TIMEOUT` option to not hang forever if a dependency container
   fails to start properly. Defaults to 60 (seconds). Also deprecates `SERVICE_DISABLE_HEALTCHECK`,
