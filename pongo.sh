@@ -638,6 +638,14 @@ function healthy {
     return 0
   fi
 
+  local health
+  health=$(docker inspect --format='{{json .State.Health}}' "$iid")
+
+  if [ "$health" == "null" ]; then
+    msg "No health check available for '$name', assuming healthy"
+    return 0
+  fi
+
   local state
   state=$(docker inspect --format='{{.State.Health.Status}}' "$iid")
 
