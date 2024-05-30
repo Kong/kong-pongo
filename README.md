@@ -151,6 +151,9 @@ Since the Pongo script is symbolic linked to `~/.local/bin/pongo`, in order to u
 ```
 cd <cloned Pongo repo>
 git pull
+
+# checkout the latest version tag (checkout 'master' for bleeding edge)
+git checkout $(git tag | sort --version-sort | tail -n 1)
 ```
 
 [Back to ToC](#table-of-contents)
