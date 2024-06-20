@@ -5,6 +5,8 @@
 
 # pongo
 
+I am testing Pongo GHA.
+
 Pongo provides a simple way of testing Kong plugins. For a complete walkthrough
 check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plugin-kong-gateway).
 
