@@ -1,0 +1,59 @@
+{
+  "name": "@kong/kong-api-tests",
+  "version": "0.0.1",
+  "private": true,
+  "author": "Kong Inc.",
+  "scripts": {
+    "format": "prettier --write \"**/*.{js,ts}\"",
+    "lint": "eslint \"**/*.{js,ts}\"",
+    "test-spec": "mocha \"test/gateway/**/${npm_config_spec}.spec.ts\"",
+    "test-gateway": "TEST_APP=gateway mocha \"test/gateway/**/*.spec.ts\"",
+    "test-multiple": "mocha ${npm_config_spec}",
+    "test-smoke": "TEST_APP=gateway mocha -g @smoke --recursive",
+    "test-non-smoke": "TEST_APP=gateway mocha --invert -g @smoke --recursive",
+    "test-koko": "TEST_APP=koko TEST_ENV=dev mocha -g @koko --recursive"
+  },
+  "dependencies": {
+    "axios": "^1.6.5",
+    "@kong/kauth-test-utils": "^0.0.17",
+    "chai": "^4.4.1",
+    "@kong/khcp-api-client": "^0.1.1653",
+    "chai-arrays": "^2.2.0",
+    "chai-as-promised": "^7.1.1",
+    "chai-bytes": "^0.1.2",
+    "chai-like": "^1.1.1",
+    "chai-string": "^1.5.0",
+    "dotenv": "^16.3.1",
+    "expect": "^29.7.0",
+    "influx": "^5.9.3",
+    "mocha": "^10.2.0",
+    "mocha-multi-reporters": "^1.5.1",
+    "promise-ws": "^1.0.0-1",
+    "redis": "^4.6.10",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@tsconfig/recommended": "^1.0.3",
+    "@types/chai": "^4.3.9",
+    "@types/chai-arrays": "^2.0.2",
+    "@types/chai-as-promised": "^7.1.7",
+    "@types/chai-like": "^1.1.2",
+    "@types/chai-string": "^1.4.2",
+    "@types/uuid": "^9.0.3",
+    "@types/mocha": "^10.0.5",
+    "@types/node": "^18.19.8",
+    "@typescript-eslint/eslint-plugin": "^5.60.0",
+    "@typescript-eslint/parser": "^5.60.1",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^8.10.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.8",
+    "pretty-quick": "^3.3.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.1.2",
+    "typescript": "^4.9.5"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
