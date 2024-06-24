@@ -713,7 +713,7 @@ Pongo repository must be updated.
 
 To do so there are some pre-requisites;
 
-- have [hub](https://hub.github.com/) installed and configured
+- have [gh](https://cli.github.com/) installed and configured
 - on OSX have [coreutils](https://www.gnu.org/software/coreutils/coreutils.html) installed
 - have access to the `kong-pongo` (push) and `kong-ee` (read/clone) repositories on Github
 
