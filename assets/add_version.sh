@@ -31,6 +31,12 @@ Usage:
   test:      add "test" to make it a test run without pushing updates
 
 This tool will attempt to update Pongo by adding the requested version.
+
+Exitcodes:
+- 0: success
+- 1: error
+- 2: version was already present, and doesn't need adding
+
 EOF
 }
 
@@ -66,7 +72,7 @@ msg "Version to add: $ADD_VERSION"
 
 if version_exists "$ADD_VERSION"; then
   err "Version '$ADD_VERSION' is already available"
-  exit 1
+  exit 2
 fi
 
 VERSIONS_FILE=${LOCAL_PATH}/assets/kong_${CODE_BASE}_versions.ver
@@ -143,7 +149,7 @@ else
 fi
 msg "Now creating a Github pull-request:"
 if [[ "$DRY_RUN" == "" ]]; then
-  hub pull-request --no-edit
+  gh pr create --fill
   if [[ ! $? -eq 0 ]]; then
     git checkout "$PREVIOUS_BRANCH" &> /dev/null
     git branch -D "$BRANCH_NAME" &> /dev/null

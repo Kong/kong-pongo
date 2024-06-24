@@ -22,6 +22,12 @@
 
 ---
 
+## Unreleased
+
+* refactor: for updating switch from `hub` to the offical Github `gh` cli command.
+
+---
+
 ## 2.11.1 released 30-May-2024
 
 * Fix: if no health-checks are defined for a dependency then assume it to be healthy.
