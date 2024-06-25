@@ -32,11 +32,6 @@ Usage:
 
 This tool will attempt to update Pongo by adding the requested version.
 
-Exitcodes:
-- 0: success
-- 1: error
-- 2: version was already present, and doesn't need adding
-
 EOF
 }
 
@@ -71,14 +66,14 @@ msg "Version to add: $ADD_VERSION"
 #TODO: here check we're in a Pongo git repo, and on 'master' branch
 
 if version_exists "$ADD_VERSION"; then
+  # err will not return
   err "Version '$ADD_VERSION' is already available"
-  exit 2
 fi
 
 VERSIONS_FILE=${LOCAL_PATH}/assets/kong_${CODE_BASE}_versions.ver
 if [[ ! -f $VERSIONS_FILE ]]; then
+  # err will not return
   err "Versions file '$VERSIONS_FILE' not found"
-  exit 1
 fi
 
 # add the version to the file
@@ -86,8 +81,8 @@ echo "$ADD_VERSION" >> "$VERSIONS_FILE"
 sort --version-sort "$VERSIONS_FILE" > "${VERSIONS_FILE}_tmp"
 
 if [[ ! -f "${VERSIONS_FILE}_tmp" ]]; then
+  # err will not return
   err "Failed to add and sort the new versions file"
-  exit 1
 fi
 
 mv "${VERSIONS_FILE}_tmp" "$VERSIONS_FILE"
@@ -104,8 +99,8 @@ git checkout -b "${BRANCH_NAME}"
 if [[ ! $? -eq 0 ]]; then
   # first revert change to the versions file
   git checkout "$VERSIONS_FILE" &> /dev/null
+  # err will not return
   err "Failed to checkout a new branch '${BRANCH_NAME}'"
-  exit 1
 fi
 
 git add "$VERSIONS_FILE"
