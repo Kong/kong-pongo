@@ -22,9 +22,44 @@
 
 ---
 
-## Unreleased
+## 2.12.0 released 16-Jul-2024
 
 * refactor: for updating switch from `hub` to the offical Github `gh` cli command.
+  [#596](https://github.com/Kong/kong-pongo/pull/596).
+
+* Feat: Kong Enterprise 3.7.1.2
+
+* Feat: Kong Enterprise 3.7.1.1
+
+* Feat: Kong Enterprise 3.6.1.6
+
+* Feat: Kong Enterprise 3.6.1.5
+
+* Feat: Kong Enterprise 3.6.1.4
+
+* Feat: Kong Enterprise 3.5.0.7
+
+* Feat: Kong Enterprise 3.5.0.6
+
+* Feat: Kong Enterprise 3.5.0.5
+
+* Feat: Kong Enterprise 3.5.0.4
+
+* Feat: Kong Enterprise 3.4.3.11
+
+* Feat: Kong Enterprise 3.4.3.9
+
+* Feat: Kong Enterprise 3.4.3.8
+
+* Feat: Kong Enterprise 3.4.3.7
+
+* Feat: Kong Enterprise 2.8.4.11
+
+* Feat: Kong Enterprise 2.8.4.10
+
+* Feat: Kong OSS 3.7.1
+
+* Feat: Kong OSS 2.8.5
 
 ---
 
