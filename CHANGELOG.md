@@ -22,6 +22,13 @@
 
 ---
 
+## Unreleased
+
+* Feat: enable FIPS mode by passing `KONG_TEST_FIPS` env variable
+  [#615](https://github.com/Kong/kong-pongo/pull/615).
+
+---
+
 ## 2.12.0 released 16-Jul-2024
 
 * refactor: for updating switch from `hub` to the offical Github `gh` cli command.
