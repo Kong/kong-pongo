@@ -22,7 +22,7 @@
 
 ---
 
-## Unreleased
+## 2.13.0 released 12-Sep-2024
 
 * Fix: properly resolve Kong-versions in case of double digits, eg. 3.4.3.12
   [#619](https://github.com/Kong/kong-pongo/pull/619).
@@ -30,6 +30,15 @@
 * Fix: remove version key from docker compose to prevent deprecation warning
   [#622](https://github.com/Kong/kong-pongo/pull/622).
 
+* Feat: Kong Enterprise 3.8.0.0
+
+* Feat: Kong Enterprise 3.6.1.7
+
+* Feat: Kong Enterprise 3.4.3.12
+
+* Feat: Kong Enterprise 2.8.4.12
+
+* Feat: Kong OSS 3.8.0
 
 ---
 
