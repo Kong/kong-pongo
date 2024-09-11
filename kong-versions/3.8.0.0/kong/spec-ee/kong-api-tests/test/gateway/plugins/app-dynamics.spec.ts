@@ -124,7 +124,8 @@ import {
     await waitForConfigRebuild({ proxyReqHeader: { 'apiKey': apiKeyScoped } })
   });
 
-  it('should send request and see the Singularityheader when AppDynamics plugin is enabled', async function () {
+  //skip until we renew app dynamics license
+  it.skip('should send request and see the Singularityheader when AppDynamics plugin is enabled', async function () {
     let resp;
 
     // send 150 requests to seed data for the plugin
