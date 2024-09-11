@@ -135,16 +135,24 @@ function resolve_version {
     if ((segments == 4)); then
       # this is a 4 segment version, which means it is an EE version.
       # For an EE version we need to resolve the last 2 segments
-      for entry in ${KONG_VERSIONS[*]}; do
-        if [[ "${KONG_VERSION:0:${#KONG_VERSION}-3}" == "${entry:0:${#entry}-3}" ]]; then
+      local pref1
+      pref1="$(echo "$KONG_VERSION" | awk -F'.' '{print $1"."$2"."}')"
+      for entry in ${KONG_EE_VERSIONS[*]}; do
+        local pref2
+        pref2="$(echo "$entry" | awk -F'.' '{print $1"."$2"."}')"
+        if [[ "$pref1" == "$pref2" ]]; then
           # keep replacing, last one wins
           new_version=$entry
         fi
       done;
     else
       # this should then be an OSS version
-      for entry in ${KONG_VERSIONS[*]}; do
-        if [[ "${KONG_VERSION:0:${#KONG_VERSION}-1}" == "${entry:0:${#entry}-1}" ]]; then
+      local pref1
+      pref1="$(echo "$KONG_VERSION" | awk -F'.' '{print $1"."$2"."}')"
+      for entry in ${KONG_CE_VERSIONS[*]}; do
+        local pref2
+        pref2="$(echo "$entry" | awk -F'.' '{print $1"."$2"."}')"
+        if [[ "$pref1" == "$pref2" ]]; then
           # keep replacing, last one wins
           new_version=$entry
         fi
