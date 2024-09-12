@@ -24,9 +24,6 @@
 
 ## Unreleased
 
-* Feat: enable FIPS mode by passing `KONG_TEST_FIPS` env variable
-  [#615](https://github.com/Kong/kong-pongo/pull/615).
-
 * Fix: properly resolve Kong-versions in case of double digits, eg. 3.4.3.12
   [#619](https://github.com/Kong/kong-pongo/pull/619).
 
