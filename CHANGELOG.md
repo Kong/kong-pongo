@@ -30,6 +30,9 @@
 * Fix: properly resolve Kong-versions in case of double digits, eg. 3.4.3.12
   [#619](https://github.com/Kong/kong-pongo/pull/619).
 
+* Fix: remove version key from docker compose to prevent deprecation warning
+  [#622](https://github.com/Kong/kong-pongo/pull/622).
+
 
 ---
 
