@@ -89,14 +89,13 @@ services:
     volumes:
       - "./redis/server.crt:/usr/local/etc/redis/server.crt"
       - "./redis/server.key:/usr/local/etc/redis/server.key"
-    environment:
-      - REDIS_TLS_PORT=6380
-      - REDIS_TLS_CERT_FILE=/usr/local/etc/redis/server.crt
-      - REDIS_TLS_KEY_FILE=/usr/local/etc/redis/server.key
-      - REDIS_TLS_CLUSTER=no
-      - REDIS_TLS_REPLICATION=no
-      - REDIS_TLS_AUTH_CLIENTS=no
-      - REDIS_PROTECTED_MODE=no
+    command: >-
+      --tls-port 6380
+      --tls-cert-file /usr/local/etc/redis/server.crt
+      --tls-key-file /usr/local/etc/redis/server.key
+      --tls-cluster no
+      --tls-replication no
+      --tls-auth-clients no
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
