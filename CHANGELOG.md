@@ -22,6 +22,13 @@
 
 ---
 
+## 2.14.0 released 24-Sep-2024
+
+* Feat: enable FIPS support for plugin testing
+  [#624](https://github.com/Kong/kong-pongo/pull/624).
+
+---
+
 ## 2.13.0 released 12-Sep-2024
 
 * Fix: properly resolve Kong-versions in case of double digits, eg. 3.4.3.12
