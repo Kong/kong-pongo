@@ -1,0 +1,15 @@
+# kong-api-test node_modules
+node_modules
+
+# test results
+results
+
+# local reflection of .env.example
+.env
+.npmrc
+
+# Konnect DP certificates
+certificate.crt
+certificate.csr
+private.pem
+public.pem
