@@ -465,6 +465,19 @@ Some helpfull examples:
 
 [Back to ToC](#table-of-contents)
 
+## Custom CA
+
+If you are running pongo e.g. behind a corporate traffic-inspector, and that normally requires you to add 
+a custom CA certificate into the operating system or container truststore, use the following flag:
+
+`PONGO_CUSTOM_CA_CERT=/path/to/custom/ca.crt`
+
+For example:
+
+```sh
+$ PONGO_CUSTOM_CA_CERT="$(pwd)/zscaler-root.crt" pongo up
+```
+
 ## Debugging
 
 This section is about debugging plugin code. If you have trouble with the Pongo
