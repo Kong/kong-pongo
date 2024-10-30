@@ -78,6 +78,10 @@ Environment variables:
   KONG_LICENSE_DATA
                 set this variable with the Kong Enterprise license data
 
+  PONGO_CUSTOM_CA_CERT
+                set this to the absolute path of a custom CA to add to the
+                container's truststore
+
   POSTGRES      the version of the Postgres dependency to use (default 9.5)
   CASSANDRA     the version of the Cassandra dependency to use (default 3.11)
   REDIS         the version of the Redis dependency to use (default 6.2.6)
