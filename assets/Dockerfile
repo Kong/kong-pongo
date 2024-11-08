@@ -1,5 +1,5 @@
 ARG KONG_BASE
-FROM ${KONG_BASE}
+FROM debian:buster
 
 # add dev files
 ARG KONG_DEV_FILES
@@ -55,6 +55,12 @@ RUN if [ -n "$PONGO_INSECURE" ] || [ "$PONGO_INSECURE" != "false" ]; then \
         echo '--insecure' >> ~/.curlrc; \
         git config --global http.sslVerify false; \
     fi
+
+# install rust toolchain
+RUN curl https://sh.rustup.rs -sSf | \
+    sh -s -- --default-toolchain stable -y
+
+ENV PATH=/root/.cargo/bin:$PATH
 
 RUN /pongo/install-python.sh
 RUN pip3 install httpie || echo -e "\n\n\nFailed installing httpie, continuing without.\n\n\n"
