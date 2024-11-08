@@ -1,5 +1,5 @@
 ARG KONG_BASE
-FROM debian:buster
+FROM ${KONG_BASE}
 
 # add dev files
 ARG KONG_DEV_FILES
