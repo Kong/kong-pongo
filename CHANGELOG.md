@@ -22,6 +22,13 @@
 
 ---
 
+## Unreleased...
+
+* Fix: pass http-proxy variables when building `expose`
+  [#637](https://github.com/Kong/kong-pongo/pull/637).
+
+---
+
 ## 2.14.0 released 24-Sep-2024
 
 * Feat: enable FIPS support for plugin testing
