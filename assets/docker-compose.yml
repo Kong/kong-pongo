@@ -5,7 +5,11 @@ networks:
 services:
   expose:
     image: pongo-expose
-    build: ./expose
+    build:
+      context: ./expose
+      args:
+        HTTP_PROXY: ${HTTP_PROXY:-}
+        HTTPS_PROXY: ${HTTPS_PROXY:-}
     ports:
       - "8000:8000"
       - "8001:8001"
