@@ -1074,6 +1074,13 @@ function pongo_init {
     echo "luacov.report.out" >> .gitignore
     msg "added 'luacov.report.out' to '.gitignore'"
   fi
+  if grep --quiet "^luacov[.]report[.]html$" .gitignore ; then
+    msg "'.gitignore' already ignores 'luacov.report.html'"
+  else
+    echo "# exclude LuaCov html report" >> .gitignore
+    echo "luacov.report.html" >> .gitignore
+    msg "added 'luacov.report.html' to '.gitignore'"
+  fi
   if grep --quiet "^[.]containerid$" .gitignore ; then
     msg "'.gitignore' already ignores '.containerid'"
   else

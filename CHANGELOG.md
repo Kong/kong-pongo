@@ -27,6 +27,9 @@
 * Fix: pass http-proxy variables when building `expose`
   [#637](https://github.com/Kong/kong-pongo/pull/637).
 
+* Feat: prepare for LuaCov html reporter (in LuaCov 0.16.0)
+  [#638](https://github.com/Kong/kong-pongo/pull/638).
+
 ---
 
 ## 2.14.0 released 24-Sep-2024
