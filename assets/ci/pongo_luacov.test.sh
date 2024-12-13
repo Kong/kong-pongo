@@ -16,7 +16,7 @@ function run_test {
   [ -f ./luacov.stats.out ] && rm ./luacov.stats.out
   [ -f ./luacov.report.out ] && rm ./luacov.report.out
 
-  pongo run --no-cassandra -- --coverage ./spec/myplugin/01-unit_spec.lua
+  pongo run --no-cassandra -- --coverage ./spec/myplugin/02-unit_spec.lua
   if [ ! -f ./luacov.stats.out ]; then
     tfailure "expected file ./luacov.stats.out not found"
   else
