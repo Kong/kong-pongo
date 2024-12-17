@@ -24,11 +24,27 @@
 
 ## Unreleased...
 
+---
+
+## 2.15.0 released 17-Dec-2024
+
 * Fix: pass http-proxy variables when building `expose`
   [#637](https://github.com/Kong/kong-pongo/pull/637).
 
 * Feat: prepare for LuaCov html reporter (in LuaCov 0.16.0)
   [#638](https://github.com/Kong/kong-pongo/pull/638).
+
+* Feat: Kong Enterprise 3.9.0.0
+
+* Feat: Kong Enterprise 3.8.1.0
+
+* Feat: Kong Enterprise 3.7.1.3
+
+* Feat: Kong Enterprise 3.6.1.8
+
+* Feat: Kong Enterprise 3.4.3.13
+
+* Feat: Kong OSS 3.9.0
 
 ---
 
