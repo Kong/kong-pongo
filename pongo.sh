@@ -758,6 +758,14 @@ function build_image {
   fi
 
   msg "starting build of image '$KONG_TEST_IMAGE'"
+  
+  if [ -n "$PONGO_CUSTOM_CA_CERT" ]; then
+    msg "custom CA is set: $PONGO_CUSTOM_CA_CERT"
+    cp "$PONGO_CUSTOM_CA_CERT" "$LOCAL_PATH/custom_ca.crt"
+  else
+    echo -n '' > "$LOCAL_PATH/custom_ca.crt"
+  fi
+
   $WINPTY_PREFIX docker build \
     -f "$DOCKER_FILE" \
     --build-arg PONGO_VERSION="$PONGO_VERSION" \
@@ -769,7 +777,7 @@ function build_image {
     --build-arg KONG_BASE="$KONG_IMAGE" \
     --build-arg KONG_DEV_FILES="./kong-versions/$VERSION/kong" \
     --tag "$KONG_TEST_IMAGE" \
-    "$LOCAL_PATH" || err "Error: failed to build test environment"
+    "$LOCAL_PATH" || err "Error: failed to build test environment";
 
   msg "image '$KONG_TEST_IMAGE' successfully build"
 }

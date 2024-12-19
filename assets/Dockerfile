@@ -24,6 +24,17 @@ COPY assets/pongo_profile.sh         /etc/profile.d/pongo_profile.sh
 COPY assets/install-python.sh        /pongo/install-python.sh
 
 USER root
+
+# add custom CA cert in case of corporate proxy - this is a hack that ignores if the file is missing
+COPY custom_ca.crt /usr/local/share/ca-certificates/custom_ca.crt
+RUN <<EOF
+    if [ -s /usr/local/share/ca-certificates/custom_ca.crt ]; then
+        update-ca-certificates;
+    else
+        rm -f /usr/local/share/ca-certificates/custom_ca.crt;
+    fi
+EOF
+
 # httpie and jq are genric utilities usable from the shell action.
 # LuaRocks needs (un)zip to (un)pack rocks, and dev essentials to build.
 # Setup the development dependencies using the make target
@@ -55,6 +66,7 @@ RUN if [ -n "$PONGO_INSECURE" ] || [ "$PONGO_INSECURE" != "false" ]; then \
         echo '--insecure' >> ~/.curlrc; \
         git config --global http.sslVerify false; \
     fi
+
 
 RUN /pongo/install-python.sh
 RUN pip3 install httpie || echo -e "\n\n\nFailed installing httpie, continuing without.\n\n\n"
