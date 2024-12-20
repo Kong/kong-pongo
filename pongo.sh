@@ -64,7 +64,7 @@ function globals {
   fi
 
   # create unique projectID based on file-path (on the host machine)
-  PROJECT_ID=$(echo -n "$PONGO_WD" | md5sum)
+  PROJECT_ID=$(echo -n "$PONGO_WD" | $MD5_COMMAND )
   PROJECT_ID="${PROJECT_ID:0:8}"
 
   PROJECT_NAME_PREFIX="pongo-"
@@ -229,6 +229,21 @@ function check_tools {
   curl -V > /dev/null 2>&1
   if [[ ! $? -eq 0 ]]; then
     >&2 echo "'curl' command not found, please install it, and make it available in the path."
+    missing=true
+  fi
+
+  # Detect the MD5 command
+  if command -v md5sum &> /dev/null; then
+    # Unix
+    MD5_COMMAND="md5sum"
+  elif command -v gmd5sum &> /dev/null; then
+    # GNU
+    MD5_COMMAND="gmd5sum"
+  elif command -v md5 &> /dev/null; then
+    # BSD/Mac
+    MD5_COMMAND="md5"
+  else
+    >&2 echo "'md5sum', 'gmd5sum', and 'md5' commands not found, please install anyone of them, and make it available in the path."
     missing=true
   fi
 
