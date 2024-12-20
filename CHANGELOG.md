@@ -24,6 +24,10 @@
 
 ## Unreleased...
 
+* Fix: check for `md5` availability in platform indepedent way.
+  Removes need to install coreutils on Mac.
+  [#642](https://github.com/Kong/kong-pongo/pull/642).
+
 ---
 
 ## 2.15.0 released 17-Dec-2024
