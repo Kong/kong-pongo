@@ -12,7 +12,7 @@
     * create a PR that changes Kong-Enterprise tests to use the Pongo release branch
     * add a link in the PR description to the Pongo release PR for cross-referencing
     * mark the PR as "draft"
-    * example where/how to make the change: https://github.com/Kong/kong-ee/pull/4156. Copy the to-do list from the PR description!
+    * example where/how to make the change: https://github.com/Kong/kong-ee/pull/11257. Copy the to-do list from the PR description!
     * make sure it passes, adjust if required
  * merge the Pongo release branch, tag as `x.y.z`, and push the tag
  * in Github UI create a release from the tag
@@ -22,11 +22,20 @@
 
 ---
 
-## Unreleased...
+## 2.16.0 released 21-Jan-2025
+
+* Fix: warning in docker file.
+  [#647](https://github.com/Kong/kong-pongo/pull/647)
 
 * Fix: check for `md5` availability in platform indepedent way.
   Removes need to install coreutils on Mac.
   [#642](https://github.com/Kong/kong-pongo/pull/642).
+
+* Feat: Kong Enterprise 3.4.3.16
+
+* Feat: Kong Enterprise 3.4.3.15
+
+* Feat: Kong Enterprise 3.4.3.14
 
 ---
 
