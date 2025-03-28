@@ -30,6 +30,9 @@ The build can be customized using the following environment variables:
                   certificate validation behind proxies. Make sure you
                   understand the security consequences when using this option!
 
+  DOCKER_BUILD_EXTRA_ARGS  Additional options to pass to the docker build command
+                           used to build the Kong test image.
+
 If neither KONG_VERSION nor KONG_IMAGE is specified it will default to the
 latest Kong open source version.
 
