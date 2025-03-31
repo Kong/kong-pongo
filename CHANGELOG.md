@@ -22,6 +22,21 @@
 
 ---
 
+## 2.17.0 released 31-Mar-2025
+
+* Feat: Kong Enterprise 3.10.0.0
+
+* Feat: Kong Enterprise 3.9.1.1
+
+* Feat: Kong Enterprise 3.9.1.0
+
+* Feat: Kong Enterprise 3.9.0.1
+
+* Feat: Kong Enterprise 3.7.1.4
+
+* Feat: Kong Enterprise 3.4.3.17
+
+
 ## 2.16.0 released 21-Jan-2025
 
 * Fix: warning in docker file.
