@@ -28,6 +28,8 @@ function globals {
   IMAGE_BASE_PREFIX="kong-pongo-"
   IMAGE_BASE_NAME=$IMAGE_BASE_PREFIX$PONGO_VERSION
 
+  DOCKER_BUILD_EXTRA_ARGS="${DOCKER_BUILD_EXTRA_ARGS:-}"
+
   # the path where the plugin source is located, as seen from Pongo (this script)
   KONG_TEST_PLUGIN_PATH=$(realpath .)
 
@@ -773,6 +775,7 @@ function build_image {
   fi
 
   msg "starting build of image '$KONG_TEST_IMAGE'"
+  # shellcheck disable=SC2086 # DOCKER_BUILD_EXTRA_ARGS can contain multiple arguments so we must not quote it
   $WINPTY_PREFIX docker build \
     -f "$DOCKER_FILE" \
     --build-arg PONGO_VERSION="$PONGO_VERSION" \
@@ -784,6 +787,7 @@ function build_image {
     --build-arg KONG_BASE="$KONG_IMAGE" \
     --build-arg KONG_DEV_FILES="./kong-versions/$VERSION/kong" \
     --tag "$KONG_TEST_IMAGE" \
+    ${DOCKER_BUILD_EXTRA_ARGS} \
     "$LOCAL_PATH" || err "Error: failed to build test environment"
 
   msg "image '$KONG_TEST_IMAGE' successfully build"
