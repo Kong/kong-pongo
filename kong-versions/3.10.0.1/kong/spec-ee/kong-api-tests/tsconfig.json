@@ -1,0 +1,22 @@
+{
+  "extends": "./node_modules/@tsconfig/recommended/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@fixtures": [
+        "./fixtures"
+      ],
+      "@scripts/*": [
+        "./scripts/*"
+      ],
+      "@shared/*": [
+        "./test/shared/*"
+      ],
+      "@support": [
+        "./support"
+      ],
+    },
+    "noImplicitAny": false,
+    "resolveJsonModule": true
+  }
+}
