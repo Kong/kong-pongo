@@ -309,7 +309,7 @@ function add_custom_dependency {
 function read_rc_dependencies {
   local rc_arg
   # shellcheck disable=SC2153  # PONGORC_ARGS is defined in sourced file
-  for rc_arg in ${PONGORC_ARGS[*]}; do
+  for rc_arg in "${PONGORC_ARGS[@]}"; do
     if [[ "--no-" == "${rc_arg:0:5}" ]]; then
       rc_arg="${rc_arg:5}"
     elif [[ "--" == "${rc_arg:0:2}" ]]; then
@@ -322,7 +322,7 @@ function read_rc_dependencies {
   #msg "custom deps: ${KONG_DEPS_CUSTOM[@]}"
   #msg "all deps: ${KONG_DEPS_AVAILABLE[@]}"
   local dependency
-  for dependency in ${KONG_DEPS_CUSTOM[*]}; do
+  for dependency in "${KONG_DEPS_CUSTOM[@]}"; do
     local dcyml
     if [[ -f ".pongo/$dependency.yml" ]]; then
       dcyml=".pongo/$dependency.yml"
@@ -345,7 +345,7 @@ function remove_dependency_start {
   local to_remove=$1
   local new_array=()
   local dependency
-  for dependency in ${KONG_DEPS_START[*]}; do
+  for dependency in "${KONG_DEPS_START[@]}"; do
     if [[ "$dependency" != "$to_remove" ]]; then
       new_array+=("$dependency")
     fi
@@ -357,7 +357,7 @@ function remove_dependency_start {
 function handle_dep_arg {
   local arg=$1
   local is_dep=1
-  for dependency in ${KONG_DEPS_AVAILABLE[*]}; do
+  for dependency in "${KONG_DEPS_AVAILABLE[@]}"; do
     if [[ "--$dependency" == "$arg" ]]; then
       add_dependency_start "$dependency"
       is_dep=0
@@ -393,11 +393,11 @@ function parse_args {
 
   # only add RC file parameters if command allows it
   local rc_command
-  for rc_command in ${RC_COMMANDS[*]}; do
+  for rc_command in "${RC_COMMANDS[@]}"; do
     if [[ "$rc_command" == "$PONGO_COMMAND" ]]; then
       # add all the Pongo RC args
       local rc_arg
-      for rc_arg in ${PONGORC_ARGS[*]}; do
+      for rc_arg in "${PONGORC_ARGS[@]}"; do
         PONGO_ARGS+=("$rc_arg")
       done;
     fi
@@ -412,7 +412,7 @@ function parse_args {
   # parse the arguments
   local args_done=0
   local pongo_arg
-  for pongo_arg in ${PONGO_ARGS[*]}; do
+  for pongo_arg in "${PONGO_ARGS[@]}"; do
     if [[ args_done -eq 0 ]]; then
       case "$pongo_arg" in
         --)
@@ -713,7 +713,7 @@ function wait_for_dependency {
 function compose_up {
   docker_login
   local dependency
-  for dependency in ${KONG_DEPS_START[*]}; do
+  for dependency in "${KONG_DEPS_START[@]}"; do
     healthy "$(cid "$dependency")" "$dependency" || compose up -d "$dependency"
   done;
 }
@@ -733,7 +733,7 @@ function ensure_available {
   fi
 
   local dependency
-  for dependency in ${KONG_DEPS_START[*]}; do
+  for dependency in "${KONG_DEPS_START[@]}"; do
     wait_for_dependency "$dependency"
   done;
 }
@@ -930,7 +930,7 @@ function pongo_status {
         echo Pongo available dependencies:
         echo =============================
         local dep_name
-        for dep_name in ${KONG_DEPS_AVAILABLE[*]}; do
+        for dep_name in "${KONG_DEPS_AVAILABLE[@]}"; do
           if array_contains KONG_DEPS_CUSTOM "$dep_name"; then
             echo "$dep_name (custom to local plugin)"
           else
@@ -1041,7 +1041,7 @@ function pongo_init {
     touch .pongo/pongorc
 
     local dep_name
-    for dep_name in ${KONG_DEPS_AVAILABLE[*]}; do
+    for dep_name in "${KONG_DEPS_AVAILABLE[@]}"; do
       if array_contains KONG_DEPS_START "$dep_name"; then
         echo "--$dep_name" >> .pongo/pongorc
       #else

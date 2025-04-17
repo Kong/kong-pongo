@@ -139,7 +139,7 @@ function update_artifacts {
 
     msg "copying files ..."
     local VERSION
-    for VERSION in ${KONG_VERSIONS[*]}; do
+    for VERSION in "${KONG_VERSIONS[@]}"; do
         if is_enterprise "$VERSION"; then
             pushd ./kong-ee > /dev/null || { echo "Failure to enter ./kong-ee"; return 1; }
             msg "Enterprise $VERSION"
