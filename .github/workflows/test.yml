@@ -34,7 +34,7 @@ jobs:
     - name: Checkout source code
       uses: actions/checkout@v3
 
-    - uses: Kong/kong-license@master
+    - uses: Kong/kong-license@c4decf08584f84ff8fe8e7cd3c463e0192f6111b
       with:
         password: ${{ secrets.PULP_PASSWORD }}
 
