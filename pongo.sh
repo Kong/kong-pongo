@@ -775,6 +775,8 @@ function build_image {
   fi
 
   msg "starting build of image '$KONG_TEST_IMAGE'"
+  msg "Current position: $PWD"
+  msg "!!!!!!!!!! docker build cmd: $WINPTY_PREFIX docker build -f \"$DOCKER_FILE\" --build-arg PONGO_VERSION=\"$PONGO_VERSION\" --build-arg http_proxy=\"$http_proxy\" --build-arg https_proxy=\"$https_proxy\" --build-arg ftp_proxy=\"$ftp_proxy\" --build-arg no_proxy=\"$no_proxy\" --build-arg PONGO_INSECURE=\"$PONGO_INSECURE\" --build-arg KONG_BASE=\"$KONG_IMAGE\" --build-arg KONG_DEV_FILES=\"./kong-versions/$VERSION/kong\" --tag \"$KONG_TEST_IMAGE\" ${DOCKER_BUILD_EXTRA_ARGS} \"$LOCAL_PATH\""
   # shellcheck disable=SC2086 # DOCKER_BUILD_EXTRA_ARGS can contain multiple arguments so we must not quote it
   $WINPTY_PREFIX docker build \
     -f "$DOCKER_FILE" \
