@@ -36,6 +36,7 @@ ENV LUAROCKS_CRYPTO_DIR=$KONG_LIBRARY_PREFIX
 ENV LUAROCKS_OPENSSL_DIR=$KONG_LIBRARY_PREFIX
 
 ENV LUAROCKS_OPTS="CRYPTO_DIR=$LUAROCKS_CRYPTO_DIR OPENSSL_DIR=$LUAROCKS_OPENSSL_DIR"
+ENV LUAROCKS_MIRROR_OPT="--server https://github.com/gszr/kong_dev_rocks/raw/refs/heads/testing/rocks/"
 
 ARG http_proxy
 ARG https_proxy
@@ -61,10 +62,11 @@ RUN pip3 install httpie || echo -e "\n\n\nFailed installing httpie, continuing w
 RUN curl -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
 RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
+    && sed -i "s|luarocks install|luarocks install $LUAROCKS_MIRROR_OPT|" Makefile \
     && make dependencies $LUAROCKS_OPTS \
-    && luarocks install busted-htest \
-    && luarocks install luacov \
-    && luarocks install kong-plugin-dbless-reload 0.1.0
+    && luarocks install busted-htest $LUAROCKS_MIRROR_OPT \
+    && luarocks install luacov $LUAROCKS_MIRROR_OPT \
+    && luarocks install kong-plugin-dbless-reload 0.1.0 $LUAROCKS_MIRROR_OPT
 
 # restore the insecure settings from above to secure
 RUN if [ -e ~/.bashrc ]; then rm ~/.bashrc; fi; \
