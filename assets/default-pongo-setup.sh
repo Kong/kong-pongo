@@ -14,6 +14,6 @@ for rockspec in $(find /kong-plugin -maxdepth 1 -type f -name '*.rockspec'); do
     luarocks remove --force "$rockname"
   fi
   # install any required dependencies
-  luarocks install --only-deps "$rockspec"
+  luarocks install --only-server https://raw.githubusercontent.com/rocks-moonscript-org/moonrocks-mirror/daab2726276e3282dc347b89a42a5107c3500567 --only-deps "$rockspec"
 done
 
