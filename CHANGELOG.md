@@ -22,6 +22,12 @@
 
 ---
 
+## Unreleased
+
+* Feat: support loading custom CA certificates file in PEM format
+  via the environment variable `PONGO_CUSTOM_CA_CERT` or
+  the `--custom-ca-cert` CLI option.
+
 ## 2.18.0 released 24-Jun-2025
 
 * Fix: Update Luarocks to 3.12.1.

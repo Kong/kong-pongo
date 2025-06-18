@@ -41,6 +41,7 @@ Environment variables:
 
 Example usage:
   pongo run
+  PONGO_CUSTOM_CA_CERT=/path/to/my-ca.crt pongo run
   KONG_VERSION=dev pongo run
   KONG_VERSION=3.3.x pongo run -v -o TAP ./spec/02-access_spec.lua
   POSTGRES_IMAGE=postgres:10 KONG_IMAGE=custom-kong-ee pongo run

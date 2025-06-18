@@ -8,6 +8,8 @@ COPY $KONG_DEV_FILES /kong
 ARG PONGO_VERSION
 ENV PONGO_VERSION=$PONGO_VERSION
 
+ARG PONGO_CUSTOM_CA_CERT
+
 # add helper files to workaround some issues
 COPY assets/busted_helper.lua        /pongo/busted_helper.lua
 COPY assets/pongo_entrypoint.sh      /pongo/pongo_entrypoint.sh
@@ -21,7 +23,7 @@ COPY assets/parse_git_branch.sh      /pongo/parse_git_branch.sh
 COPY assets/pongo_logo.sh            /pongo/pongo_logo.sh
 COPY assets/workspace_update.lua     /pongo/workspace_update.lua
 COPY assets/pongo_profile.sh         /etc/profile.d/pongo_profile.sh
-COPY assets/install-python.sh        /pongo/install-python.sh
+COPY assets/install-python.sh assets/${PONGO_CUSTOM_CA_CERT}*    /pongo/
 
 USER root
 # httpie and jq are genric utilities usable from the shell action.
@@ -35,7 +37,7 @@ ENV KONG_LIBRARY_PREFIX=$KONG_LIBRARY_PREFIX
 ENV LUAROCKS_CRYPTO_DIR=$KONG_LIBRARY_PREFIX
 ENV LUAROCKS_OPENSSL_DIR=$KONG_LIBRARY_PREFIX
 
-ENV LUAROCKS_OPTS="CRYPTO_DIR=$LUAROCKS_CRYPTO_DIR OPENSSL_DIR=$LUAROCKS_OPENSSL_DIR"
+ENV LUAROCKS_OPTS="--server https://kong.github.io/kongrocks-dev/rocks/ CRYPTO_DIR=$LUAROCKS_CRYPTO_DIR OPENSSL_DIR=$LUAROCKS_OPENSSL_DIR"
 
 ARG http_proxy
 ARG https_proxy
@@ -88,12 +90,25 @@ RUN curl -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7
 RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
     && make dependencies $LUAROCKS_OPTS \
-    && luarocks install busted-htest \
-    && luarocks install luacov \
-    && luarocks install kong-plugin-dbless-reload 0.1.0
+    && luarocks install --server https://kong.github.io/kongrocks-dev/rocks/ busted-htest \
+    && luarocks install --server https://kong.github.io/kongrocks-dev/rocks/ luacov \
+    && luarocks install --server https://kong.github.io/kongrocks-dev/rocks/ kong-plugin-dbless-reload 0.1.0
+
+RUN if [ -f /pongo/$PONGO_CUSTOM_CA_CERT ] ; then \
+        cp /pongo/$PONGO_CUSTOM_CA_CERT /usr/local/share/ca-certificates/$PONGO_CUSTOM_CA_CERT ; \
+        update-ca-certificates ; \
+        \
+        kong_curl_ca=$(/usr/local/kong-tools/bin/curl-config --ca) ; \
+        if [ -e "$kong_curl_ca" ] ; then \
+            echo -e "\nCustom CA\n=========================\n" >> $kong_curl_ca ; \
+            cat /pongo/$PONGO_CUSTOM_CA_CERT >> $kong_curl_ca ; \
+        fi ; \
+    fi
+ENV PONGO_CUSTOM_CA_CERT="/pongo/${PONGO_CUSTOM_CA_CERT:-NOT_FOUND}"
 
 # restore the insecure settings from above to secure
 RUN if [ -e ~/.bashrc ]; then rm ~/.bashrc; fi; \
+    if [ -e ~/.curlrc ]; then rm ~/.curlrc; fi; \
     git config --global http.sslVerify true
 
 # make sure resty, LuaJIT, and our custom Busted are in our path
