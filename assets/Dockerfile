@@ -87,6 +87,10 @@ RUN pip3 install httpie || echo -e "\n\n\nFailed installing httpie, continuing w
 RUN curl -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
 RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
+    && curl -LO https://luarocks.org/manifests/hisham/luarocks-3.12.1-1.rockspec \
+    && echo '968623103fc3dbadd6a7fa92ed0b13d8c7bb87351f5033633a2bd6deef3a2b89 *luarocks-3.12.1-1.rockspec' | sha256sum -c - \
+    && luarocks install luarocks-3.12.1-1.rockspec \
+    && rm luarocks-3.12.1-1.rockspec \
     && make dependencies $LUAROCKS_OPTS \
     && luarocks install busted-htest \
     && luarocks install luacov \
