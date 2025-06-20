@@ -9,7 +9,7 @@ function run_test {
 
   # this version should be the latest patch release of a series,
   # eg. 2.0.x == 2.0.5
-  TEST_VERSION=2.0.5
+  TEST_VERSION=3.10.0.2  # will use LTS 3.11.0.0 or dev-ee
 
 
   ttest "builds the specified image: $TEST_VERSION"

@@ -21,7 +21,7 @@ fi
 if [ -z "$KONG_ADMIN_LISTEN" ]; then
   # admin_api is by default not exposed, other than 127.0.0.1, since different
   # Kong versions have different settings, find the default and replace it.
-  FILE_WITH_KONG_DEFAULTS=$(luarocks show kong | grep -oEi '/.*/kong_defaults.lua')
+  FILE_WITH_KONG_DEFAULTS=$(luarocks --lua-version 5.1 --lua-dir /usr/local/openresty/luajit show kong | grep -oEi '/.*/kong_defaults.lua')
   DEFAULT_ADMIN_LISTEN_SETTING=$(grep admin_listen < "$FILE_WITH_KONG_DEFAULTS" | sed 's/admin_listen *= *//')
 
   # export to override defaults in file, with 0.0.0.0 instead of 127.0.0.1

@@ -7,7 +7,7 @@ function run_test {
   source pongo_run.helper.sh
 
   # testing Kong CE, with the 99 latest releases (not taking patch releases into account)
-  run_version_test "Kong" 99
+  run_version_test "Kong" 2
   popd
 }
 

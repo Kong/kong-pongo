@@ -56,15 +56,54 @@ RUN if [ -n "$PONGO_INSECURE" ] || [ "$PONGO_INSECURE" != "false" ]; then \
         git config --global http.sslVerify false; \
     fi
 
+RUN <<-EOF
+  apt-get install -y unzip
+  curl -Lo /tmp/luarocks-3.12.1-linux-x86_64.zip https://luarocks.github.io/luarocks/releases/luarocks-3.12.1-linux-x86_64.zip
+  unzip -j /tmp/luarocks-3.12.1-linux-x86_64.zip luarocks-3.12.1-linux-x86_64/luarocks luarocks-3.12.1-linux-x86_64/luarocks-admin -d /usr/local/sbin/
+  hash -r
+  luarocks --version
+
+  mkdir -p /usr/local/etc/luarocks
+  echo -n '
+lua_interpreter = "luajit"
+rocks_trees = {
+   {
+      name = "user",
+      root = "/root/.luarocks"
+   },
+   {
+      name = "system",
+      root = "/usr/local"
+   }
+}
+variables = {
+   LUA_INCDIR = "/usr/local/openresty/luajit/include/luajit-2.1",
+   LUA = "/usr/local/openresty/luajit/bin/luajit",
+   LUALIB = "libluajit-5.1.so",
+   LUA_BINDIR = "/usr/local/openresty/luajit/bin",
+   LUA_DIR = "/usr/local/openresty/luajit",
+   LUA_INCDIR = "/usr/local/openresty/luajit/include/luajit-2.1",
+   LUA_INCDIR_OK = true,
+   LUA_LIBDIR = "/usr/local/openresty/luajit/lib",
+   LUA_LIBDIR_FILE = "libluajit-5.1.so",
+}
+' >| /usr/local/etc/luarocks/config-5.1.lua
+
+  sed -i 's#luarocks list#luarocks --lua-version 5.1 --lua-dir /usr/local/openresty/luajit list#g' /kong/Makefile
+  sed -i 's#luarocks install#luarocks --lua-version 5.1 --lua-dir /usr/local/openresty/luajit install#g' /kong/Makefile
+
+  rm -f /tmp/luarocks-3.12.1-linux-x86_64.zip
+EOF
+
 RUN /pongo/install-python.sh
 RUN pip3 install httpie || echo -e "\n\n\nFailed installing httpie, continuing without.\n\n\n"
 RUN curl -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
 RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
     && make dependencies $LUAROCKS_OPTS \
-    && luarocks install busted-htest \
-    && luarocks install luacov \
-    && luarocks install kong-plugin-dbless-reload 0.1.0
+    && luarocks --lua-version 5.1 --lua-dir /usr/local/openresty/luajit install busted-htest \
+    && luarocks --lua-version 5.1 --lua-dir /usr/local/openresty/luajit install luacov \
+    && luarocks --lua-version 5.1 --lua-dir /usr/local/openresty/luajit install kong-plugin-dbless-reload 0.1.0
 
 # restore the insecure settings from above to secure
 RUN if [ -e ~/.bashrc ]; then rm ~/.bashrc; fi; \

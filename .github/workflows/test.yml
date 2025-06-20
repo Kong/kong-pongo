@@ -51,6 +51,7 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.GHA_DOCKERHUB_PULL_USER }}
         DOCKER_PASSWORD: ${{ secrets.GHA_KONG_ORG_DOCKERHUB_PUBLIC_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GHA_KONG_BOT_READ_TOKEN }}
+        KONG_VERSION: "3.10.0.2" # will use LTS 3.11.0.0 or dev-ee
 
       run: |
        assets/ci/run.sh --suite "Pongo test suite" $TEST_SCRIPT
