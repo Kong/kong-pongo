@@ -56,6 +56,12 @@ Environment variables:
   KONG_LICENSE_DATA
                 set this variable with the Kong Enterprise license data
 
+  PONGO_CUSTOM_CA_CERT
+                set this variable or the '--custom-ca-cert' CLI option
+                (higher priority) to a file with custom CA certificates in
+                PEM format. The certificates would be added to the system
+                CA bundle.
+
   POSTGRES_IMAGE   the Postgres image to use (default postgres:9.5)
   CASSANDRA_IMAGE  the Cassandra image to use (default cassandra:3.11)
   REDIS_IMAGE      the Redis dependency to use (default redis:6.2.6-alpine)
@@ -63,6 +69,7 @@ Environment variables:
   GRPCBIN_IMAGE    the Grpcbin dependency to use (default moul/grpcbin:latest)
 
 Example usage:
+  pongo build --custom-ca-cert /path/to/my-ca.crt
   pongo run
   KONG_VERSION=3.3.x pongo run -v -o gtest ./spec/02-access_spec.lua
   POSTGRES_IMAGE=postgres:10 KONG_IMAGE=kong-ee pongo run

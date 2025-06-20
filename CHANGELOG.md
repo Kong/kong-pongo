@@ -22,6 +22,12 @@
 
 ---
 
+## Unreleased
+
+* Feat: support loading custom CA certificates file in PEM format
+  via the environment variable `PONGO_CUSTOM_CA_CERT` or
+  the `--custom-ca-cert` CLI option.
+
 ## 2.17.0 released 31-Mar-2025
 
 * Feat: Kong Enterprise 3.10.0.0
