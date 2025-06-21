@@ -47,7 +47,7 @@ ARG PONGO_INSECURE
 # net-tools: provides `netstat`
 
 RUN apt update \
-    && apt install -y zip make jq m4 curl build-essential wget git libssl-dev zlib1g-dev lsb-release psmisc net-tools
+    && apt install -y zip make jq m4 curl build-essential wget git libssl-dev zlib1g-dev lsb-release psmisc net-tools libreadline-dev unzip
 
 # insecure connections can be useful if the certs for any intermediate proxy are unavailable
 RUN if [ -n "$PONGO_INSECURE" ] || [ "$PONGO_INSECURE" != "false" ]; then \
@@ -55,6 +55,28 @@ RUN if [ -n "$PONGO_INSECURE" ] || [ "$PONGO_INSECURE" != "false" ]; then \
         echo '--insecure' >> ~/.curlrc; \
         git config --global http.sslVerify false; \
     fi
+
+ARG LUAROCKS_VERSION="3.12.1"
+RUN <<-EOF
+  build_dir="/luarocks-build"
+  mkdir -p $build_dir && cd $build_dir
+  curl -LO "https://luarocks.github.io/luarocks/releases/luarocks-${LUAROCKS_VERSION}.tar.gz"
+  tar -xf "luarocks-${LUAROCKS_VERSION}.tar.gz"
+  cd "luarocks-${LUAROCKS_VERSION}"
+
+  ./configure \
+  --prefix=/usr/local \
+  --lua-version=5.1 \
+  --with-lua=/usr/local/openresty/luajit \
+  --with-lua-bin=/usr/local/openresty/luajit/bin \
+  --with-lua-include=/usr/local/openresty/luajit/include/luajit-2.1 \
+  --with-lua-lib=/usr/local/openresty/luajit/lib
+  make && make install
+
+  cd / && rm -rf $build_dir
+
+  luarocks --version
+EOF
 
 RUN /pongo/install-python.sh
 RUN pip3 install httpie || echo -e "\n\n\nFailed installing httpie, continuing without.\n\n\n"
