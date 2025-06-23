@@ -58,6 +58,14 @@ RUN if [ -n "$PONGO_INSECURE" ] || [ "$PONGO_INSECURE" != "false" ]; then \
 
 ARG LUAROCKS_VERSION="3.12.1"
 RUN <<-EOF
+  build_version=$(luarocks --version | sed -nE '1s#/usr/local/bin/luarocks (.*)#\1#p')
+  if [[ "$build_version" < "$LUAROCKS_VERSION" ]]; then
+    echo "Update luarocks to version $LUAROCKS_VERSION from built-in version $build_version"
+  else
+    # if built-in version is updated, skip the manual build
+    exit 0
+  fi
+
   build_dir="/luarocks-build"
   mkdir -p $build_dir && cd $build_dir
   curl -LO "https://luarocks.github.io/luarocks/releases/luarocks-${LUAROCKS_VERSION}.tar.gz"
