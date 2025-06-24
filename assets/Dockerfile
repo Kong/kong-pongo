@@ -58,13 +58,15 @@ RUN if [ -n "$PONGO_INSECURE" ] || [ "$PONGO_INSECURE" != "false" ]; then \
 
 ARG LUAROCKS_VERSION="3.12.1"
 RUN <<-EOF
-  build_version=$(luarocks --version | sed -nE '1s#/usr/local/bin/luarocks (.*)#\1#p')
-  if [[ "$build_version" < "$LUAROCKS_VERSION" ]]; then
-    echo "Update luarocks to version $LUAROCKS_VERSION from built-in version $build_version"
-  else
-    # if built-in version is updated, skip the manual build
+  build_version=$( luarocks --version | sed -nE '1s#/usr/local/bin/luarocks ([[:digit:].]+)$#\1#; s#\.##gp' )
+  luarocks_version=$( echo $LUAROCKS_VERSION | awk 'BEGIN { FS="." }; { printf("%d%d%d\n", $1,$2,$3) }' )
+
+  if [ "$build_version" -ge "$luarocks_version" ]; then
+    # meets the minimum requirement, skip the update
+    luarocks --version
     exit 0
   fi
+  echo "Update luarocks to version $LUAROCKS_VERSION"
 
   build_dir="/luarocks-build"
   mkdir -p $build_dir && cd $build_dir
@@ -80,6 +82,11 @@ RUN <<-EOF
   --with-lua-include=/usr/local/openresty/luajit/include/luajit-2.1 \
   --with-lua-lib=/usr/local/openresty/luajit/lib
   make && make install
+
+  mkdir -p /usr/local/kong/temp
+  chown -R kong /usr/local/kong/temp
+  luarocks config home "/usr/local/kong/temp"
+  # luarocks --tree /tmp/test install lua-cjson
 
   cd / && rm -rf $build_dir
 
