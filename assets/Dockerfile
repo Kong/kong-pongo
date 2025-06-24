@@ -47,7 +47,7 @@ ARG PONGO_INSECURE
 # net-tools: provides `netstat`
 
 RUN apt update \
-    && apt install -y zip make jq m4 curl build-essential wget git libssl-dev zlib1g-dev lsb-release psmisc net-tools libreadline-dev unzip
+    && apt install -y zip make jq m4 curl build-essential wget git libssl-dev zlib1g-dev lsb-release psmisc net-tools unzip
 
 # insecure connections can be useful if the certs for any intermediate proxy are unavailable
 RUN if [ -n "$PONGO_INSECURE" ] || [ "$PONGO_INSECURE" != "false" ]; then \
