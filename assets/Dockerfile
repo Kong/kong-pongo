@@ -70,18 +70,9 @@ RUN <<-EOF
 
   build_dir="/luarocks-build"
   mkdir -p $build_dir && cd $build_dir
-  curl -LO "https://luarocks.github.io/luarocks/releases/luarocks-${LUAROCKS_VERSION}.tar.gz"
-  tar -xf "luarocks-${LUAROCKS_VERSION}.tar.gz"
-  cd "luarocks-${LUAROCKS_VERSION}"
-
-  ./configure \
-  --prefix=/usr/local \
-  --lua-version=5.1 \
-  --with-lua=/usr/local/openresty/luajit \
-  --with-lua-bin=/usr/local/openresty/luajit/bin \
-  --with-lua-include=/usr/local/openresty/luajit/include/luajit-2.1 \
-  --with-lua-lib=/usr/local/openresty/luajit/lib
-  make && make install
+  curl -LO "https://luarocks.org/manifests/hisham/luarocks-${LUAROCKS_VERSION}-1.src.rock"
+  luarocks install "luarocks-${LUAROCKS_VERSION}-1.src.rock"
+  luarocks --version
 
   mkdir -p /usr/local/kong/temp
   chown -R kong /usr/local/kong/temp
@@ -89,8 +80,6 @@ RUN <<-EOF
   # luarocks --tree /tmp/test install lua-cjson
 
   cd / && rm -rf $build_dir
-
-  luarocks --version
 EOF
 
 RUN /pongo/install-python.sh
