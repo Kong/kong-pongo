@@ -22,6 +22,24 @@
 
 ---
 
+## 2.18.0 released 24-Jun-2025
+
+* Fix: Update Luarocks to 3.12.1.
+
+* Feat: Kong Enterprise 2.8.4.13
+
+* Feat: Kong Enterprise 3.8.1.1
+
+* Feat: Kong Enterprise 3.7.1.5
+
+* Feat: Kong Enterprise 2.8.4.14
+
+* Feat: Kong Enterprise 3.10.0.1
+
+* Feat: Kong Enterprise 3.4.3.18
+
+* Feat: Kong Enterprise 3.10.0.2
+
 ## 2.17.0 released 31-Mar-2025
 
 * Feat: Kong Enterprise 3.10.0.0
