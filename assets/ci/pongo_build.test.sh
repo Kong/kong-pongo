@@ -9,11 +9,11 @@ function run_test {
 
   # this version should be the latest patch release of a series,
   # eg. 2.0.x == 2.0.5
-  TEST_VERSION=dev-ee  # 3.11.0.0
+  TEST_VERSION=2.0.5
 
   ttest "builds the specified image: $TEST_VERSION"
   KONG_VERSION=$TEST_VERSION pongo build --custom-ca-cert ./ca.crt
-  KONG_VERSION=$TEST_VERSION pongo shell kong version  # | grep $TEST_VERSION
+  KONG_VERSION=$TEST_VERSION pongo shell kong version | grep $TEST_VERSION
   if [ $? -eq 1 ]; then
     tfailure
   else

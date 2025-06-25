@@ -37,7 +37,7 @@ ENV KONG_LIBRARY_PREFIX=$KONG_LIBRARY_PREFIX
 ENV LUAROCKS_CRYPTO_DIR=$KONG_LIBRARY_PREFIX
 ENV LUAROCKS_OPENSSL_DIR=$KONG_LIBRARY_PREFIX
 
-ENV LUAROCKS_OPTS="--server https://kong.github.io/kongrocks-dev/rocks/ CRYPTO_DIR=$LUAROCKS_CRYPTO_DIR OPENSSL_DIR=$LUAROCKS_OPENSSL_DIR"
+ENV LUAROCKS_OPTS="CRYPTO_DIR=$LUAROCKS_CRYPTO_DIR OPENSSL_DIR=$LUAROCKS_OPENSSL_DIR"
 
 ARG http_proxy
 ARG https_proxy
@@ -90,9 +90,9 @@ RUN curl -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7
 RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
     && make dependencies $LUAROCKS_OPTS \
-    && luarocks install --server https://kong.github.io/kongrocks-dev/rocks/ busted-htest \
-    && luarocks install --server https://kong.github.io/kongrocks-dev/rocks/ luacov \
-    && luarocks install --server https://kong.github.io/kongrocks-dev/rocks/ kong-plugin-dbless-reload 0.1.0
+    && luarocks install busted-htest \
+    && luarocks install luacov \
+    && luarocks install kong-plugin-dbless-reload 0.1.0
 
 RUN if [ -f /pongo/$PONGO_CUSTOM_CA_CERT ] ; then \
         cp /pongo/$PONGO_CUSTOM_CA_CERT /usr/local/share/ca-certificates/$PONGO_CUSTOM_CA_CERT ; \
