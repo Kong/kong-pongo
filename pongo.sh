@@ -193,6 +193,7 @@ function globals {
   # custom CA certificates file in PEM format
   # can be set using the '--custom-ca-cert' CLI option or
   PONGO_CUSTOM_CA_CERT=${PONGO_CUSTOM_CA_CERT:-}
+  # true if loaded from CLI option
   PONGO_CUSTOM_CA_CERT_CLI=
 
   # resolve a '.x' to a real version; eg. "1.3.0.x" in $KONG_VERSION, and replace
@@ -761,7 +762,7 @@ function verify_custom_ca_cert {
     if [[ "$PONGO_CUSTOM_CA_CERT_CLI" == "true" ]] ; then
       err "Custom CA certificates file is not set." \
           "You can provide a custom CA certificates in PEM format using the '--custom-ca-cert <my-ca.crt>' option" \
-          "or the 'PONGO_CUSTOM_CA_CERT' environment variable."
+          "or the 'PONGO_CUSTOM_CA_CERT=<my-ca.crt>' environment variable."
     else
       # assume it is not needed
       return 0
@@ -771,7 +772,7 @@ function verify_custom_ca_cert {
   if [[ ! -e "$PONGO_CUSTOM_CA_CERT" ]] ; then
     err "Custom CA certificates file '${PONGO_CUSTOM_CA_CERT}' does not exist." \
         "You can provide a CA certificates in PEM format using the '--custom-ca-cert <my-ca.crt>' option or" \
-        "the 'PONGO_CUSTOM_CA_CERT' environment variable."
+        "the 'PONGO_CUSTOM_CA_CERT=<my-ca.crt>' environment variable."
   fi
 
   local cert
@@ -784,7 +785,7 @@ function verify_custom_ca_cert {
   if [[ ! -f "$PONGO_CUSTOM_CA_CERT" ]] ; then
     err "Custom CA certificates file '${PONGO_CUSTOM_CA_CERT}' does not exist." \
         "You can provide a CA certificates in PEM format using the '--custom-ca-cert <my-ca.crt>' option or" \
-        "the 'PONGO_CUSTOM_CA_CERT' environment variable."
+        "the 'PONGO_CUSTOM_CA_CERT=<my-ca.crt>' environment variable."
   fi
 
   # only required when verifying custom CA certificates
@@ -799,7 +800,7 @@ function verify_custom_ca_cert {
   fi
 
   msg "Loading custom CA certificates '${PONGO_CUSTOM_CA_CERT}'." \
-      "PLEASE VERIFY the IDENTITY and AUTHENTICITY of the CAs and CERTIFICATES."
+      "Please Verify the Identity and Authenticity of the CAs and Certificates."
 }
 
 

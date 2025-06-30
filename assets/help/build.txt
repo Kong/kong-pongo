@@ -32,7 +32,7 @@ The build can be customized using the following environment variables:
 
   PONGO_CUSTOM_CA_CERT
                   set this variable or the '--custom-ca-cert' CLI option
-                  (higher priority) a file with custom CA certificates in
+                  (higher priority) to a file with custom CA certificates in
                   PEM format. The certificates would be added to the system
                   CA bundle.
 

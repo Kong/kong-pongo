@@ -82,7 +82,7 @@ Environment variables:
                 set this variable or the '--custom-ca-cert' CLI option
                 (higher priority) to a file with custom CA certificates in
                 PEM format. The certificates would be added to the system
-                CA bundle.
+                CA bundle. See the "Custom CA" section below for details.
 
   POSTGRES      the version of the Postgres dependency to use (default 9.5)
   CASSANDRA     the version of the Cassandra dependency to use (default 3.11)
@@ -483,8 +483,7 @@ To load the CA certficates, please set the environment variable
 to the certificates file.
 
 Please pass the the environment variable or the CLI option to the `pongo build`
-command. Though other commands like `pongo run` and `pongo shell` could build the
-test image on demand, we highly recommend to explicitly invoke `pongo build`.
+(highly preffered), `pongo run`, `pongo shell`, etc.
 
 ```shell
 # examples for 'pongo build'
@@ -492,14 +491,14 @@ test image on demand, we highly recommend to explicitly invoke `pongo build`.
 # -or-
 ~ $ pongo build --custom-ca-cert /path/to/my-ca.crt
 
-# examples for 'pongo build'
+# examples for 'pongo run'
 ~ $ pongo run --custom-ca-cert /path/to/my-ca.crt -- -v -o gtest ./spec/02-access_spec.lua
 # -or-
 ~ $ PONGO_CUSTOM_CA_CERT=/path/to/my-ca.crt pongo run -- -v -o gtest ./spec/02-access_spec.lua
 ```
 
-If both the environment variable and the CLI option are present, then the certificates
-set via CLI option are loaded.
+If both the environment variable and the CLI option are present, then
+the certificates set via CLI option are loaded.
 
 Please verify the identity and authenticity of the CAs and certificates. Do **NOT**
 do this unless you known what you are doing.
