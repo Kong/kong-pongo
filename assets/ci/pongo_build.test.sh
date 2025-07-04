@@ -11,9 +11,8 @@ function run_test {
   # eg. 2.0.x == 2.0.5
   TEST_VERSION=2.0.5
 
-
   ttest "builds the specified image: $TEST_VERSION"
-  KONG_VERSION=$TEST_VERSION pongo build
+  KONG_VERSION=$TEST_VERSION pongo build --custom-ca-cert ./ca.crt
   KONG_VERSION=$TEST_VERSION pongo shell kong version | grep $TEST_VERSION
   if [ $? -eq 1 ]; then
     tfailure
@@ -21,17 +20,26 @@ function run_test {
     tsuccess
   fi
 
-
-  ttest "patch release is resolved: ${TEST_VERSION%?}x"
-  KONG_VERSION=${TEST_VERSION%?}x pongo build 2>&1 | grep "already exists"
+  ttest "verify custom CA certificate: $TEST_VERSION"
+  KONG_VERSION=$TEST_VERSION pongo shell test -e '/usr/local/share/ca-certificates/pongo_ca_ca.crt'
   if [ $? -eq 1 ]; then
     tfailure
   else
-    KONG_VERSION=${TEST_VERSION%?}x pongo shell kong version | grep "$TEST_VERSION"
+    tsuccess
+  fi
+
+  if [[ "$TEST_VERSION" =~ ^[[:digit:]] ]]; then
+    ttest "patch release is resolved: ${TEST_VERSION%?}x"
+    KONG_VERSION=${TEST_VERSION%?}x pongo build 2>&1 | grep "already exists"
     if [ $? -eq 1 ]; then
       tfailure
     else
-      tsuccess
+      KONG_VERSION=${TEST_VERSION%?}x pongo shell kong version | grep "$TEST_VERSION"
+      if [ $? -eq 1 ]; then
+        tfailure
+      else
+        tsuccess
+      fi
     fi
   fi
 
