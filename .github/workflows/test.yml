@@ -48,8 +48,8 @@ jobs:
 
     - name: Pongo test suite
       env:
-        DOCKER_USERNAME: ${{ secrets.GHA_DOCKERHUB_PULL_USER }}
-        DOCKER_PASSWORD: ${{ secrets.GHA_KONG_ORG_DOCKERHUB_PUBLIC_TOKEN }}
+        DOCKER_USERNAME: kong
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_OAT_PULL }}
         GITHUB_TOKEN: ${{ secrets.GHA_KONG_BOT_READ_TOKEN }}
 
       run: |
