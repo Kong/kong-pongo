@@ -78,6 +78,12 @@ Environment variables:
   KONG_LICENSE_DATA
                 set this variable with the Kong Enterprise license data
 
+  PONGO_CUSTOM_CA_CERT
+                set this variable or the '--custom-ca-cert' CLI option
+                (higher priority) to a file with custom CA certificates in
+                PEM format. The certificates would be added to the system
+                CA bundle. See the "Custom CA" section below for details.
+
   POSTGRES      the version of the Postgres dependency to use (default 9.5)
   CASSANDRA     the version of the Cassandra dependency to use (default 3.11)
   REDIS         the version of the Redis dependency to use (default 6.2.6)
@@ -106,6 +112,7 @@ Example usage:
     - [Dependency defaults](#dependency-defaults)
     - [Dependency troubleshooting](#dependency-troubleshooting)
     - [Custom local dependencies](#custom-local-dependencies)
+ - [Custom CA](#custom-ca)
  - [Debugging](#debugging)
      - [Accessing the logs](#accessing-the-logs)
      - [Direct access to service ports](#direct-access-to-service-ports)
@@ -462,6 +469,39 @@ Some helpfull examples:
   - Dependencies requiring configuration files: see `squid` in the main [Pongo
     docker-compose file](https://github.com/Kong/kong-pongo/blob/master/assets/docker-compose.yml).
   - A custom dependency example: see the [Zipkin plugin](https://github.com/Kong/kong-plugin-zipkin)
+
+[Back to ToC](#table-of-contents)
+
+## Custom CA
+
+Pongo supports loading custom CA certificates in `PEM` format to the
+system CA bundle in the test image. It is useful when running Pongo
+behind a MITM (Man in the Middle) proxy.
+
+To load the CA certficates, please set the environment variable
+`PONGO_CUSTOM_CA_CERT` or the `--custom-ca-cert` CLI option
+to the certificates file.
+
+Please pass the the environment variable or the CLI option to the `pongo build`
+(highly preffered), `pongo run`, `pongo shell`, etc.
+
+```shell
+# examples for 'pongo build'
+~ $ PONGO_CUSTOM_CA_CERT=/path/to/my-ca.crt pongo build
+# -or-
+~ $ pongo build --custom-ca-cert /path/to/my-ca.crt
+
+# examples for 'pongo run'
+~ $ pongo run --custom-ca-cert /path/to/my-ca.crt -- -v -o gtest ./spec/02-access_spec.lua
+# -or-
+~ $ PONGO_CUSTOM_CA_CERT=/path/to/my-ca.crt pongo run -- -v -o gtest ./spec/02-access_spec.lua
+```
+
+If both the environment variable and the CLI option are present, then
+the certificates set via CLI option are loaded.
+
+Please verify the identity and authenticity of the CAs and certificates. Do **NOT**
+do this unless you known what you are doing.
 
 [Back to ToC](#table-of-contents)
 

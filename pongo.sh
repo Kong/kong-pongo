@@ -190,6 +190,12 @@ function globals {
   RC_COMMANDS=( "run" "up" "restart" )
   EXTRA_ARGS=()
 
+  # custom CA certificates file in PEM format
+  # can be set using the '--custom-ca-cert' CLI option or
+  PONGO_CUSTOM_CA_CERT=${PONGO_CUSTOM_CA_CERT:-}
+  # true if loaded from CLI option
+  PONGO_CUSTOM_CA_CERT_CLI=
+
   # resolve a '.x' to a real version; eg. "1.3.0.x" in $KONG_VERSION, and replace
   # "stable" and "stable-ee" with actual versions
   resolve_version
@@ -407,7 +413,16 @@ function parse_args {
 
   # add remaining arguments from the command line
   while [[ $# -gt 0 ]]; do
-    PONGO_ARGS+=("$1")
+    # option of 'build' or 'run' to add custom CA certificates to the system bundle
+    # higher priority than the environment variable
+    if [[ "$1" == "--custom-ca-cert" ]] ; then
+      PONGO_CUSTOM_CA_CERT="$2"
+      PONGO_CUSTOM_CA_CERT_CLI="true"
+      shift
+    else
+      PONGO_ARGS+=("$1")
+    fi
+
     shift
   done
 
@@ -741,6 +756,54 @@ function ensure_available {
 }
 
 
+function verify_custom_ca_cert {
+  if [[ -z "${PONGO_CUSTOM_CA_CERT:+x}" ]] ; then
+    # found option '--custom-ca-cert' but no cert file provided
+    if [[ "$PONGO_CUSTOM_CA_CERT_CLI" == "true" ]] ; then
+      err "Custom CA certificates file is not set." \
+          "You can provide a custom CA certificates in PEM format using the '--custom-ca-cert <my-ca.crt>' option" \
+          "or the 'PONGO_CUSTOM_CA_CERT=<my-ca.crt>' environment variable."
+    else
+      # assume it is not needed
+      return 0
+    fi
+  fi
+
+  if [[ ! -e "$PONGO_CUSTOM_CA_CERT" ]] ; then
+    err "Custom CA certificates file '${PONGO_CUSTOM_CA_CERT}' does not exist." \
+        "You can provide a CA certificates in PEM format using the '--custom-ca-cert <my-ca.crt>' option or" \
+        "the 'PONGO_CUSTOM_CA_CERT=<my-ca.crt>' environment variable."
+  fi
+
+  local cert
+  cert=$(realpath "$PONGO_CUSTOM_CA_CERT")
+  if [[ "$cert" != "$PONGO_CUSTOM_CA_CERT" ]] ; then
+    msg "Resolving custom CA certificates file '${PONGO_CUSTOM_CA_CERT}' to real path '${cert}'."
+    PONGO_CUSTOM_CA_CERT="$cert"
+  fi
+
+  if [[ ! -f "$PONGO_CUSTOM_CA_CERT" ]] ; then
+    err "Custom CA certificates file '${PONGO_CUSTOM_CA_CERT}' does not exist." \
+        "You can provide a CA certificates in PEM format using the '--custom-ca-cert <my-ca.crt>' option or" \
+        "the 'PONGO_CUSTOM_CA_CERT=<my-ca.crt>' environment variable."
+  fi
+
+  # only required when verifying custom CA certificates
+  if ! command -v openssl >/dev/null 2>&1 ; then
+    err "'openssl' command not found, can not verify the custom CA certificates." \
+        "You can install OpenSSL and make it available in the path."
+  fi
+
+  # check if the file is a valid PEM certificate
+  if ! openssl x509 -inform pem -in "$PONGO_CUSTOM_CA_CERT" -noout >/dev/null 2>&1 ; then
+    err "Custom CA certificates file '${PONGO_CUSTOM_CA_CERT}' is not a valid PEM certificate."
+  fi
+
+  msg "Loading custom CA certificates '${PONGO_CUSTOM_CA_CERT}'." \
+      "Please Verify the Identity and Authenticity of the CAs and Certificates."
+}
+
+
 function build_image {
   # if $KONG_TEST_IMAGE doesn't exist yet (or if forced), it will build that
   # image. This essentially comes down to:
@@ -774,6 +837,20 @@ function build_image {
     update_development "$KONG_VERSION" "$VERSION"
   fi
 
+  verify_custom_ca_cert
+  local custom_ca_cert_basename
+  local dest_ca_cert_pathname
+  if [[ -n "$PONGO_CUSTOM_CA_CERT" ]] ; then
+    custom_ca_cert_basename=$(basename "$PONGO_CUSTOM_CA_CERT")
+    dest_ca_cert_pathname="${LOCAL_PATH}/assets/pongo_ca_$custom_ca_cert_basename"
+
+    if [[ -e "$dest_ca_cert_pathname" ]] ; then
+      err "Custom CA certificates file '${dest_ca_cert_pathname}' already exists, please remove it first."
+    fi
+
+    cp "$PONGO_CUSTOM_CA_CERT" "$dest_ca_cert_pathname"
+  fi
+
   msg "starting build of image '$KONG_TEST_IMAGE'"
   # shellcheck disable=SC2086 # DOCKER_BUILD_EXTRA_ARGS can contain multiple arguments so we must not quote it
   $WINPTY_PREFIX docker build \
@@ -784,11 +861,16 @@ function build_image {
     --build-arg ftp_proxy="$ftp_proxy" \
     --build-arg no_proxy="$no_proxy" \
     --build-arg PONGO_INSECURE="$PONGO_INSECURE" \
+    --build-arg PONGO_CUSTOM_CA_CERT="pongo_ca_$custom_ca_cert_basename" \
     --build-arg KONG_BASE="$KONG_IMAGE" \
     --build-arg KONG_DEV_FILES="./kong-versions/$VERSION/kong" \
     --tag "$KONG_TEST_IMAGE" \
     ${DOCKER_BUILD_EXTRA_ARGS} \
     "$LOCAL_PATH" || err "Error: failed to build test environment"
+
+  if [[ -e "$dest_ca_cert_pathname" ]] ; then
+    rm -f "$dest_ca_cert_pathname" >/dev/null 2>&1
+  fi
 
   msg "image '$KONG_TEST_IMAGE' successfully build"
 }
