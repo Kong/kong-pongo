@@ -569,7 +569,6 @@ export const deleteCaCertificate = async (
  * Create a key for a consumer
  * @param {string} consumerNameorId
  * @param {string} pluginName - either key-auth or key-auth-enc
- * @param {string} keyCredentialPayload - key credential payload
  * @param {string} workspace - name of the workspace
  * @returns {AxiosResponse}
  */
@@ -593,38 +592,6 @@ export const createKeyCredentialForConsumer = async (
   expect(resp.status, 'Status should be 201').to.equal(201);
   return resp.data;
 };
-
-/**
- * update a key for a consumer
- * @param {string} consumerNameorId
- * @param {string} pluginName - either key-auth or key-auth-enc
- * @param {string} keyCredentialPayload - key credential payload
- * @param {string} keyId - key id
- * @param {string} workspace - name of the workspace
- * @returns {AxiosResponse}
- */
-export const updateKeyCredentialForConsumer = async (
-  consumerNameorId: string,
-  pluginName = 'key-auth',
-  keyCredentialPayload: object,
-  keyId: string,
-  workspace?: string
-) => {
-  const endpoint = `${workspace}/consumers`;
-  const url =`${getUrl(workspace ? endpoint : 'consumers')}/${consumerNameorId}/${pluginName}/${keyId}`;
-
-  const resp = await axios({
-    method: 'put',
-    url: url,
-    data: keyCredentialPayload
-  });
-
-  logResponse(resp);
-
-  expect(resp.status, 'Status should be 200').to.equal(200);
-  return resp.data;
-};
-
 
 /**
  * Get all existing workspaces
@@ -906,6 +873,7 @@ export const checkGatewayAdminStatus = async () => {
       method: 'get',
       validateStatus: null
     });
+    logResponse(resp);
     expect(resp.status, 'Kong Gateway Admin API timed out').to.equal(200)
   });
 }

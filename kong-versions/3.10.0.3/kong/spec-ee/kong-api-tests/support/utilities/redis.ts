@@ -435,3 +435,57 @@ export const checkRedisAuthErrLog = async (namespace: string, containerName: str
     ).to.equal(isExist);
   });
 }
+
+/**
+ * Safely closes the Redis standalone client connection if it exists.
+ */
+export const safelyQuitRedisClient = async () => {
+  try {
+    if (redisClient) {
+      console.log('Closing Redis standalone client connection...');
+      try {
+        await redisClient.quit();
+        console.log('Redis standalone client connection closed successfully');
+      } catch (err: any) {
+        // Check if this is just a "client closed" error, which is fine
+        if (err.message && err.message.includes('client is closed')) {
+          console.log('Redis standalone client was already closed');
+        } else {
+          // Re-throw if it's a different error
+          throw err;
+        }
+      }
+    } else {
+      console.log('Redis standalone client does not exist');
+    }
+  } catch (error) {
+    console.error('Error closing Redis standalone client:', error);
+  }
+};
+
+/**
+ * Safely closes the Redis cluster client connection if it exists.
+ */
+export const safelyQuitRedisClusterClient = async () => {
+  try {
+    if (redisClusterClient) {
+      console.log('Closing Redis cluster client connection...');
+      try {
+        await redisClusterClient.quit();
+        console.log('Redis cluster client connection closed successfully');
+      } catch (err: any) {
+        // Check if this is just a "client closed" error, which is fine
+        if (err.message && err.message.includes('client is closed')) {
+          console.log('Redis cluster client was already closed');
+        } else {
+          // Re-throw if it's a different error
+          throw err;
+        }
+      }
+    } else {
+      console.log('Redis cluster client does not exist');
+    }
+  } catch (error) {
+    console.error('Error closing Redis cluster client:', error);
+  }
+};
