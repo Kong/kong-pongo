@@ -18,6 +18,8 @@
   },
   "dependencies": {
     "@google/genai": "^0.14.1",
+    "@grpc/grpc-js": "^1.13.4",
+    "@grpc/proto-loader": "^0.7.15",
     "@datadog/datadog-api-client": "^1.35.0",
     "@aws-sdk/client-bedrock-runtime": "^3.821.0",
     "@kong/kauth-test-utils": "^0.0.26",

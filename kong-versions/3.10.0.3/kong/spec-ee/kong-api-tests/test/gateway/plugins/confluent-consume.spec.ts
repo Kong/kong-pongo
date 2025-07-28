@@ -21,8 +21,7 @@ import {
     deleteConfluentTopics,
 } from '@support'
 
-
-describe('@weekly: Gateway Plugins: Confluent Consume', function () {
+describe('Gateway Plugins: Confluent Consume', function () {
     const logPath = '/log'
     const consumePath = '/consume'
 
@@ -51,7 +50,7 @@ describe('@weekly: Gateway Plugins: Confluent Consume', function () {
         // create service to use with kafka-log to send messages
         const service = await createGatewayService('confluentLogService')
         const serviceId = service.id
-
+        
         // create route for kafka-log plugin
         const logRoute = await createRouteForService(serviceId, [logPath], {
             name: 'confluentLogRoute',
@@ -74,18 +73,17 @@ describe('@weekly: Gateway Plugins: Confluent Consume', function () {
                 ],
                 cluster_api_key: confluentConfig.apiKey,
                 cluster_api_secret: confluentConfig.apiSecret,
-                cluster_name: confluentConfig.clusterName,
             },
         })
         logPluginId = confluentLogPlugin.id
-
+        
         // create route to use in testing
         const consumeRoute = await createRoute([consumePath], {
             name: 'confluentConsumeRoute',
         })
         consumeRouteId = consumeRoute.id
 
-        await waitForConfigRebuild(4000)
+        await waitForConfigRebuild()
     })
 
     it('should not create confluent-consume plugin without topic parameter', async function () {
@@ -186,7 +184,7 @@ describe('@weekly: Gateway Plugins: Confluent Consume', function () {
         expect(resp.status, 'Status should be 400').to.equal(400)
         expect(resp.data.message, 'Should have correct error message').to.contain(
             'schema violation (config.mode: required field missing)'
-        )
+        )   
     })
 
     it('should create confluent-consume plugin', async function () {
@@ -215,7 +213,7 @@ describe('@weekly: Gateway Plugins: Confluent Consume', function () {
 
         expect(resp.status, 'Status should be 201').to.equal(201)
         expect(resp.data.name, 'Should have correct plugin name').to.equal('confluent-consume')
-        expect(resp.data.config.topics[0], 'Should have correct topics').to.contain({'name': confluentTopic})
+        expect(resp.data.config.topics, 'Should have correct topics').to.eql([{'name': confluentTopic}])
         expect(resp.data.config.bootstrap_servers, 'Should have correct bootstrap servers').to.eql([
             {
                 host: confluentConfig.host,
@@ -244,12 +242,12 @@ describe('@weekly: Gateway Plugins: Confluent Consume', function () {
 
             const confluentRecords = extractConfluentRecords(resp, confluentTopic)
             expect(confluentRecords, 'Should have records for topic').to.have.length.greaterThan(0)
-        }, 90000, 7000)
+        }, 90000, 5000)
     })
 
     it('should be able to update confluent-consume plugin topic', async function () {
         await updateConfluentTopic(newTopic, logPluginId)
-
+        
         // update consume plugin
         const resp = await axios({
             method: 'patch',
@@ -262,7 +260,7 @@ describe('@weekly: Gateway Plugins: Confluent Consume', function () {
         })
 
         expect(resp.status, 'Status should be 200').to.equal(200)
-        expect(resp.data.config.topics[0], 'Should have correct topics').to.contain({'name': newTopic})
+        expect(resp.data.config.topics, 'Should have correct topics').to.eql([{'name': newTopic}])
 
         await waitForConfigRebuild()
     })
@@ -277,12 +275,12 @@ describe('@weekly: Gateway Plugins: Confluent Consume', function () {
                 method: 'get',
                 url: `${proxyUrl}${consumePath}`,
             })
-            expect(resp.data, 'Should show correct topic').to.have.property(newTopic)
+            expect(resp.data, 'Should show correct topic').to.have.property(newTopic)    
             expect(resp.status, 'Status should be 200').to.equal(200)
 
             const confluentRecords = extractConfluentRecords(resp, newTopic)
             expect(confluentRecords, 'Should have records for topic').to.have.length.greaterThan(0)
-        }, 90000, 7000)
+        }, 60000, 5000)
     })
 
     it('should be able to update confluent-consume plugin with server-sent events enabled', async function () {
@@ -325,7 +323,7 @@ describe('@weekly: Gateway Plugins: Confluent Consume', function () {
                 const data = chunk.toString()
                 expect(data, 'should contain topic name').to.contain(newTopic)
             })
-        }, 30000, 5000, false)
+        }, 30000, 5000, false)  
     })
 
     it('should be able to send multiple messages with confluent-consume plugin and server-sent events enabled', async function () {
