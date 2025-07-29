@@ -51,6 +51,18 @@ ARG PONGO_INSECURE
 RUN apt update \
     && apt install -y zip make jq m4 curl build-essential wget git libssl-dev zlib1g-dev lsb-release psmisc net-tools unzip
 
+RUN if [ -f /pongo/$PONGO_CUSTOM_CA_CERT ] ; then \
+        cp /pongo/$PONGO_CUSTOM_CA_CERT /usr/local/share/ca-certificates/$PONGO_CUSTOM_CA_CERT ; \
+        update-ca-certificates ; \
+        \
+        kong_curl_ca=$(/usr/local/kong-tools/bin/curl-config --ca) ; \
+        if [ -e "$kong_curl_ca" ] ; then \
+            echo -e "\nCustom CA\n=========================\n" >> $kong_curl_ca ; \
+            cat /pongo/$PONGO_CUSTOM_CA_CERT >> $kong_curl_ca ; \
+        fi ; \
+    fi
+ENV PONGO_CUSTOM_CA_CERT="/pongo/${PONGO_CUSTOM_CA_CERT:-NOT_FOUND}"
+
 # insecure connections can be useful if the certs for any intermediate proxy are unavailable
 RUN if [ -n "$PONGO_INSECURE" ] || [ "$PONGO_INSECURE" != "false" ]; then \
         echo "Configuring curl and git to switch off ssl-verification"; \
@@ -93,18 +105,6 @@ RUN cd /kong \
     && luarocks install busted-htest \
     && luarocks install luacov \
     && luarocks install kong-plugin-dbless-reload 0.1.0
-
-RUN if [ -f /pongo/$PONGO_CUSTOM_CA_CERT ] ; then \
-        cp /pongo/$PONGO_CUSTOM_CA_CERT /usr/local/share/ca-certificates/$PONGO_CUSTOM_CA_CERT ; \
-        update-ca-certificates ; \
-        \
-        kong_curl_ca=$(/usr/local/kong-tools/bin/curl-config --ca) ; \
-        if [ -e "$kong_curl_ca" ] ; then \
-            echo -e "\nCustom CA\n=========================\n" >> $kong_curl_ca ; \
-            cat /pongo/$PONGO_CUSTOM_CA_CERT >> $kong_curl_ca ; \
-        fi ; \
-    fi
-ENV PONGO_CUSTOM_CA_CERT="/pongo/${PONGO_CUSTOM_CA_CERT:-NOT_FOUND}"
 
 # restore the insecure settings from above to secure
 RUN if [ -e ~/.bashrc ]; then rm ~/.bashrc; fi; \
