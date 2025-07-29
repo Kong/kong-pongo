@@ -44,6 +44,7 @@ ARG https_proxy
 ARG no_proxy
 ARG ftp_proxy
 ARG PONGO_INSECURE
+ARG RUSTUP_USE_CURL
 
 # psmisc: provides `fuser`
 # net-tools: provides `netstat`

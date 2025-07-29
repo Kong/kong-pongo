@@ -87,6 +87,7 @@ install-rust-toolchain:
 		echo "Rust is already installed in the local directory, skipping"; \
 	else \
 		echo "Installing Rust..."; \
+		export RUSTUP_USE_CURL=1; \
 		curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path; \
 		. $$HOME/.cargo/env; \
 		rustup toolchain install stable; \

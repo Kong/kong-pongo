@@ -861,6 +861,7 @@ function build_image {
     --build-arg ftp_proxy="$ftp_proxy" \
     --build-arg no_proxy="$no_proxy" \
     --build-arg PONGO_INSECURE="$PONGO_INSECURE" \
+    --build-arg RUSTUP_USE_CURL="$RUSTUP_USE_CURL" \
     --build-arg PONGO_CUSTOM_CA_CERT="pongo_ca_$custom_ca_cert_basename" \
     --build-arg KONG_BASE="$KONG_IMAGE" \
     --build-arg KONG_DEV_FILES="./kong-versions/$VERSION/kong" \
