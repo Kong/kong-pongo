@@ -85,16 +85,6 @@ RUN <<-EOF
   cd / && rm -rf $build_dir
 EOF
 
-RUN /pongo/install-python.sh
-RUN pip3 install httpie || echo -e "\n\n\nFailed installing httpie, continuing without.\n\n\n"
-RUN curl -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
-RUN cd /kong \
-    && git config --global url.https://github.com/.insteadOf git://github.com/ \
-    && make dependencies $LUAROCKS_OPTS \
-    && luarocks install busted-htest \
-    && luarocks install luacov \
-    && luarocks install kong-plugin-dbless-reload 0.1.0
-
 RUN if [ -f /pongo/$PONGO_CUSTOM_CA_CERT ] ; then \
         cp /pongo/$PONGO_CUSTOM_CA_CERT /usr/local/share/ca-certificates/$PONGO_CUSTOM_CA_CERT ; \
         update-ca-certificates ; \
@@ -106,6 +96,16 @@ RUN if [ -f /pongo/$PONGO_CUSTOM_CA_CERT ] ; then \
         fi ; \
     fi
 ENV PONGO_CUSTOM_CA_CERT="/pongo/${PONGO_CUSTOM_CA_CERT:-NOT_FOUND}"
+
+RUN /pongo/install-python.sh
+RUN pip3 install httpie || echo -e "\n\n\nFailed installing httpie, continuing without.\n\n\n"
+RUN curl -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
+RUN cd /kong \
+    && git config --global url.https://github.com/.insteadOf git://github.com/ \
+    && make dependencies $LUAROCKS_OPTS \
+    && luarocks install busted-htest \
+    && luarocks install luacov \
+    && luarocks install kong-plugin-dbless-reload 0.1.0
 
 # restore the insecure settings from above to secure
 RUN if [ -e ~/.bashrc ]; then rm ~/.bashrc; fi; \
