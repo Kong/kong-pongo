@@ -88,7 +88,7 @@ install-rust-toolchain:
 	else \
 		echo "Installing Rust..."; \
 		export RUSTUP_USE_CURL=1; \
-		# export CURL_CA_BUNDLE=$(PONGO_CUSTOM_CA_CERT) ; \
+		export CURL_CA_BUNDLE=$(PONGO_CUSTOM_CA_CERT) ; \
 		echo '--insecure' >> ~/.curlrc; \
 		curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path; \
 		. $$HOME/.cargo/env; \
