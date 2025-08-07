@@ -1,0 +1,1806 @@
+[
+        {
+            "scenarioName": "prioritize routes with https and http",
+            "format": ["traditional"],
+            "routeConfig": [
+                {
+                    "desc": "http route",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route0",
+                        "protocols": [
+                            "http"
+                        ]
+                    }
+                },
+                {
+                    "desc": "https route with snis",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route1",
+                        "protocols": [
+                            "https"
+                        ],
+                        "snis": [
+                            "localhost"
+                        ]
+                    }
+                }
+            ],
+            "request": {
+                "url": "http://localhost:8000/v1/path"
+            },
+            "verify": {
+                "original": {
+                    "traditional_compatible": [
+                        {
+                            "testName": "match routes with https or http random by design",
+                            "status": [
+                                200,
+                                426
+                            ],
+                            "routes": [
+                                "0",
+                                "1"
+                            ]
+                        }
+                    ],
+                    "expressions": {
+                        "traditionalFormat": [
+                            {
+                                "testName": "match routes with https or http random by design",
+                                "status": [
+                                    200,
+                                    426
+                                ],
+                                "routes": [
+                                    "0",
+                                    "1"
+                                ]
+                            }
+                        ]
+                    }
+                },
+                "strict": {
+                    "traditional_compatible": [
+                        {
+                            "testName": "match routes with http route",
+                            "services": [
+                                "/anything/service0"
+                            ],
+                            "routes": [
+                                "0",
+                                "1"
+                            ]
+                        }
+                    ],
+                    "expressions": {
+                        "traditionalFormat": [
+                            {
+                                "testName": "match routes with http route",
+                                "services": [
+                                    "/anything/service0"
+                                ],
+                                "routes": [
+                                    "0",
+                                    "1"
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "scenarioName": "prioritize routes with higher priority points over lower ones",
+            "format": ["traditional"],
+            "routeConfig": [
+                {
+                    "desc": "3 points route",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route0",
+                        "hosts": [
+                            "127.0.0.1"
+                        ],
+                        "methods": [
+                            "POST"
+                        ]
+                    }
+                },
+                {
+                    "desc": "4 points route",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route1",
+                        "hosts": [
+                            "127.0.0.1"
+                        ],
+                        "methods": [
+                            "POST"
+                        ],
+                        "headers": {
+                            "Token": [
+                                "abc123456"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "desc": "2 points route",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route2",
+                        "methods": [
+                            "POST"
+                        ]
+                    }
+                },
+                {
+                    "desc": "1 point route",
+                    "payload": {
+                        "name": "route3",
+                        "hosts": [
+                            "127.0.0.1"
+                        ]
+                    }
+                }
+            ],
+            "request": {
+                "url": "http://127.0.0.1:8000/v1/path",
+                "headers": {
+                    "Token": [
+                        "abc123456"
+                    ]
+                }
+            },
+            "verify": {
+                "original": {
+                    "traditional_compatible": [
+                        {
+                            "testName": "prioritize 4 points routes",
+                            "services": [
+                                "/anything/service1"
+                            ],
+                            "routes": [
+                                "1"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 3 points routes",
+                            "services": [
+                                "/anything/service0"
+                            ],
+                            "routes": [
+                                "0"
+                            ]
+                        },
+                        {
+                            "testName": "match 1 point routes",
+                            "services": [
+                                "/anything/service3/v1/path"
+                            ],
+                            "routes": [
+                                "3"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 2 points routes",
+                            "services": [
+                                "/anything/service2"
+                            ],
+                            "routes": [
+                                "2"
+                            ]
+                        }
+                    ],
+                    "expressions": {
+                        "traditionalFormat": [
+                            {
+                                "testName": "prioritize 4 points routes",
+                                "services": [
+                                    "/anything/service1"
+                                ],
+                                "routes": [
+                                    "1"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize 3 points routes",
+                                "services": [
+                                    "/anything/service0"
+                                ],
+                                "routes": [
+                                    "0"
+                                ]
+                            },
+                            {
+                                "testName": "match 1 point routes",
+                                "services": [
+                                    "/anything/service3/v1/path"
+                                ],
+                                "routes": [
+                                    "3"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize 2 points routes",
+                                "services": [
+                                    "/anything/service2"
+                                ],
+                                "routes": [
+                                    "2"
+                                ]
+                            }
+                        ]
+                    }
+                },
+                "strict": {
+                    "traditional_compatible": [
+                        {
+                            "testName": "prioritize 4 points routes",
+                            "services": [
+                                "/anything/service1"
+                            ],
+                            "routes": [
+                                "1"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 3 points routes",
+                            "services": [
+                                "/anything/service0"
+                            ],
+                            "routes": [
+                                "0"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 2 points routes",
+                            "comments": [
+                                "Verified:: path and method have higher priority then host only"
+                            ],
+                            "services": [
+                                "/anything/service2"
+                            ],
+                            "routes": [
+                                "2"
+                            ]
+                        },
+                        {
+                            "testName": "match 1 point routes",
+                            "services": [
+                                "/anything/service3/v1/path"
+                            ],
+                            "routes": [
+                                "3"
+                            ]
+                        }
+                    ],
+                    "expressions": {
+                        "traditionalFormat": [
+                            {
+                                "testName": "prioritize 4 points routes",
+                                "services": [
+                                    "/anything/service1"
+                                ],
+                                "routes": [
+                                    "1"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize 3 points routes",
+                                "services": [
+                                    "/anything/service0"
+                                ],
+                                "routes": [
+                                    "0"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize 2 points routes",
+                                "services": [
+                                    "/anything/service2"
+                                ],
+                                "routes": [
+                                    "2"
+                                ]
+                            },
+                            {
+                                "testName": "match 1 point routes",
+                                "services": [
+                                    "/anything/service3/v1/path"
+                                ],
+                                "routes": [
+                                    "3"
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "scenarioName": "prioritize routing by priority points over plain hosts",
+            "format": ["traditional"],
+            "routeConfig": [
+                {
+                    "desc": "3 points route with plain host",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route0",
+                        "hosts": [
+                            "127.0.0.1"
+                        ],
+                        "methods": [
+                            "POST"
+                        ]
+                    }
+                },
+                {
+                    "desc": "3 points route with wildcard host",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route1",
+                        "hosts": [
+                            "*.0.0.1"
+                        ],
+                        "methods": [
+                            "POST"
+                        ]
+                    }
+                },
+                {
+                    "desc": "prioritize 3 points route without host but with headers",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route2",
+                        "headers": {
+                            "Token": [
+                                "abc123456"
+                            ]
+                        },
+                        "methods": [
+                            "POST"
+                        ]
+                    }
+                },
+                {
+                    "desc": "2 points route with plain host",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route3",
+                        "hosts": [
+                            "127.0.0.1"
+                        ]
+                    }
+                }
+            ],
+            "request": {
+                "url": "http://127.0.0.1:8000/v1/path",
+                "headers": {
+                    "Token": [
+                        "abc123456"
+                    ]
+                }
+            },
+            "verify": {
+                "original": {
+                    "traditional_compatible": [
+                        {
+                            "testName": "prioritize 3 points with plain host",
+                            "services": [
+                                "/anything/service0"
+                            ],
+                            "routes": [
+                                "0"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 2 points with plain host",
+                            "services": [
+                                "/anything/service3"
+                            ],
+                            "routes": [
+                                "3"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 3 points route without host but with headers",
+                            "services": [
+                                "/anything/service2"
+                            ],
+                            "routes": [
+                                "2"
+                            ]
+                        },
+                        {
+                            "testName": "match 3 points with wildcard host",
+                            "services": [
+                                "/anything/service1"
+                            ],
+                            "routes": [
+                                "1"
+                            ]
+                        }
+                    ],
+                    "expressions": {
+                        "traditionalFormat": [
+                            {
+                                "testName": "prioritize 3 points with plain host",
+                                "services": [
+                                    "/anything/service0"
+                                ],
+                                "routes": [
+                                    "0"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize 2 points with plain host",
+                                "services": [
+                                    "/anything/service3"
+                                ],
+                                "routes": [
+                                    "3"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize 3 points route without host but with headers",
+                                "services": [
+                                    "/anything/service2"
+                                ],
+                                "routes": [
+                                    "2"
+                                ]
+                            },
+                            {
+                                "testName": "match 3 points with wildcard host",
+                                "services": [
+                                    "/anything/service1"
+                                ],
+                                "routes": [
+                                    "1"
+                                ]
+                            }
+                        ]
+                    }
+                },
+                "strict": {
+                    "traditional_compatible": [
+                        {
+                            "testName": "prioritize 3 points with plain host",
+                            "services": [
+                                "/anything/service0"
+                            ],
+                            "routes": [
+                                "0"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 3 points route without host but with headers",
+                            "services": [
+                                "/anything/service2"
+                            ],
+                            "routes": [
+                                "2"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 3 points with wildcard host",
+                            "services": [
+                                "/anything/service1"
+                            ],
+                            "routes": [
+                                "1"
+                            ]
+                        },
+                        {
+                            "testName": "match 2 points with plain host",
+                            "services": [
+                                "/anything/service3"
+                            ],
+                            "routes": [
+                                "3"
+                            ]
+                        }
+                    ],
+                    "expressions": {
+                        "traditionalFormat": [
+                            {
+                                "testName": "prioritize 3 points with plain host",
+                                "services": [
+                                    "/anything/service0"
+                                ],
+                                "routes": [
+                                    "0"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize 3 points route without host but with headers",
+                                "services": [
+                                    "/anything/service2"
+                                ],
+                                "routes": [
+                                    "2"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize 3 points with wildcard host",
+                                "services": [
+                                    "/anything/service1"
+                                ],
+                                "routes": [
+                                    "1"
+                                ]
+                            },
+                            {
+                                "testName": "match 2 points with plain host",
+                                "services": [
+                                    "/anything/service3"
+                                ],
+                                "routes": [
+                                    "3"
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "scenarioName": "prioritize routing by priority points over header count",
+            "format": ["traditional"],
+            "routeConfig": [
+                {
+                    "desc": "3 points, without headers",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route0",
+                        "hosts": [
+                            "*.0.0.1"
+                        ],
+                        "methods": [
+                            "POST"
+                        ]
+                    }
+                },
+                {
+                    "desc": "3 points, with 1 header",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route1",
+                        "hosts": [
+                            "*.0.0.1"
+                        ],
+                        "headers": {
+                            "Token": [
+                                "abc123456"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "desc": "2 points, with 3 headers",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route2",
+                        "headers": {
+                            "Token": [
+                                "abc123456"
+                            ],
+                            "Content-Type": [
+                                "application/json"
+                            ]
+                        }
+                    }
+                }
+            ],
+            "request": {
+                "url": "http://127.0.0.1:8000/v1/path",
+                "headers": {
+                    "Token": [
+                        "abc123456"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ]
+                }
+            },
+            "verify": {
+                "original": {
+                    "traditional_compatible": [
+                        {
+                            "testName": "prioritize 3 points with 1 header",
+                            "services": [
+                                "/anything/service1"
+                            ],
+                            "routes": [
+                                "1"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 3 points without headers",
+                            "services": [
+                                "/anything/service0"
+                            ],
+                            "routes": [
+                                "0"
+                            ]
+                        },
+                        {
+                            "testName": "match 2 points with 2 headers",
+                            "services": [
+                                "/anything/service2"
+                            ],
+                            "routes": [
+                                "2"
+                            ]
+                        }
+                    ],
+                    "expressions": {
+                        "traditionalFormat": [
+                            {
+                                "testName": "prioritize 3 points with 1 header",
+                                "services": [
+                                    "/anything/service1"
+                                ],
+                                "routes": [
+                                    "1"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize 3 points without headers",
+                                "services": [
+                                    "/anything/service0"
+                                ],
+                                "routes": [
+                                    "0"
+                                ]
+                            },
+                            {
+                                "testName": "match 2 points with 2 headers",
+                                "services": [
+                                    "/anything/service2"
+                                ],
+                                "routes": [
+                                    "2"
+                                ]
+                            }
+                        ]
+                    }
+                },
+                "strict": {
+                    "traditional_compatible": [
+                        {
+                            "testName": "prioritize 3 points with 1 header",
+                            "services": [
+                                "/anything/service1"
+                            ],
+                            "routes": [
+                                "1"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 3 points without headers",
+                            "services": [
+                                "/anything/service0"
+                            ],
+                            "routes": [
+                                "0"
+                            ]
+                        },
+                        {
+                            "testName": "match 2 points with 2 headers",
+                            "services": [
+                                "/anything/service2"
+                            ],
+                            "routes": [
+                                "2"
+                            ]
+                        }
+                    ],
+                    "expressions": {
+                        "traditionalFormat": [
+                            {
+                                "testName": "prioritize 3 points with 1 header",
+                                "services": [
+                                    "/anything/service1"
+                                ],
+                                "routes": [
+                                    "1"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize 3 points without headers",
+                                "services": [
+                                    "/anything/service0"
+                                ],
+                                "routes": [
+                                    "0"
+                                ]
+                            },
+                            {
+                                "testName": "match 2 points with 2 headers",
+                                "services": [
+                                    "/anything/service2"
+                                ],
+                                "routes": [
+                                    "2"
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "scenarioName": "prioritize routing by priority points over regex",
+            "format": ["traditional"],
+            "routeConfig": [
+                {
+                    "desc": "2 points, plain path",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route0",
+                        "methods": [
+                            "POST"
+                        ]
+                    }
+                },
+                {
+                    "desc": "1 point, regular expression path with regex_priority 2",
+                    "paths": [
+                        "~/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route1",
+                        "regex_priority": 2
+                    }
+                },
+                {
+                    "desc": "1 point, regular expression path without regex_priority",
+                    "paths": [
+                        "~/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route2"
+                    }
+                }
+            ],
+            "request": {
+                "url": "http://127.0.0.1:8000/v1/path/test",
+                "headers": {
+                    "Content-Type": [
+                        "application/json"
+                    ]
+                }
+            },
+            "verify": {
+                "original": {
+                    "traditional_compatible": [
+                        {
+                            "testName": "prioritize 1 point with regex(regex_priority: 2)",
+                            "services": [
+                                "/anything/service1/test"
+                            ],
+                            "routes": [
+                                "1"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 1 point with regex (no regex_priority)",
+                            "services": [
+                                "/anything/service2/test"
+                            ],
+                            "routes": [
+                                "2"
+                            ]
+                        },
+                        {
+                            "testName": "match 2 points",
+                            "services": [
+                                "/anything/service0/test"
+                            ],
+                            "routes": [
+                                "0"
+                            ]
+                        }
+                    ],
+                    "expressions": {
+                        "traditionalFormat": [
+                            {
+                                "testName": "prioritize 1 point with regex(regex_priority: 2)",
+                                "services": [
+                                    "/anything/service1/test"
+                                ],
+                                "routes": [
+                                    "1"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize 1 point with regex (no regex_priority)",
+                                "services": [
+                                    "/anything/service2/test"
+                                ],
+                                "routes": [
+                                    "2"
+                                ]
+                            },
+                            {
+                                "testName": "match 2 points",
+                                "services": [
+                                    "/anything/service0/test"
+                                ],
+                                "routes": [
+                                    "0"
+                                ]
+                            }
+                        ]
+                    }
+                },
+                "strict": {
+                    "traditional_compatible": [
+                        {
+                            "testName": "prioritize 2 points",
+                            "services": [
+                                "/anything/service0/test"
+                            ],
+                            "routes": [
+                                "0"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 1 point with regex(regex_priority: 2)",
+                            "services": [
+                                "/anything/service1/test"
+                            ],
+                            "routes": [
+                                "1"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 1 point with regex (no regex_priority)",
+                            "services": [
+                                "/anything/service2/test"
+                            ],
+                            "routes": [
+                                "2"
+                            ]
+                        }
+                    ],
+                    "expressions": {
+                        "traditionalFormat": [
+                            {
+                                "testName": "prioritize 2 points",
+                                "services": [
+                                    "/anything/service0/test"
+                                ],
+                                "routes": [
+                                    "0"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize 1 point with regex(regex_priority: 2)",
+                                "services": [
+                                    "/anything/service1/test"
+                                ],
+                                "routes": [
+                                    "1"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize 1 point with regex (no regex_priority)",
+                                "services": [
+                                    "/anything/service2/test"
+                                ],
+                                "routes": [
+                                    "2"
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "scenarioName": "prioritize same-point routes",
+            "format": ["traditional"],
+            "routeConfig": [
+                {
+                    "desc": "Hosts only - plain host",
+                    "paths": null,
+                    "payload": {
+                        "name": "route0",
+                        "hosts": [
+                            "127.0.0.1"
+                        ]
+                    }
+                },
+                {
+                    "desc": "Hosts only - wildcard host",
+                    "paths": null,
+                    "payload": {
+                        "name": "route1",
+                        "hosts": [
+                            "*.0.0.1"
+                        ]
+                    }
+                },
+                {
+                    "desc": "Headers only - 1 header",
+                    "paths": null,
+                    "payload": {
+                        "name": "route2",
+                        "headers": {
+                            "Token": [
+                                "abc123456"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "desc": "Headers only - 2 headers",
+                    "paths": null,
+                    "payload": {
+                        "name": "route3",
+                        "headers": {
+                            "Token": [
+                                "abc123456"
+                            ],
+                            "Content-Type": [
+                                "application/json"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "desc": "Methods only - first created methods",
+                    "paths": null,
+                    "payload": {
+                        "name": "route4",
+                        "methods": [
+                            "POST"
+                        ]
+                    }
+                },
+                {
+                    "desc": "Path only - plain path",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route5"
+                    }
+                },
+                {
+                    "desc": "Path only - regex path",
+                    "paths": [
+                        "~/v[12456]/path"
+                    ],
+                    "payload": {
+                        "name": "route6"
+                    }
+                },
+                {
+                    "desc": "Path only - longer path",
+                    "paths": [
+                        "/v1/path/test"
+                    ],
+                    "payload": {
+                        "name": "route7"
+                    }
+                },
+                {
+                    "desc": "Path only - regex path with regex_priority 2",
+                    "paths": [
+                        "~/v[12456]/path"
+                    ],
+                    "payload": {
+                        "name": "route8",
+                        "regex_priority": 2
+                    }
+                },
+                {
+                    "desc": "Path only - regex path with regex_priority 1",
+                    "paths": [
+                        "~/v[12456]/path"
+                    ],
+                    "payload": {
+                        "name": "route9",
+                        "regex_priority": 1
+                    }
+                },
+                {
+                    "desc": "Methods only - second created methods",
+                    "paths": null,
+                    "payload": {
+                        "name": "route10",
+                        "methods": [
+                            "POST"
+                        ]
+                    }
+                }
+            ],
+            "request": {
+                "url": "http://127.0.0.1:8000/v1/path/test",
+                "headers": {
+                    "Token": [
+                        "abc123456"
+                    ],
+                    "Content-Type": [
+                        "application/json"
+                    ]
+                }
+            },
+            "verify": {
+                "original": {
+                    "traditional_compatible": [
+                        {
+                            "testName": "prioritize plain host",
+                            "services": [
+                                "/anything/service0/v1/path/test"
+                            ],
+                            "routes": [
+                                "0"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize regex path with regex_priority 2",
+                            "services": [
+                                "/anything/service8/test"
+                            ],
+                            "routes": [
+                                "8"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize regex path with regex_priority 1",
+                            "services": [
+                                "/anything/service9/test"
+                            ],
+                            "routes": [
+                                "9"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize regex path with regex_priority 0",
+                            "services": [
+                                "/anything/service6/test"
+                            ],
+                            "routes": [
+                                "6"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize header count equals 2",
+                            "services": [
+                                "/anything/service3/v1/path/test"
+                            ],
+                            "routes": [
+                                "3"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize header count equals 1",
+                            "services": [
+                                "/anything/service2/v1/path/test"
+                            ],
+                            "routes": [
+                                "2"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize longer path without regex",
+                            "services": [
+                                "/anything/service7"
+                            ],
+                            "routes": [
+                                "7"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize shorter path without regex",
+                            "services": [
+                                "/anything/service5/test"
+                            ],
+                            "routes": [
+                                "5"
+                            ]
+                        },
+                        {
+                            "testName": "match methods or wildcard host random by design",
+                            "services": [
+                                "/anything/service4/v1/path/test",
+                                "/anything/service1/v1/path/test",
+                                "/anything/service10/v1/path/test"
+                            ],
+                            "routes": [
+                                "4",
+                                "1",
+                                "10"
+                            ]
+                        }
+                    ],
+                    "expressions": {
+                        "traditionalFormat": [
+                            {
+                                "testName": "prioritize plain host",
+                                "services": [
+                                    "/anything/service0/v1/path/test"
+                                ],
+                                "routes": [
+                                    "0"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize regex path with regex_priority 2",
+                                "services": [
+                                    "/anything/service8/test"
+                                ],
+                                "routes": [
+                                    "8"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize regex path with regex_priority 1",
+                                "services": [
+                                    "/anything/service9/test"
+                                ],
+                                "routes": [
+                                    "9"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize regex path with regex_priority 0",
+                                "services": [
+                                    "/anything/service6/test"
+                                ],
+                                "routes": [
+                                    "6"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize header count equals 2",
+                                "services": [
+                                    "/anything/service3/v1/path/test"
+                                ],
+                                "routes": [
+                                    "3"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize header count equals 1",
+                                "services": [
+                                    "/anything/service2/v1/path/test"
+                                ],
+                                "routes": [
+                                    "2"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize longer path without regex",
+                                "services": [
+                                    "/anything/service7"
+                                ],
+                                "routes": [
+                                    "7"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize shorter path without regex",
+                                "services": [
+                                    "/anything/service5/test"
+                                ],
+                                "routes": [
+                                    "5"
+                                ]
+                            },
+                            {
+                                "testName": "match methods or wildcard host random by design",
+                                "services": [
+                                    "/anything/service4/v1/path/test",
+                                    "/anything/service1/v1/path/test",
+                                    "/anything/service10/v1/path/test"
+                                ],
+                                "routes": [
+                                    "4",
+                                    "1",
+                                    "10"
+                                ]
+                            }
+                        ]
+                    }
+                },
+                "strict": {
+                    "traditional_compatible": [
+                        {
+                            "testName": "prioritize plain host",
+                            "services": [
+                                "/anything/service0/v1/path/test"
+                            ],
+                            "routes": [
+                                "0"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize header count equals 2",
+                            "services": [
+                                "/anything/service3/v1/path/test"
+                            ],
+                            "routes": [
+                                "3"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize header count equals 1",
+                            "comments": [
+                                "Verified: Headers has higher priority than regex paths"
+                            ],
+                            "services": [
+                                "/anything/service2/v1/path/test"
+                            ],
+                            "routes": [
+                                "2"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize regex path with regex_priority 2",
+                            "services": [
+                                "/anything/service8/test"
+                            ],
+                            "routes": [
+                                "8"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize regex path with regex_priority 1",
+                            "services": [
+                                "/anything/service9/test"
+                            ],
+                            "routes": [
+                                "9"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize regex path with regex_priority 0",
+                            "services": [
+                                "/anything/service6/test"
+                            ],
+                            "routes": [
+                                "6"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize longer plain path",
+                            "services": [
+                                "/anything/service7"
+                            ],
+                            "routes": [
+                                "7"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize shorter plain path",
+                            "services": [
+                                "/anything/service5/test"
+                            ],
+                            "routes": [
+                                "5"
+                            ]
+                        },
+                        {
+                            "testName": "match methods or wildcard host random by design",
+                            "services": [
+                                "/anything/service4/v1/path/test",
+                                "/anything/service1/v1/path/test",
+                                "/anything/service10/v1/path/test"
+                            ],
+                            "routes": [
+                                "4",
+                                "1",
+                                "10"
+                            ]
+                        }
+                    ],
+                    "expressions": {
+                        "traditionalFormat": [
+                            {
+                                "testName": "prioritize plain host",
+                                "services": [
+                                    "/anything/service0/v1/path/test"
+                                ],
+                                "routes": [
+                                    "0"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize header count equals 2",
+                                "services": [
+                                    "/anything/service3/v1/path/test"
+                                ],
+                                "routes": [
+                                    "3"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize header count equals 1",
+                                "comments": [
+                                    "Verified: Headers has higher priority than regex paths"
+                                ],
+                                "services": [
+                                    "/anything/service2/v1/path/test"
+                                ],
+                                "routes": [
+                                    "2"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize regex path with regex_priority 2",
+                                "services": [
+                                    "/anything/service8/test"
+                                ],
+                                "routes": [
+                                    "8"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize regex path with regex_priority 1",
+                                "services": [
+                                    "/anything/service9/test"
+                                ],
+                                "routes": [
+                                    "9"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize regex path with regex_priority 0",
+                                "services": [
+                                    "/anything/service6/test"
+                                ],
+                                "routes": [
+                                    "6"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize longer plain path",
+                                "services": [
+                                    "/anything/service7"
+                                ],
+                                "routes": [
+                                    "7"
+                                ]
+                            },
+                            {
+                                "testName": "prioritize shorter plain path",
+                                "services": [
+                                    "/anything/service5/test"
+                                ],
+                                "routes": [
+                                    "5"
+                                ]
+                            },
+                            {
+                                "testName": "match methods or wildcard host random by design",
+                                "services": [
+                                    "/anything/service4/v1/path/test",
+                                    "/anything/service1/v1/path/test",
+                                    "/anything/service10/v1/path/test"
+                                ],
+                                "routes": [
+                                    "4",
+                                    "1",
+                                    "10"
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "scenarioName": "prioritize routes in traditional format and expressions format",
+            "format": ["traditional", "expressions"],
+            "routeConfig": [
+                {
+                    "desc": "3 points route - expressions",
+                    "payload": {
+                        "name": "route0",
+                        "expression": "(http.path == \"/v1/path\" && http.host == \"127.0.0.1\" && http.method == \"POST\")",
+                        "priority": 1
+                    }
+                },
+                {
+                    "desc": "4 points route - expressions",
+                    "payload": {
+                        "name": "route1",
+                        "expression": "(http.path == \"/v1/path\" && http.host == \"127.0.0.1\" && http.method == \"POST\" && http.headers.Token == \"abc123456\")",
+                        "priority": 2
+                    }
+                },
+                {
+                    "desc": "2 points route - expressions",
+                    "payload": {
+                        "name": "route2",
+                        "expression": "(http.path == \"/v1/path\" && http.host == \"127.0.0.1\")",
+                        "priority": 4
+                    }
+                },
+                {
+                    "desc": "1 point route - expressions",
+                    "payload": {
+                        "name": "route3",
+                        "expression": "(http.path == \"/v1/path\")",
+                        "priority": 3
+                    }
+                },
+                {
+                    "desc": "4 points route",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route1",
+                        "hosts": [
+                            "127.0.0.1"
+                        ],
+                        "methods": [
+                            "POST"
+                        ],
+                        "headers": {
+                            "Token": [
+                                "abc123456"
+                            ]
+                        }
+                    }
+                }
+            ],
+            "request": {
+                "url": "http://127.0.0.1:8000/v1/path",
+                "headers": {
+                    "Token": [
+                        "abc123456"
+                    ]
+                }
+            },
+            "verify": {
+                "original": {
+                    "hybrid": [
+                        {
+                            "testName": "randomly match routes in expression format and traditional format",
+                            "services": [
+                                "/anything/service0",
+                                "/anything/service1",
+                                "/anything/service2",
+                                "/anything/service3",
+                                "/anything/service4"
+                            ],
+                            "routes": [
+                                 "0",
+                                 "2",
+                                 "1",
+                                 "3",
+                                 "4"
+                            ]
+                        }
+                    ],
+                    "hybrid_arm64": [
+                        {
+                            "testName": "match 4 points route - traditional format",
+                            "services": [
+                                "/anything/service4"
+                            ],
+                            "routes": [
+                                "4"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 2 points route - expressions format - priority 4",
+                            "services": [
+                                "/anything/service2"
+                            ],
+                            "routes": [
+                                "2"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 1 point route - expressions format - priority 3",
+                            "services": [
+                                "/anything/service3"
+                            ],
+                            "routes": [
+                                "3"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 4 poins route - expressions format - priority 2",
+                            "services": [
+                                "/anything/service1"
+                            ],
+                            "routes": [
+                                "1"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 3 points route - expressions format - priority 1",
+                            "services": [
+                                "/anything/service0"
+                            ],
+                            "routes": [
+                                "0"
+                            ]
+                        }
+                    ]
+                },
+                "strict": {
+                    "hybrid": [
+                        {
+                            "testName": "prioritize 2 points route - expressions format - priority 4",
+                            "services": [
+                                "/anything/service2"
+                            ],
+                            "routes": [
+                                "2"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 1 point route - expressions format - priority 3",
+                            "services": [
+                                "/anything/service3"
+                            ],
+                            "routes": [
+                                "3"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 4 poins route - expressions format - priority 2",
+                            "services": [
+                                "/anything/service1"
+                            ],
+                            "routes": [
+                                "1"
+                            ]
+                        },
+                        {
+                            "testName": "prioritize 3 points route - expressions format - priority 1",
+                            "services": [
+                                "/anything/service0"
+                            ],
+                            "routes": [
+                                "0"
+                            ]
+                        },
+                        {
+                            "testName": "match 4 points route - traditional format",
+                            "services": [
+                                "/anything/service4"
+                            ],
+                            "routes": [
+                                "4"
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+                {
+            "scenarioName": "prioritize routes in different workspaces by priority points",
+            "format": ["traditional"],
+            "routeConfig": [
+                {
+                    "desc": "3 points route",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route0",
+                        "methods": [
+                            "POST"
+                        ],
+                        "headers": {
+                            "Token": [
+                                "abc123456"
+                            ]
+                        }
+                    }
+                }
+            ],
+            "routeConfig_workspace2": [
+                {
+                    "workspace": "workspace2",
+                    "desc": "4 points route",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route0-workspace2",
+                        "hosts": [
+                            "127.0.0.1"
+                        ],
+                        "methods": [
+                            "POST"
+                        ],
+                        "headers": {
+                            "Token": [
+                                "abc123456"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "workspace": "workspace2",
+                    "desc": "2 points route",
+                    "paths": [
+                        "/v1/path"
+                    ],
+                    "payload": {
+                        "name": "route1-workspace2",
+                        "headers": {
+                            "Token": [
+                                "abc123456"
+                            ]
+                        }
+                    }
+                }
+            ],
+            "request": {
+                "url": "http://127.0.0.1:8000/v1/path",
+                "headers": {
+                    "Token": [
+                        "abc123456"
+                    ]
+                }
+            },
+            "verify": {
+                "original": {
+                    "traditional_compatible": [
+                        {
+                            "testName": "prioritize 4-point route in workspace2",
+                            "services": [
+                                "/anything/workspace2/service0"
+                            ],
+                            "routes": "0",
+                            "workspace": "workspace2"
+                        },
+                        {
+                            "testName": "prioritize 3-point route in default workspace",
+                            "services": [
+                                "/anything/service0"
+                            ],
+                            "routes": [
+                                "0"
+                            ]
+                        },
+                        {
+                            "testName": "match 2-point route in workspace2",
+                            "services": [
+                                "/anything/workspace2/service1"
+                            ],
+                            "routes": [
+                                "1"
+                            ],
+                            "workspace": "workspace2"
+                        }
+                    ],
+                    "expressions": {
+                        "traditionalFormat": [
+                            {
+                                "testName": "prioritize 4-point route in workspace2",
+                                "services": [
+                                    "/anything/workspace2/service0"
+                                ],
+                                "routes": "0",
+                                "workspace": "workspace2"
+                            },
+                            {
+                                "testName": "prioritize 3-point route in default workspace",
+                                "services": [
+                                    "/anything/service0"
+                                ],
+                                "routes": [
+                                    "0"
+                                ]
+                            },
+                            {
+                                "testName": "match 2-point route in workspace2",
+                                "services": [
+                                    "/anything/workspace2/service1"
+                                ],
+                                "routes": [
+                                    "1"
+                                ],
+                                "workspace": "workspace2"
+                            }
+                        ]
+                    }
+                },
+                "strict": {
+                    "traditional_compatible": [
+                        {
+                            "testName": "prioritize 4-point route in workspace2",
+                            "services": [
+                                "/anything/workspace2/service0"
+                            ],
+                            "routes": "0",
+                            "workspace": "workspace2"
+                        },
+                        {
+                            "testName": "prioritize 3-point route in default workspace",
+                            "services": [
+                                "/anything/service0"
+                            ],
+                            "routes": [
+                                "0"
+                            ]
+                        },
+                        {
+                            "testName": "match 2-point route in workspace2",
+                            "services": [
+                                "/anything/workspace2/service1"
+                            ],
+                            "routes": [
+                                "1"
+                            ],
+                            "workspace": "workspace2"
+                        }
+                    ],
+                    "expressions": {
+                        "traditionalFormat": [
+                            {
+                                "testName": "prioritize 4-point route in workspace2",
+                                "services": [
+                                    "/anything/workspace2/service0"
+                                ],
+                                "routes": "0",
+                                "workspace": "workspace2"
+                            },
+                            {
+                                "testName": "prioritize 3-point route in default workspace",
+                                "services": [
+                                    "/anything/service0"
+                                ],
+                                "routes": [
+                                    "0"
+                                ]
+                            },
+                            {
+                                "testName": "match 2-point route in workspace2",
+                                "services": [
+                                    "/anything/workspace2/service1"
+                                ],
+                                "routes": [
+                                    "1"
+                                ],
+                                "workspace": "workspace2"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+]
