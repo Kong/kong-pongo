@@ -11,7 +11,6 @@
 
 local cjson = require("cjson")
 local gzip = require("kong.tools.gzip")
-local _TITAN_EMBED_PATTERN = "amazon.titan.-embed.-text.-.*"
 
 --
 -- public vars
@@ -97,14 +96,10 @@ local function mock_embeddings_bedrock(opts, url)
   end
 
   local request_body = cjson.decode(opts.body)
-    if string.find(model, _TITAN_EMBED_PATTERN) then
+
+    if string.find(model, "amazon.titan.-embed.-text.-.*") then
       if request_body.dimensions then
           return nil, "titan embed model does not support dimensions"
-      end
-
-      local version = model:match("v%d+")
-      if version == "v1" and request_body.normalize then
-          return nil, "Malformed input request: extraneous key [normalize] is not permitted, please reformat your input and try again"
       end
   end
 
