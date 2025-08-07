@@ -21,7 +21,6 @@ export const createKeySetsForJweDecryptPlugin = async (name?: string) => {
 
   return resp.data;
 };
-
 /**
  * Reusable request to delete a Key-Set for jwe-decrypt plugin
  * @param {string} keySetIdOrName
