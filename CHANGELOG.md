@@ -22,6 +22,10 @@
 
 ---
 
+## 2.20.0 released 08-Aug-2025
+
+* Feat: make custom CA bundle available during image build
+
 ## 2.19.0 released 08-Jul-2025
 
 * Feat: support loading custom CA certificates file in PEM format
