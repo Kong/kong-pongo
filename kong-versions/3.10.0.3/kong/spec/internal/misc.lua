@@ -21,8 +21,6 @@ local pl_dir = require("pl.dir")
 local pkey = require("resty.openssl.pkey")
 local nginx_signals = require("kong.cmd.utils.nginx_signals")
 local shell = require("spec.internal.shell")
-local rand = require "kong.tools.rand"
-local encode_base64url = require "ngx.base64".encode_base64url
 
 
 local CONSTANTS = require("spec.internal.constants")
@@ -204,39 +202,6 @@ local function generate_keys(fmt, typ)
   return pub, priv
 end
 
-local key_size = {
-  ["A128KW"] = 16,
-  ["A192KW"] = 24,
-  ["A256KW"] = 32,
-  ["A128GCMKW"] = 16,
-  ["A192GCMKW"] = 24,
-  ["A256GCMKW"] = 32,
-}
-
---- Generate a symmetric JWK
--- @function generate_oct_key
--- @param alg the algorithm to use
--- @return a JWK table with the symmetric key, or `nil` on failure
-local function generate_oct_key(alg)
-  local shared_key, jwk, err
-  -- only support symmetric keys (oct) for now
-  if not alg then
-    return nil, "unsupported algorithm for symmetric key"
-  end
-  local raw_key = rand.get_rand_bytes(key_size[alg], true)
-  shared_key, err = encode_base64url(raw_key)
-  if not shared_key then
-    return nil, "failed to encode key: " .. (err or "unknown error")
-  end
-
-  jwk = {
-    kty = "oct",
-    k = shared_key,
-    alg = alg,
-  }
-
-  return jwk, err
-end
 
 -- Case insensitive lookup function, returns the value and the original key. Or
 -- if not found nil and the search key
@@ -444,7 +409,6 @@ return {
   deep_sort = deep_sort,
 
   generate_keys = generate_keys,
-  generate_oct_key = generate_oct_key,
 
   lookup = lookup,
 
