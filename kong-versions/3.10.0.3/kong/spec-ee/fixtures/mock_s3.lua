@@ -10,10 +10,7 @@ local headers = ngx.req.get_headers()
 local full_path = ngx.var.uri
 local bucket, path = full_path:match("^/([^/]+)/?(.*)")
 if ngx.req.get_method() == "PUT" then
-  ngx.shared.objects:set(full_path, body or "") -- luacheck: globals body
-                                                -- this file was loaded in
-                                                -- spec-ee/02-integration/20-dp-resilience/01-basic_function_spec.lua
-                                                -- and body is defined as a global variable.
+  ngx.shared.objects:set(full_path, body or "")
 
   local date = headers["X-Amz-Date"] or "20231221T000000Z"
   local etag = headers["ETag"] or headers["X-Amz-Content-Sha256"] or "d41d8cd98f00b204e9800998ecf8427e"
@@ -21,7 +18,7 @@ if ngx.req.get_method() == "PUT" then
 
   ngx.shared.metadata:set(full_path, table.concat(
     {date, etag, content_type}, "\n"
-  ))
+  ))        
 
   return ngx.exit(200)
 elseif ngx.req.get_method() == "GET" then
@@ -35,7 +32,7 @@ elseif ngx.req.get_method() == "GET" then
 
       for _, fpath in ipairs(metadata) do
         local meta = ngx.shared.metadata:get(fpath)
-        local date, etag = meta:match("^(.-)\n(.-)\n(.-)$")
+        local date, etag, content_type = meta:match("^(.-)\n(.-)\n(.-)$")
         local key = fpath:sub(#bucket + 3)
         if key:sub(1, #prefix) == prefix then
           table.insert(contents, string.format(

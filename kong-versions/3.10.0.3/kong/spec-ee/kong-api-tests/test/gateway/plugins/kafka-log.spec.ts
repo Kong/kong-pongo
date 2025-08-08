@@ -15,7 +15,6 @@ import {
     updateKafkaConsumeTopic,
     consumeKafkaMessage,
     kafkaConfig,
-    logResponse,
 } from '@support'
 
 describe('Gateway Plugins: Kafka Log', function() {
@@ -171,13 +170,11 @@ describe('Gateway Plugins: Kafka Log', function() {
                 config: {
                     topic: newTopic,
                 },
-            },
-            validateStatus: null,
+            }
         })
 
-        logResponse(resp)
         expect(resp.status, 'Status should be 200').to.equal(200)
-        expect(resp.data.config.topic, 'Should have correct topic').to.contain(newTopic)
+        expect(resp.data.config.topic, 'Should have correct topic').to.eql(newTopic)
 
         await waitForConfigRebuild()
     })

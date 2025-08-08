@@ -79,7 +79,7 @@ describe('Gateway Plugins: Request Validator', function () {
     );
   });
 
-  it('should not create RV Plugin with non-supported version', async function () {
+  it('should not create RV Plugin with version other than draft4 or kong', async function () {
     const pluginPayload = {
       ...basePayload,
       config: {
@@ -93,7 +93,7 @@ describe('Gateway Plugins: Request Validator', function () {
 
     expect(resp.status, 'Status should be 400').to.equal(400);
     expect(resp.data.message, 'Should have correct error message').to.contain(
-      `(config.version: expected one of: kong, draft4, draft6, draft7, draft201909, draft202012)`
+      `(config.version: expected one of: kong, draft4)`
     );
   });
 
