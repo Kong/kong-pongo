@@ -735,7 +735,6 @@ end
 function _M.client()
   local id = var.arg_session
   if not id or id == "" then
-    ngx.log(ngx.ERR, " got this error: session query arg is required")
     return exit(400, { error = "session query arg is required" })
   end
 
