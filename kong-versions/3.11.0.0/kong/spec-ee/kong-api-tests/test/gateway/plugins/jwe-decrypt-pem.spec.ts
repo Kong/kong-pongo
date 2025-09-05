@@ -5,10 +5,6 @@ import {
   createKeySetsForJweDecryptPlugin,
   patchEncryptedKeysForJweDecryptPlugin,
   createRouteForService,
-  deleteEncryptedKeysForJweDecryptPlugin,
-  deleteGatewayRoute,
-  deleteGatewayService,
-  deleteKeySetsForJweDecryptPlugin,
   Environment,
   eventually,
   expect,
@@ -18,6 +14,8 @@ import {
   logResponse,
   postNegative,
   waitForConfigRebuild,
+  clearAllKongResources,
+  deleteKeySetsForJweDecryptPlugin,
 } from '@support';
 import axios from 'axios';
 
@@ -34,8 +32,8 @@ describe('@gke: Gateway Plugins: jwe-decrypt PEM', function () {
 
   let serviceId: string;
   let pemRouteId: string;
-  let pemKeySetsId: string;
   let keysId: string;
+  let pemKeySetsId: string;
 
   const url = `${getBasePath({
     environment: isGateway() ? Environment.gateway.admin : undefined,
@@ -225,9 +223,6 @@ describe('@gke: Gateway Plugins: jwe-decrypt PEM', function () {
   });
 
   after(async function () {
-    await deleteGatewayRoute(pemRouteId);
-    await deleteGatewayService(serviceId);
-    await deleteEncryptedKeysForJweDecryptPlugin(keysId);
-    await deleteKeySetsForJweDecryptPlugin(pemKeySetsId);
+    await clearAllKongResources()
   });
 });
