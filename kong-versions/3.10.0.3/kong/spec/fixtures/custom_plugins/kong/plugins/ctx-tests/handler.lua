@@ -134,7 +134,6 @@ local function has_correct_proxy_latency(ctx)
     return false, "[ctx-tests] KONG_BALANCER_ENDED_AT is less than the processing start"
   end
 
-
   local latency = ctx.KONG_BALANCER_ENDED_AT - ctx.KONG_PROCESSING_START
   if ctx.KONG_PROXY_LATENCY ~= latency then
     return false, "[ctx-tests] KONG_PROXY_LATENCY is not calculated correctly"

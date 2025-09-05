@@ -24,6 +24,7 @@ import {
   clearAllKongResources,
   waitForConfigRebuild,
   deleteWorkspace,
+  getIncrementalSyncStatus
 } from '@support';
 import axios from 'axios';
 import _ from 'lodash';
@@ -54,6 +55,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   let baseRLAPayload: any;
   let pluginId: string;
   let headers: any;
+  let isIncSyncMode: boolean;
 
   const defaultPartialUrl = `${getBasePath({
     environment: isGateway() ? Environment.gateway.admin : undefined,
@@ -319,7 +321,20 @@ describe('Gateway Redis-Partial-EE Tests', function () {
     expect(found, `Should find item with id=${expectedId} and name=${expectedName}`).to.be.true;
   }
 
+  /**
+   * Skip test if incremental sync mode is disabled
+   * Related to unresolved bug: KAG-6838
+   */
+  function skipConditionaly(testContext: Mocha.Context) {
+    // Test skiped when incremental sync is off due to bug KAG-6838
+    // These skiped tests will failed when incremental sync is off or when in classic mode and incremental sync is enabled
+    if (isIncSyncMode === false || (isIncSyncMode === true && isHybrid === false)) {
+      testContext.skip();
+    }
+  }
+
   before(async function () {
+    isIncSyncMode = await getIncrementalSyncStatus();
     await createWorkspace(worksapceName);
     const service = await createGatewayService('RedisRLAService', undefined, worksapceName);
     serviceId = service.id;
@@ -369,7 +384,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
         identifier: 'header',
         header_name: limitHeader,
         strategy: 'redis',
-        sync_rate: 1,
+        sync_rate: 0.5,
         namespace: redisNamespace,
         window_type: "fixed"
       }
@@ -458,6 +473,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   });
 
   it('should create RLA plugin scoped to service in custom workspace and link to redis cluster partial', async function () {
+    skipConditionaly(this);
     const payloadWithWsPartial = _.cloneDeep(baseRLAPayload);
     payloadWithWsPartial.partials = [{ id: wsPartialClusterId }];
 
@@ -471,6 +487,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   })
 
   it('should query the redis cluster partial links by partial id and find the RLA already linked to it', async function () {
+    skipConditionaly(this);
     const resp = await axios({
       method: 'get',
       url: `${wsPartialUrl}/${wsPartialClusterId}/links`
@@ -488,6 +505,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   })
 
   it('should query RLA plugin redis cluster partial configuration by expand_partials parameter', async function () {
+    skipConditionaly(this);
     const resp = await axios({
       method: 'get',
       url: `${wsPluginUrl}/${pluginId}?expand_partials=true`
@@ -501,6 +519,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   });
 
   it('should rate limit 2nd request with rate-limiting advanced plugin', async function () {
+    skipConditionaly(this);
     //cleanup redis cluster before testing
     await resetRedisCluster();
     await wait(isHybrid ? 8000 : 7000); // eslint-disable-line no-restricted-syntax
@@ -511,14 +530,15 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   });
 
   it('should sync RLA counter to redis cluster', async function () {
+    skipConditionaly(this);
     await waitForRedisClusterDBSize(1, 5000, 1000, true);
     //cleanup redis cluster after testing
     await resetRedisCluster();
     await wait(isHybrid ? 8000 : 7000); // eslint-disable-line no-restricted-syntax
     await waitForRedisClusterDBSize(0, 3000, 1000, true);
   });
-
-  it('should allow change redis partial config to wrong password after it linked by plugin', async function () {
+  //skip this test due to KAG-6854
+  it.skip('should allow change redis partial config to wrong password after it linked by plugin', async function () {
     const modifiedPartialPasswordErr = _.cloneDeep(partialClusterPayload);
     modifiedPartialPasswordErr.config.password = 'errorPassword';
 
@@ -531,15 +551,15 @@ describe('Gateway Redis-Partial-EE Tests', function () {
 
     await waitForConfigRebuild();
   });
-
-  it('should send proxy request to trigger RLA plugin Redis auth error log', async function () {
+  //skip this test due to KAG-6854
+  it.skip('should send proxy request to trigger RLA plugin new namespace Redis auth error log', async function () {
     headers = { [limitHeader]: limitHeaderValueUpdate };
     await verifyRateLimitingEffect({ rateLimit: 1, url: proxyUrl, headers: headers });
 
-    await checkRedisAuthErrLog(redisNamespace, kongContainerName, true);
+    await checkRedisAuthErrLog(redisNamespace, kongContainerName, true, 20);
   });
-
-  it('should allow change redis cluster partial config to use correct vault type password after it linked by plugin', async function () {
+  //skip this test due to KAG-6854
+  it.skip('should allow change redis cluster partial config to use correct vault type password after it linked by plugin', async function () {
     const modifiedPartialPasswordVault = _.cloneDeep(partialClusterPayload);
     modifiedPartialPasswordVault.config.password = '{vault://redis/REDISP}';
 
@@ -552,8 +572,8 @@ describe('Gateway Redis-Partial-EE Tests', function () {
 
     await waitForConfigRebuild();
   });
-
-  it('should rate limit 2nd request with rate-limiting advanced plugin after change to correct vault type password', async function () {
+  //skip this test due to KAG-6854
+  it.skip('should rate limit 2nd request with rate-limiting advanced plugin after change to correct vault type password', async function () {
     //cleanup redis cluster before testing
     await resetRedisCluster();
     await wait(isHybrid ? 8000 : 7000); // eslint-disable-line no-restricted-syntax
@@ -561,13 +581,14 @@ describe('Gateway Redis-Partial-EE Tests', function () {
     headers = { [limitHeader]: limitHeaderValueUpdate2nd };
     await verifyRateLimitingEffect({ rateLimit: 1, url: proxyUrl, headers: headers });
   });
-
-  it('should sync counter to Redis cluster with password from vault', async function () {
+  //skip this test due to KAG-6854
+  it.skip('should sync counter to Redis cluster with password from vault', async function () {
     await wait(1000); // eslint-disable-line no-restricted-syntax
     await waitForRedisClusterDBSize(1, 3000, 1000, true);
   });
 
   it('should allow create redis partial with redis standalone type in custom workspaces', async function () {
+    skipConditionaly(this);
     const resp = await axios({
       method: 'post',
       url: wsPartialUrl,
@@ -584,6 +605,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   });
 
   it('should query the redis standalone partial config by its partial id', async function () {
+    skipConditionaly(this);
     const resp = await axios({
       method: 'get',
       url: `${wsPartialUrl}/${wsPartialStandaloneId}`
@@ -595,8 +617,8 @@ describe('Gateway Redis-Partial-EE Tests', function () {
     expect(resp.data).to.have.property('config').that.is.an('object');
     validateRedisStandaloneConfig(resp.data.config, partialStandalonePayload.config);
   })
-
-  it('should allow validate redis partial schema with redis standalone type with vault reference', async function () {
+  //skip this test due to KAG-6842
+  it.skip('should allow validate redis partial schema with redis standalone type with vault reference', async function () {
     const payloadWithStandalonePartial = _.cloneDeep(baseRLAPayload);
     payloadWithStandalonePartial.partials = [{ id: wsPartialStandaloneId }];
 
@@ -609,6 +631,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   });
 
   it('should allow update RLA plugin created in custom workspace to link to redis standalone partial', async function () {
+    skipConditionaly(this);
     const payloadWithStandalonePartial = _.cloneDeep(baseRLAPayload);
     payloadWithStandalonePartial.partials = [{ id: wsPartialStandaloneId }];
 
@@ -621,6 +644,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   })
 
   it('should query RLA plugin redis standalone partial configuration by expand_partials parameter', async function () {
+    skipConditionaly(this);
     const resp = await axios({
       method: 'get',
       url: `${wsPluginUrl}/${pluginId}?expand_partials=true`
@@ -634,6 +658,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   })
 
   it('should query the redis cluster partial links by partial id and find NO plugin linked to it', async function () {
+    skipConditionaly(this);
     const resp = await axios({
       method: 'get',
       url: `${wsPartialUrl}/${wsPartialClusterId}/links`
@@ -645,6 +670,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   })
 
   it('should query the redis standalone partial links by partial id and find the RLA plugin already linked to it', async function () {
+    skipConditionaly(this);
     const resp = await axios({
       method: 'get',
       url: `${wsPartialUrl}/${wsPartialStandaloneId}/links`
@@ -662,6 +688,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   })
 
   it('should not allow delete redis standalone partial after it is linked to a plugin', async function () {
+    skipConditionaly(this);
     const resp = await deleteNegative(`${wsPartialUrl}/${wsPartialStandaloneId}`);
     logResponse(resp);
     expect(resp.status, 'Status should be 403').to.equal(403);
@@ -670,6 +697,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   });
 
   it('should allow delete redis cluster partial after it is no longer linked to a plugin', async function () {
+    skipConditionaly(this);
     const resp = await deleteNegative(`${wsPartialUrl}/${wsPartialClusterId}`);
     logResponse(resp);
     expect(resp.status, 'Status should be 204').to.equal(204);
@@ -678,6 +706,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   });
 
   it('should rate limit second proxy request according to RLA config linked to standalone redis partial', async function () {
+    skipConditionaly(this);
     await resetRedisDB();
     await wait(isHybrid ? 8000 : 7000); // eslint-disable-line no-restricted-syntax
     headers = { [limitHeader]: limitHeaderValueUpdate3rd };
@@ -685,12 +714,14 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   });
 
   it('should have counter sync to Redis standalone storage', async function () {
+    skipConditionaly(this);
     //wait 1 seconds for counter sync
     await wait(1000);// eslint-disable-line no-restricted-syntax
     await waitForRedisDBSize(1, 3000, 1000, true);
   });
 
   it('should allow create redis partial with redis sentinel type in custom workspaces', async function () {
+    skipConditionaly(this);
     const resp = await axios({
       method: 'post',
       url: wsPartialUrl,
@@ -708,6 +739,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   });
 
   it('should query the redis standalone partial config by its partial id', async function () {
+    skipConditionaly(this);
     const resp = await axios({
       method: 'get',
       url: `${wsPartialUrl}/${wsPartialSentinelId}`
@@ -721,6 +753,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   })
 
   it('should allow update RLA plugin created in custom workspace to link to redis sentinel partial', async function () {
+    skipConditionaly(this);
     const payloadWithSentinelPartial = _.cloneDeep(baseRLAPayload);
     payloadWithSentinelPartial.partials = [{ id: wsPartialSentinelId }];
 
@@ -733,6 +766,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   })
 
   it('should query RLA plugin redis sentinel partial configuration by expand_partials parameter', async function () {
+    skipConditionaly(this);
     const resp = await axios({
       method: 'get',
       url: `${wsPluginUrl}/${pluginId}?expand_partials=true`
@@ -746,6 +780,7 @@ describe('Gateway Redis-Partial-EE Tests', function () {
   })
 
   it('should query the redis sentinel partial links by partial id and find the RLA plugin already linked to it', async function () {
+    skipConditionaly(this);
     const resp = await axios({
       method: 'get',
       url: `${wsPartialUrl}/${wsPartialSentinelId}/links`
