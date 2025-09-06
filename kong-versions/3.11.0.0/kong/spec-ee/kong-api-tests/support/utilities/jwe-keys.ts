@@ -82,23 +82,6 @@ export const patchEncryptedKeysForJweDecryptPlugin = async (
   return resp.data;
 };
 
-/**
- * Reusable request to delete Keys for jwe-decrypt plugin
- * @param {string} keysIdOrName
- * @returns {AxiosResponse}
- */
-export const deleteEncryptedKeysForJweDecryptPlugin = async (
-  keysIdOrName: string
-) => {
-  const resp = await axios({
-    method: 'delete',
-    url: `${getUrl('key-sets')}/${keysIdOrName}`,
-  });
-  logResponse(resp);
-
-  expect(resp.status, 'Status should be 204').to.equal(204);
-  return resp.data;
-};
 
 /**
  * Generate webhook signature with the given secrets and attributes

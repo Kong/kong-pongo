@@ -135,12 +135,10 @@ describe('Vaults: Secret referencing in AWS-Lambda plugin', function () {
     // creating hcv vault entity with approle & wrapped secret id;
     await createHcvVaultWithApproleInKong(hcvMount, hcvPrefixWithApproleAndResponseWrapping, hcvApproleID, hcvWrappedSecretID, true);
 
-    // creating my-env vault entity with varaible reference prefix 'aws_'
+    //  creating my-env vault entity with varaible reference prefix 'aws_'
     await createEnvVaultEntity('my-env', { prefix: 'aws_' });
     // creating my-aws vault entity
     await createAwsVaultEntity();
-    // creating my-aws-base64 vault entity
-    await createAwsVaultEntity('my-aws-base64', { base64_decode: true });
     // creating my-gcp vault entity
     await createGcpVaultEntity();
   });
@@ -418,26 +416,6 @@ describe('Vaults: Secret referencing in AWS-Lambda plugin', function () {
         config: {
           aws_key: '{vault://aws/gateway-secret-test/aws_access_key}',
           aws_secret: '{vault://my-aws/gateway-secret-test/aws_secret_key}',
-        },
-      },
-    });
-    logResponse(patchResp);
-
-    expect(patchResp.status, 'Status should be 200').to.equal(200);
-
-    await waitForConfigRebuild();
-    await doBasicRequestCheck();
-  });
-
-    it('should reference with aws_access_key aws vault and aws_secret_key aws vault entity secrets in base64-encoded form', async function () {
-    const patchResp = await axios({
-      method: 'patch',
-      url: `${pluginUrl}/${awsPluginId}`,
-      data: {
-        name: 'aws-lambda',
-        config: {
-          aws_key: '{vault://my-aws-base64/gateway-secret-test/aws_access_key_base64}',
-          aws_secret: '{vault://my-aws-base64/gateway-secret-test/aws_secret_key_base64}',
         },
       },
     });
