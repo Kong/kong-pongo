@@ -6,7 +6,6 @@
 -- [ END OF LICENSE 0867164ffc95e54f04670b5169c09574bdbd9bba ]
 
 local const = require "spec-ee.fixtures.websocket.constants"
-local lfs   = require "lfs"
 
 local fmt = string.format
 
@@ -77,7 +76,6 @@ local function mock_upstream(root_path)
 
       location = /session/client {
         content_by_lua_block {
-          ngx.log(ngx.ERR, "sessoin /client")
           require("spec-ee.fixtures.websocket.upstream").client()
         }
       }
