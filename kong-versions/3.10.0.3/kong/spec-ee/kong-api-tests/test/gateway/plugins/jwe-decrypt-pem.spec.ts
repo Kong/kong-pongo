@@ -55,7 +55,7 @@ describe('@gke: Gateway Plugins: jwe-decrypt PEM', function () {
     kid: '42',
   };
 
-  const algList = ['ECDH-ES','ECDH-ES+A128KW', 'ECDH-ES+A192KW', 'ECDH-ES+A256KW'];
+  const algList = ['ECDH-ES'];
 
   before(async function () {
     const service = await createGatewayService(serviceName);

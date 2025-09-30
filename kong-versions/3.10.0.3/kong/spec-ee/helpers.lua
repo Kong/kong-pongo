@@ -18,14 +18,10 @@ local helpers     = require "spec.helpers"
 local listeners = require "kong.conf_loader.listeners"
 local cjson = require "cjson.safe"
 local assert = require "luassert"
+local utils = require "kong.tools.utils"
 local admins_helpers = require "kong.enterprise_edition.admins_helpers"
 local pl_file = require "pl.file"
 local map = require "pl.tablex".map
-
-
-local splitn = require("kong.tools.string").splitn
-local uuid = require("kong.tools.uuid").uuid
-
 
 local _M = {}
 
@@ -53,7 +49,7 @@ function _M.parsed_redis_cluster_nodes()
 
   local redis_cluster_nodes = {}
   for node in string.gmatch(env_cluster_addresses, "[^,]+") do
-    local parts = splitn(node, ":", 3)
+    local parts = utils.split(node, ":")
     local parsed_address = { ip = parts[1], port = tonumber(parts[2]) }
     table.insert(redis_cluster_nodes, parsed_address)
   end
@@ -76,7 +72,7 @@ function _M.parsed_redis_sentinel_nodes()
 
   local redis_sentinel_nodes = {}
   for node in string.gmatch(env_sentinel_addresses, "[^,]+") do
-    local parts = splitn(node, ":", 3)
+    local parts = utils.split(node, ":")
     local parsed_address = { host = parts[1], port = tonumber(parts[2]) }
     table.insert(redis_sentinel_nodes, parsed_address)
   end
@@ -122,7 +118,7 @@ function _M.register_rbac_resources(db, ws_name, ws_table)
 
   -- first, a read-only role across everything
   roles.read_only, err = db.rbac_roles:insert({
-    id = uuid(),
+    id = utils.uuid(),
     name = "read-only",
     comment = "Read-only access across all initial RBAC resources",
   }, opts)
@@ -151,7 +147,7 @@ function _M.register_rbac_resources(db, ws_name, ws_table)
 
   -- admin role with CRUD access to all resources except RBAC resource
   roles.admin, err = db.rbac_roles:insert({
-    id = uuid(),
+    id = utils.uuid(),
     name = "admin",
     comment = "CRUD access to most initial resources (no RBAC)",
   }, opts)
@@ -189,7 +185,7 @@ function _M.register_rbac_resources(db, ws_name, ws_table)
 
   -- finally, a super user role who has access to all initial resources
   roles.super_admin, err = db.rbac_roles:insert({
-    id = uuid(),
+    id = utils.uuid(),
     name = "super-admin",
     comment = "Full CRUD access to all initial resources, including RBAC entities",
   }, opts)
@@ -221,7 +217,7 @@ function _M.register_rbac_resources(db, ws_name, ws_table)
   end
 
   local super_admin, err = db.rbac_users:insert({
-    id = uuid(),
+    id = utils.uuid(),
     name = "super_gruce-" .. ws_name,
     user_token = "letmein-" .. ws_name,
     enabled = true,
@@ -640,8 +636,8 @@ do
 
     if id then
       table.insert(msg, "--- Request ID: " .. id)
-      local pok, log = pcall(ws.get_session_log, id)
-      if pok and log then
+      local log = ws.get_session_log(id)
+      if log then
         table.insert(msg, "--- kong.log.serialize():")
         table.insert(msg, inspect(log))
       end

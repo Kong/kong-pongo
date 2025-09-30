@@ -117,6 +117,8 @@ export {
   checkRedisConnectErrLog,
   checkRedisAuthErrLog,
   waitForRedisClusterDBSize,
+  safelyQuitRedisClient,
+  safelyQuitRedisClusterClient
 } from './utilities/redis';
 export { retryRequest } from './utilities/retry-axios';
 export { isValidDate, isValidUrl } from './utilities/validate';

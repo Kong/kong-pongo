@@ -143,15 +143,6 @@ export const isFipsMode = (): boolean => {
 };
 
 /**
- * Check if RUN_WEEKLY_TESTS environment variable is set to true
- * This is used to control test execution which we want to happen only once a week e.g. Confluent tests
- * @returns {boolean}
- */
-export const isWeeklyRun = (): boolean => {
-  return process.env.RUN_WEEKLY_TESTS === 'true' ? true : false;
-};
-
-/**
  * Check if tests are runing for custom plugins
  * @returns {string}
  */
