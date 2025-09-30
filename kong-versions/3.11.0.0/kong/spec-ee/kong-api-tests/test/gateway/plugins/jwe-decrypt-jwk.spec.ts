@@ -5,10 +5,6 @@ import {
   createKeySetsForJweDecryptPlugin,
   patchEncryptedKeysForJweDecryptPlugin,
   createRouteForService,
-  deleteEncryptedKeysForJweDecryptPlugin,
-  deleteGatewayRoute,
-  deleteGatewayService,
-  deleteKeySetsForJweDecryptPlugin,
   Environment,
   eventually,
   expect,
@@ -18,6 +14,8 @@ import {
   logResponse,
   postNegative,
   waitForConfigRebuild,
+  clearAllKongResources,
+  deleteKeySetsForJweDecryptPlugin,
 } from '@support';
 import axios from 'axios';
 
@@ -225,9 +223,6 @@ describe('@gke: Gateway Plugins: jwe-decrypt JWK', function () {
   });
 
   after(async function () {
-    await deleteGatewayRoute(jwkRouteId);
-    await deleteGatewayService(serviceId);
-    await deleteEncryptedKeysForJweDecryptPlugin(keysId);
-    await deleteKeySetsForJweDecryptPlugin(jwkKeySetsId);
+    await clearAllKongResources()
   });
 });

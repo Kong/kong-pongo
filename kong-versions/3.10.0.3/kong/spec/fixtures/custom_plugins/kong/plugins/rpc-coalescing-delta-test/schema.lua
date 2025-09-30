@@ -6,15 +6,15 @@
 -- [ END OF LICENSE 0867164ffc95e54f04670b5169c09574bdbd9bba ]
 
 
-local kong = kong
-
-local TranslateBackwardsOlderPlugin = {
-  PRIORITY = 1000,
-  VERSION = "0.1.0",
+return {
+  name = "rpc-coalescing-delta-test",
+  fields = {
+    {
+      config = {
+        type = "record",
+        fields = {
+        },
+      },
+    },
+  },
 }
-
-function TranslateBackwardsOlderPlugin:access(conf)
-    kong.log("access phase")
-end
-
-return TranslateBackwardsOlderPlugin

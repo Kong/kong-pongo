@@ -419,7 +419,7 @@ export const getHcvVaultSecret = async (
  * Create AWS backend vault entity
  * @param {string} vaultPrefix - the backend vault prefix, default is 'my-aws'
  */
-export const createAwsVaultEntity = async (vaultPrefix = 'my-aws', config?: object,) => {
+export const createAwsVaultEntity = async (vaultPrefix = 'my-aws') => {
   const resp = await axios({
     method: 'put',
     url: `${getUrl('vaults')}/${vaultPrefix}`,
@@ -427,7 +427,6 @@ export const createAwsVaultEntity = async (vaultPrefix = 'my-aws', config?: obje
       name: 'aws',
       config: {
         region: 'us-east-2',
-        ...(config || {})
       },
     },
   });

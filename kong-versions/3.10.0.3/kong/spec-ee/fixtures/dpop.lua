@@ -107,9 +107,7 @@ local NO_KEY_INTROSPECTION_DATA = {
 
 
 local function sign_dpop_header(req, nonce, key, pub_key, iat, jti, alg)
-  alg = alg or "SHA512" -- luacheck: ignore
-                        -- workaround luacheck issue:
-                        -- 'value assigned to variable alg is unused'
+  alg = alg or "SHA512"
   local jwt_token = jwa.sign(key.alg, key, {
     header = {
       typ = "dpop+jwt",

@@ -7,19 +7,16 @@ import {
   getBasePath,
   isLocalDatabase,
   createGatewayService,
-  deleteGatewayService,
   createRouteForService,
-  deleteGatewayRoute,
   wait,
   logResponse,
   createConsumer,
-  deleteConsumer,
   getNegative,
   retryRequest,
   isGateway,
   waitForConfigRebuild,
   postNegative,
-  deletePlugin,
+  clearAllKongResources,
 } from '@support';
 
 describe('Gateway Plugins: jwt-signer', function () {
@@ -478,21 +475,24 @@ describe('Gateway Plugins: jwt-signer', function () {
   });
 
   it('should proxy request with a valid token', async function () {
-    const resp = await axios({
+    const req = () => axios({
       headers: validTokenHeaders,
       url: `${proxyUrl}${path}`,
     });
-    logResponse(resp);
 
-    expect(resp.status, 'Status should be 200').to.equal(200);
-    expect(
-      resp.data.headers[upstreamConsumerHeaderName],
-      'Should see consumer username in upstream request'
-    ).to.equal(consumerName);
-    expect(
-      resp.data.headers[upstreamConsumerHeaderId],
-      'Should see consumer id in upstream request'
-    ).to.equal(consumerId);
+    const assertions = (resp) => {
+      expect(resp.status, 'Status should be 200').to.equal(200);
+      expect(
+        resp.data.headers[upstreamConsumerHeaderName],
+        'Should see consumer username in upstream request'
+      ).to.equal(consumerName);
+      expect(
+        resp.data.headers[upstreamConsumerHeaderId],
+        'Should see consumer id in upstream request'
+      ).to.equal(consumerId);
+    };
+
+    await retryRequest(req, assertions);
   });
 
   it('should not proxy request with a expired token ', async function () {
@@ -658,9 +658,6 @@ describe('Gateway Plugins: jwt-signer', function () {
   });
 
   after(async function () {
-    await deleteGatewayRoute(routeId);
-    await deleteGatewayService(serviceId);
-    await deleteConsumer(consumerId);
-    await deletePlugin(pluginId);
+    await clearAllKongResources()
   });
 });

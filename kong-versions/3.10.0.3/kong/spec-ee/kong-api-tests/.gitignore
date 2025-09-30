@@ -19,6 +19,3 @@ failed-tests.txt
 
 # ignore ai-proxy log
 ai-proxy.log
-
-#conjur
-my_app_data

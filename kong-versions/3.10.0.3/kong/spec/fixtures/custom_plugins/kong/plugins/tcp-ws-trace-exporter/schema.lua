@@ -14,16 +14,8 @@ return {
       config = {
         type = "record",
         fields = {
-          { traces_host = typedefs.host({ required = false }), },
-          { traces_port = typedefs.port({ required = false }), },
-          { logs_host = typedefs.host({ required = false }), },
-          { logs_port = typedefs.port({ required = false }), },
-          { queue = typedefs.queue {
-            default = {
-              max_batch_size = 1,
-              concurrency_limit = -1,
-            },
-          } },
+          { host = typedefs.host({ required = true }), },
+          { port = typedefs.port({ required = true }), },
         }
       }
     }

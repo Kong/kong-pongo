@@ -13,14 +13,12 @@ import {
     postNegative,
     randomString,
     eventually,
-    getGatewayBasePath,
     kafkaConfig,
     sendKafkaMessage,
     updateKafkaLogTopic,
 } from '@support'
-import WebSocket from 'promise-ws'
 
-describe('Gateway Plugins: Kafka Consume Plugin', function() {
+describe('Gateway Plugins: Kafka and Confluent Consume Plugins', function() {
     const logPath = '/log'
     const consumePath = '/consume'
 
@@ -37,7 +35,6 @@ describe('Gateway Plugins: Kafka Consume Plugin', function() {
     let consumeRouteId: string
 
     const controller = new AbortController()
-    let ws: WebSocket
 
     const output = randomString()
     const consumeTopic = `test-${output}`
@@ -46,7 +43,7 @@ describe('Gateway Plugins: Kafka Consume Plugin', function() {
     before(async function () {
         // create service to use with kafka-log to send messages
         await createGatewayService('kafkaLogService')
-
+        
         // create route for kafka-log plugin
         const logRoute = await createRouteForService('kafkaLogService', [logPath], {
             name: 'kafkaLogRoute',
@@ -70,7 +67,7 @@ describe('Gateway Plugins: Kafka Consume Plugin', function() {
             },
         })
         logPluginId = kafkaLogPlugin.id
-
+        
         // create route to use in testing
         const consumeRoute = await createRoute([consumePath], {
             name: 'kafkaConsumeRoute',
@@ -80,7 +77,7 @@ describe('Gateway Plugins: Kafka Consume Plugin', function() {
         await waitForConfigRebuild()
     })
 
-    // // Covers KAG-6398
+    // Covers KAG-6398
     it('should not create kafka-consume plugin without topic parameter', async function () {
         const resp = await postNegative(`${adminUrl}/plugins`, {
             name: 'kafka-consume',
@@ -149,7 +146,7 @@ describe('Gateway Plugins: Kafka Consume Plugin', function() {
         )
     })
 
-    // // TODO: Unskip when KAG-6573 is complete
+    // TODO: Unskip when KAG-6573 is complete
     it.skip('should not create kafka-consume plugin without authentication mechanism', async function () {
         const resp = await postNegative(`${adminUrl}/plugins`, {
             name: 'kafka-consume',
@@ -200,7 +197,7 @@ describe('Gateway Plugins: Kafka Consume Plugin', function() {
         expect(resp.status, 'Status should be 400').to.equal(400)
         expect(resp.data.message, 'Should have correct error message').to.contain(
             'schema violation (config.mode: required field missing)'
-        )
+        )   
     })
 
     it('should create kafka-consume plugin', async function () {
@@ -226,7 +223,7 @@ describe('Gateway Plugins: Kafka Consume Plugin', function() {
 
         expect(resp.status, 'Status should be 201').to.equal(201)
         expect(resp.data.name, 'Should have correct plugin name').to.equal('kafka-consume')
-        expect(resp.data.config.topics[0], 'Should have correct topics').to.contain({'name': consumeTopic})
+        expect(resp.data.config.topics, 'Should have correct topics').to.eql([{'name': consumeTopic}])
         expect(resp.data.config.bootstrap_servers, 'Should have correct bootstrap servers').to.eql([
             {
                 host: kafkaConfig.host,
@@ -260,14 +257,14 @@ describe('Gateway Plugins: Kafka Consume Plugin', function() {
             const records = resp.data[consumeTopic].partitions["0"].records
 
             expect(resp.status, 'Status should be 200').to.equal(200)
-            expect(records.length, 'Should have records for topic').to.be.gt(0)
+            expect(records.length, 'Should have records for topic').to.be.gt(0)         
             expect(resp.data[consumeTopic].partitions["0"].records[0].value, 'Should have record for request send with kafka-log plugin').to.contain(requestId)
         }, 30000, 2000, false)
     })
 
     it('should be able to update kafka-consume plugin topic', async function () {
         await updateKafkaLogTopic(newTopic, logPluginId)
-
+        
         // update consume plugin
         const resp = await axios({
             method: 'patch',
@@ -279,7 +276,7 @@ describe('Gateway Plugins: Kafka Consume Plugin', function() {
             },
         })
         expect(resp.status, 'Status should be 200').to.equal(200)
-        expect(resp.data.config.topics[0], 'Should have correct topics').to.contain({'name': newTopic})
+        expect(resp.data.config.topics, 'Should have correct topics').to.eql([{'name': newTopic}])
 
         await waitForConfigRebuild()
     })
@@ -306,115 +303,15 @@ describe('Gateway Plugins: Kafka Consume Plugin', function() {
             const resp = await axios({
                 method: 'get',
                 url: `${proxyUrl}${consumePath}`,
-            })
+            })            
 
             expect(resp.status, 'Status should be 200').to.equal(200)
             expect(resp.data[newTopic].partitions["0"].records, 'Should have records for topic').to.have.length.greaterThan(0)
         }, 30000, 2000, false)
     })
 
-    it('should be able to update kafka-consume plugin to use websocket mode', async function () {
-        // update consume plugin
-        const resp = await axios({
-            method: 'patch',
-            url: `${adminUrl}/plugins/${testPluginId}`,
-            data: {
-                name: 'kafka-consume',
-                config: {
-                    mode: 'websocket',
-                },
-            },
-        })
-        expect(resp.status, 'Status should be 200').to.equal(200)
-        expect(resp.data.config.mode, 'Should have websockets mode').to.equal('websocket')
-
-        await waitForConfigRebuild()
-    })
-
-    it('should not be able to consume messages via http in websocket mode', async function () {
-        const resp = await axios({
-            method: 'get',
-            url: `${proxyUrl}${consumePath}`,
-            validateStatus: null,
-        })
-        expect(resp.status, 'Status should be 500').to.equal(500)
-        expect(resp.data.message, 'Should have correct error message').to.contain(
-            'WebSocket connection failed'
-        )
-    })
-
-    it('should be able to consume messages with kafka-consume plugin and websocket mode', async function () {
-        const wsUrl = `${getGatewayBasePath('wsProxy')}${consumePath}`
-
-        //send message via kafka-log plugin
-        setTimeout(async function() {
-            await sendKafkaMessage(logPath)
-        }, 3000)
-
-        await eventually(async () => {
-            // open websocket connection
-            ws = await WebSocket.create(wsUrl, {
-                rejectUnauthorized: false,
-            })
-            const data = await new Promise(resolve => ws.on('message', data => resolve(data)))
-            await ws.close()
-
-            expect(data, 'Should have records in message').to.not.eql({})
-            expect(data, 'Should have records for given kafka topic').to.contain(newTopic)
-        }, 30000, 6000, false)
-    })
-
-    it('should update kafka-consume plugin to use new topic in websocket mode', async function () {
-        // in case last test fails, close websocket connection
-        await ws.close()
-
-        // update kafka-log plugin to use new topic
-        await updateKafkaLogTopic(`${consumeTopic}-ws`, logPluginId)
-
-        // update consume plugin
-        const resp = await axios({
-            method: 'patch',
-            url: `${adminUrl}/plugins/${testPluginId}`,
-            data: {
-                config: {
-                    topics: [{'name': `${consumeTopic}-ws`}],
-                },
-            },
-        })
-        expect(resp.status, 'Status should be 200').to.equal(200)
-        expect(resp.data.config.topics[0], 'Should have correct topics').to.contain({'name': `${consumeTopic}-ws`})
-        expect(resp.data.config.mode, 'Should have websockets mode').to.equal('websocket')
-        testPluginId = resp.data.id
-
-        await waitForConfigRebuild({delay: 10000})
-    })
-
-    it('should be able to consume messages with kafka-consume plugin and new topic in websocket mode', async function () {
-        // send message via kafka-log plugin
-        setTimeout(async function() {
-            await sendKafkaMessage(logPath)
-        }, 3000)
-
-        const wsUrl = `${getGatewayBasePath('wsProxy')}${consumePath}`
-
-        await eventually(async () => {
-            ws = await WebSocket.create(wsUrl, {
-                rejectUnauthorized: false,
-            })
-            // open websocket connection
-            const data = await new Promise(resolve => ws.on('message', data => resolve(data)))
-
-            expect(data, 'Should have records in message').to.not.eql({})
-            expect(data, 'Should have records for given kafka topic').to.contain(`${consumeTopic}-ws`)
-        }, 60000, 7000, false)
-    })
-
     // KAG-6441
     it('should be able to update kafka-consume plugin with server-sent events enabled', async function () {
-        // close websocket connection just in case
-        if (ws) {
-            await ws.close()
-        }
         const resp = await axios({
             method: 'patch',
             url: `${adminUrl}/plugins/${testPluginId}`,
@@ -436,7 +333,7 @@ describe('Gateway Plugins: Kafka Consume Plugin', function() {
             },
         })
         expect(resp.status, 'Status should be 200').to.equal(200)
-        expect(resp.data.config.topics[0], 'Should have correct topics').to.contain({'name': newTopic})
+        expect(resp.data.config.topics, 'Should have correct topics').to.eql([{'name': newTopic}])
         expect(resp.data.config.mode, 'Should have server-sent events enabled').to.equal('server-sent-events')
         expect(resp.data.config.bootstrap_servers, 'Should have correct bootstrap servers').to.eql([
             {
@@ -467,11 +364,11 @@ describe('Gateway Plugins: Kafka Consume Plugin', function() {
             await stream.on('data', async(chunk: Buffer) => {
                 const data = chunk.toString()
                 expect(data, 'should contain topic name').to.contain(newTopic)
-                expect(data, 'should contain request ID').to.contain(resp.headers['x-kong-request-id'])
+                expect(data, 'should contain request ID').to.contain(resp.headers['x-kong-request-id']) 
                 // close stream
                 controller.abort()
             })
-        }, 30000)
+        }, 30000)  
     })
 
     it('should not be able to update kafka-consume plugin with auth mechanism but no username or password', async function () {
@@ -507,7 +404,7 @@ describe('Gateway Plugins: Kafka Consume Plugin', function() {
         )
     })
 
-    //TODO: add SCRAM-SHA-256 and SCRAM-SHA-512 (blocked by KAG-6693)
+    // TODO: add SCRAM-SHA-256 and SCRAM-SHA-512 (blocked by KAG-6693)
     for (const authMechanism of ['PLAIN']) {
         const authTopic = `${consumeTopic}-${authMechanism}`
 
@@ -541,7 +438,7 @@ describe('Gateway Plugins: Kafka Consume Plugin', function() {
             await waitForConfigRebuild()
 
             expect(resp.status, 'Status should be 200').to.equal(200)
-            expect(resp.data.config.topics[0], 'Should have correct topics').to.contain({'name': authTopic})
+            expect(resp.data.config.topics, 'Should have correct topics').to.eql([{'name': authTopic}])
         })
 
         it(`should not be able to consume messages with kafka-consume plugin and wrong password for ${authMechanism}`, async function () {
@@ -550,7 +447,7 @@ describe('Gateway Plugins: Kafka Consume Plugin', function() {
                 url: `${proxyUrl}${consumePath}`,
                 validateStatus: null,
             })
-            // this is the current status for all errors, may change
+            // this is the current status for all errors, may change 
             expect(resp.status, 'Status should be 502').to.equal(502)
         })
 
@@ -568,7 +465,7 @@ describe('Gateway Plugins: Kafka Consume Plugin', function() {
                 }
             })
             expect(resp.status, 'Status should be 200').to.equal(200)
-            expect(resp.data.config.topics[0], 'Should have correct topics').to.contain({'name': authTopic})
+            expect(resp.data.config.topics, 'Should have correct topics').to.eql([{'name': authTopic}])
             expect(resp.data.config.authentication.password, 'Should have correct password').to.equal(kafkaConfig.password)
         })
 
@@ -604,6 +501,5 @@ describe('Gateway Plugins: Kafka Consume Plugin', function() {
         await clearAllKongResources()
         // send abort and close signals just in case
         controller.abort()
-        ws.close()
     })
 })
