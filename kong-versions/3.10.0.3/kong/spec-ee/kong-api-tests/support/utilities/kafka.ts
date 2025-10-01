@@ -22,7 +22,7 @@ export const confluentConfig = {
 
 const adminUrl = getBasePath({
     environment: isGateway() ? Environment.gateway.admin : undefined,
-})
+})  
 const proxyUrl = getBasePath({
     environment: isGateway() ? Environment.gateway.proxy : undefined,
 })
@@ -72,9 +72,8 @@ const updateKafkaPluginTopic = async (topic: string, pluginId: string, pluginNam
     })
 
     expect(resp.status, 'Status should be 200').to.equal(200)
-    // expect property topic: topic
-    if (pluginName === 'kafka-consume') expect(resp.data.config.topics[0], 'Should have correct topic').to.have.property('name', topic)
-    else expect(resp.data.config.topic, 'Should have correct topic').to.contain(topic)
+    if (pluginName === 'kafka-consume') expect(resp.data.config.topics, 'Should have correct topics').to.eql([{'name': topic}])
+    else expect(resp.data.config.topic, 'Should have correct topic').to.eql(topic)
 
     return resp
 }
@@ -84,7 +83,7 @@ const updateKafkaPluginTopic = async (topic: string, pluginId: string, pluginNam
 * @param topicString - The topic to update to
 * @param pluginId - The ID of the plugin to update
 * @param authMechanism - The authentication mechanism to use, if needed
-* @returns {Promise<AxiosResponse>} - The response from the API
+* @returns {Promise<AxiosResponse>} - The response from the API 
 */
 export const updateKafkaConsumeTopic = async (topic: string, pluginId: string, path: string, authMechanism?: string) => {
     let resp
@@ -114,12 +113,12 @@ export const updateKafkaLogTopic = async (topic: string, pluginId: string, authM
     return resp
 }
 
-/*
+/* 
 * Consumes a message from the kafka-consume plugin
 * @param topicString - The topic to consume from
 * @param path - The path to send the message to
 * @param requestId - The request ID to check for
-*/
+*/ 
 export const consumeKafkaMessage = async (topic: string, path: string, requestId: string) => {
     let resp
     await eventually(async () => {
@@ -138,7 +137,7 @@ export const consumeKafkaMessage = async (topic: string, path: string, requestId
 }
 
 /*
-* Sends a message using log path for kafka-log
+* Sends a message using log path for kafka-log 
 * @param path - The path to send the message to
 * @returns {Promise<string>} - The request ID of the message sent
 */
@@ -177,11 +176,12 @@ export const checkConfluentRecords = async (records: any[], property: string, ex
     for (const record of records) {
         const parsedRecord = await JSON.parse(record.value)
         if (parsedRecord[property].match(expected_value)) {
+            console.log('found record', record)
             expect(parsedRecord[property], `Should have record with property ${property} equal to ${expected_value}`).to.include(expected_value)
             break
         }
     }
-}
+}    
 
 /*
 * Updates the confluent plugin to use a new topic
@@ -195,7 +195,7 @@ export const updateConfluentTopic = async (topic: string, pluginId: string) => {
         method: 'patch',
         url: `${adminUrl}/plugins/${pluginId}`,
         data: {
-            config: {
+            config: {  
                 topic: topic
             },
         },
@@ -224,18 +224,18 @@ export const updateConfluentConsumeTopic = async (topic: string, pluginId: strin
     })
 
     expect(resp.status, 'Status should be 200').to.equal(200)
-    expect(resp.data.config.topics[0], 'Should have correct topics').to.contain({'name': topic})
+    expect(resp.data.config.topics, 'Should have correct topics').to.eql([{'name': topic}])
 
     return resp
 }
 
-/*
+/* 
 * Consumes a message from the confluent-consume plugin
 * @param topicString - The topic to consume from
 * @param path - The path to send the message to
 * @param requestId - The request ID to check for
 * @returns {Promise<any>} - The response from the API
-*/
+*/ 
 const consumeConfluentMessage = async (topic: string, path: string, timeout?: number) => {
     let resp
     await eventually(async () => {
@@ -261,7 +261,7 @@ export const consumeAndExtractConfluentMessage = async (topic: string, path: str
     const resp = await consumeConfluentMessage(topic, path, timeout)
     const records = extractConfluentRecords(resp, topic)
     expect(records, `Should have records for topic ${topic} in at least one partition`).to.have.lengthOf.at.least(1)
-
+    
     return records
 }
 
@@ -276,6 +276,7 @@ export const sendConfluentMessage = async(path: string) => {
     expect(resp.data, 'Should indicate that message sent successfully').to.have.property('message', 'message sent')
     return resp
 }
+
 /* Creates a new topic in Confluent Cloud
 * @param topics[] - The topic(s) to create
 * @returns {Promise<AxiosResponse>}[] - The response from the API

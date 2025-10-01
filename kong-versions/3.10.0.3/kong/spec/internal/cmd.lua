@@ -23,7 +23,6 @@ local conf_loader = require("kong.conf_loader")
 local kong_table = require("kong.tools.table")
 local kill = require("kong.cmd.utils.kill")
 local prefix_handler = require("kong.cmd.utils.prefix_handler")
-local wait = require("spec.internal.wait")
 
 
 local CONSTANTS = require("spec.internal.constants")
@@ -32,9 +31,6 @@ local shell = require("spec.internal.shell")
 local DB = require("spec.internal.db")
 local pid = require("spec.internal.pid")
 local dns_mock = require("spec.internal.dns")
-
-local wait_until_kong_status_ready = wait.wait_until_kong_status_ready
-local get_available_port = wait.get_available_port
 
 
 -- initialized in start_kong()
@@ -67,15 +63,6 @@ local function build_go_plugins(path)
             "cd %s; go build %s",
             path, pl_path.basename(go_source)
     ), nil, 0)
-    assert(ok, stderr)
-  end
-end
-
-
-local function build_python_plugins(path)
-  if pl_path.exists(pl_path.join(path, "requirements.txt")) then
-    local ok, _, stderr = shell.run(string.format(
-            "pip install -r %s", pl_path.join(path, "requirements.txt")), nil, 0)
     assert(ok, stderr)
   end
 end
@@ -289,15 +276,11 @@ local function start_kong(env, tables, preserve_prefix, fixtures)
   env = env or {}
   local prefix = env.prefix or conf.prefix
 
-  -- compile fixture external plugins if any setting mentions it
+  -- go plugins are enabled
+  --  compile fixture go plugins if any setting mentions it
   for _,v in pairs(env) do
     if type(v) == "string" and v:find(CONSTANTS.EXTERNAL_PLUGINS_PATH .. "/go") then
       build_go_plugins(CONSTANTS.EXTERNAL_PLUGINS_PATH .. "/go")
-      break
-    end
-
-    if type(v) == "string" and v:find(CONSTANTS.EXTERNAL_PLUGINS_PATH .. "/py") then
-      build_python_plugins(CONSTANTS.EXTERNAL_PLUGINS_PATH .. "/py")
       break
     end
   end
@@ -428,88 +411,6 @@ local function restart_kong(env, tables, fixtures)
 end
 
 
--- private: starts kong asynchronously and decrements the instance count that
--- is passed in as `{ num = <value> }`
-local function start_kong_async(instances, env, tables, preserve_prefix, fixtures)
-  ngx.timer.at(0, function(_)
-    assert(start_kong(env, tables, preserve_prefix, fixtures))
-    instances.num = instances.num - 1
-  end)
-end
-
-
---- Start multiple Kong instances, asynchronously.
--- @function start_kong_multi
--- @param start_cfg_arr array of tables containing params for `start_kong`
---        see `start_kong` for the table structure, each argument to `start_kong`
---        is passed as a key in this table
--- @param check_status whether or not to check readiness using the status endpoint
---                     of each instance. Defaults to true.
--- @param timeout timeout in seconds to wait for all instances to start
--- @param step time in seconds to wait between each check
--- @return true or nil+err
-local function start_kong_multi(start_cfg_arr, check_status, timeout, step)
-  local instances = { num = #start_cfg_arr }
-  check_status = check_status == nil or check_status
-  timeout = timeout or 60
-  step = step or 0.1
-
-  -- start all instances asynchronously
-  for _, start_kong_params in ipairs(start_cfg_arr) do
-    local env = start_kong_params.env or {}
-    if check_status and not env.status_listen then
-      env.status_listen = "127.0.0.1:" .. get_available_port()
-    end
-
-    start_kong_async(
-      instances,
-      env,
-      start_kong_params.tables,
-      start_kong_params.preserve_prefix,
-      start_kong_params.fixtures
-    )
-  end
-
-  -- check readiness:
-  -- if `check_status`, use the status endpoint
-  if check_status then
-    for _, start_kong_cfg in ipairs(start_cfg_arr) do
-      assert(wait_until_kong_status_ready(start_kong_cfg.env, timeout, step))
-    end
-
-  else
-    -- else, just wait for all `start_kong` commands to return
-    local start_time = ngx.time()
-    while(instances.num > 0) do
-      if ngx.time() > start_time + timeout then
-        return nil, "exceeded timeout: " .. timeout ..
-                    " while waiting for kong to start"
-      end
-      ngx.sleep(step)
-    end
-  end
-  return true
-end
-
-
---- Start two Kong instances, asynchronously.
---- This is a wrapper around `start_kong_multi` to start a control plane and data plane.
--- @function start_kong_hybrid
--- @param control_plane_params table containing params for `start_kong` for the control plane
---        see `start_kong` for the table structure, each argument to `start_kong`
---        is passed as a key in this table
--- @param data_plane_params table containing params for `start_kong` for the data plane
---        see `start_kong` for the table structure, each argument to `start_kong`
---        is passed as a key in this table
--- @param check_status see `start_kong_multi`
--- @param timeout see `start_kong_multi`
--- @param step see `start_kong_multi`
--- @return true or nil+err
-local function start_kong_hybrid(control_plane_params, data_plane_params, check_status, timeout, step)
-  return start_kong_multi({ control_plane_params, data_plane_params }, check_status, timeout, step)
-end
-
-
 -- Only use in CLI tests from spec/02-integration/01-cmd
 local function kill_all(prefix, timeout)
   local running_conf = get_running_conf(prefix)
@@ -567,8 +468,6 @@ return {
   cleanup_kong = cleanup_kong,
   stop_kong = stop_kong,
   restart_kong = restart_kong,
-  start_kong_hybrid = start_kong_hybrid,
-  start_kong_multi = start_kong_multi,
 
   prepare_prefix = prepare_prefix,
   clean_prefix = clean_prefix,

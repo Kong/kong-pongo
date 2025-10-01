@@ -363,7 +363,7 @@ describe('@gke @oss: Gateway Admin API: Cert-Associated Upstreams', function () 
 
     expect(resp.status, 'should return status 400').to.equal(400);
     expect(resp.data.message, 'should return correct error message').to.equal(
-      `schema violation (algorithm: expected one of: consistent-hashing, least-connections, round-robin, latency, sticky-sessions)`
+      `schema violation (algorithm: expected one of: consistent-hashing, least-connections, round-robin, latency)`
     );
   });
 

@@ -1,4 +1,16 @@
-import { clearAllKongResources, createRedisClient, createRedisClusterClient, gatewayAuthHeader, isCI, isKongOSS, isLocalDatabase, isGwDbless, checkGatewayAdminStatus } from '@support';
+import {
+  clearAllKongResources, 
+  createRedisClient, 
+  createRedisClusterClient,
+  safelyQuitRedisClient,
+  safelyQuitRedisClusterClient, 
+  gatewayAuthHeader, 
+  isCI, 
+  isKongOSS, 
+  isLocalDatabase, 
+  isGwDbless,
+  checkGatewayAdminStatus,
+} from '@support';
 import {
   postGatewayEeLicense,
   deleteGatewayEeLicense,
@@ -17,7 +29,7 @@ export const mochaHooks: Mocha.RootHookObject = {
       createRedisClusterClient();
       console.log('Checking Admin API accessibility...');
       await checkGatewayAdminStatus();
-      
+
       if (isCI() && !isKongOSS() && !isGwDbless()) {
         // Gateway for API tests starts without EE_LICENSE in CI, hence, we post license at the beginning of all tests to allow us test the functionality of license endpoint
         console.log('Posting Gateway EE License...');
@@ -36,6 +48,11 @@ export const mochaHooks: Mocha.RootHookObject = {
   },
 
   afterAll: async function (this: Mocha.Context) {
+    // Safely close Redis connections
+    console.log('Safely closing Redis connections...');
+    await safelyQuitRedisClient();
+    await safelyQuitRedisClusterClient();
+
     // Gateway for API tests starts without EE_LICENSE in CI, hence, we delete license at the end of all tests to allow test rerun from clean state
     // Skipping this step for OSS tests
     if (isCI() && !isKongOSS() && !isGwDbless()) {

@@ -233,19 +233,15 @@ end
   unsetenv = misc.unsetenv,
   deep_sort = misc.deep_sort,
   generate_keys = misc.generate_keys,
-  generate_oct_key = misc.generate_oct_key,
 
   -- launching Kong subprocesses
   start_kong = cmd.start_kong,
   stop_kong = cmd.stop_kong,
   cleanup_kong = cmd.cleanup_kong,
   restart_kong = cmd.restart_kong,
-  start_kong_hybrid = cmd.start_kong_hybrid,
-  start_kong_multi = cmd.start_kong_multi,
   reload_kong = wait.reload_kong,
   get_kong_workers = wait.get_kong_workers,
   wait_until_no_common_workers = wait.wait_until_no_common_workers,
-  wait_until_kong_status_ready = wait.wait_until_kong_status_ready,
 
   start_grpc_target = grpc.start_grpc_target,
   stop_grpc_target = grpc.stop_grpc_target,

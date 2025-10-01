@@ -34,14 +34,19 @@ export const postGatewayEeLicense = async () => {
 export const deleteGatewayEeLicense = async () => {
   await eventually(async () => {
     const licenses = await axios(url);
-    const licenseId = licenses.data.data[0].id;
-  
+    const licenseId = licenses.data.data[0]?.id;
+
+    if (!licenseId) {
+      console.log(`No Gateway EE License found to delete`);
+      return;
+    }
+    
     const resp = await axios({
       method: 'delete',
       url: `${url}/${licenseId}`,
     });
     logResponse(resp);
-  
+
     expect(resp.status, 'Status should be 204').to.equal(204);
   });
 };
