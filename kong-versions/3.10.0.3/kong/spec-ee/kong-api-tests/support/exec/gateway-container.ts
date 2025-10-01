@@ -170,23 +170,13 @@ export const getKongVersionFromContainer = (containerName = 'kong-cp') => {
 };
 
 /**
- * Run start or stop command on a target container
+ * Run docker command on a target container
  * @param {string} containerName - name of the container to start
  * @param {string} command - command to run, can be either stop or start
  */
 export const runDockerContainerCommand = async (containerName, command) => {
   const result = await execSync(`docker ${command} ${containerName}`);
   return result.toString('utf-8');
-};
-
-/**
- * Run command within docker container
- * @param {string} containerName - name of the container to start
- * @param {string} command - command passing to docker exec to be run within the target container
- */
-export const runCommandInDockerContainer = (containerName: string, command: string) => {
-  const result = execSync(`docker exec ${containerName} ${command}`);
-  return result.toString();
 };
 
 /**

@@ -22,8 +22,7 @@ import {
     deleteConfluentTopics,
 } from '@support'
 
-
-describe('@weekly: Gateway Plugins: Confluent', function () {
+describe('Gateway Plugins: Confluent', function () {
     const consumePath = '/consume'
     const logPath = '/log'
 
@@ -204,9 +203,8 @@ describe('@weekly: Gateway Plugins: Confluent', function () {
         expect(resp.data, 'Should indicate that message sent successfully').to.have.property('message', 'message sent')
 
         // ensure message was successfully sent
-        const confluentRecords = await consumeAndExtractConfluentMessage(confluentTopic, consumePath, 80000)
-        console.log('Confluent records:', confluentRecords)
-        await checkConfluentRecords(confluentRecords, 'body', '')
+        const confluentRecords = await consumeAndExtractConfluentMessage(confluentTopic, consumePath)
+        await checkConfluentRecords(confluentRecords, 'body', '{}')
 
     })
 
@@ -217,8 +215,8 @@ describe('@weekly: Gateway Plugins: Confluent', function () {
             url: `${proxyUrl}${logPath}`,
             data: {
                 'complex_body': [{
-                    'emoji': '💜 💙',
-                    'language': '田中さんにあげて下さい',
+                    'emoji': '💜 💙', 
+                    'language': '田中さんにあげて下さい', 
                     'lua': 'print("hello")',
                 }],
             }
@@ -252,7 +250,7 @@ describe('@weekly: Gateway Plugins: Confluent', function () {
             },
         })
         expect(resp.status, 'Status should be 200').to.equal(200)
-        expect(resp.data.config.topic, 'Should have correct topic').to.contain(newTopic)
+        expect(resp.data.config.topic, 'Should have correct topic').to.eql(newTopic)
 
         await waitForConfigRebuild()
     })
@@ -265,7 +263,7 @@ describe('@weekly: Gateway Plugins: Confluent', function () {
 
         // ensure message was successfully sent
         const confluentRecords = await consumeAndExtractConfluentMessage(newTopic, consumePath, 80000)
-        checkConfluentRecords(confluentRecords, 'body', '""')
+        checkConfluentRecords(confluentRecords, 'body', '""')    
     })
 
     it('should not be able to update plugin with no forwarding parameters checked', async function () {
@@ -322,8 +320,8 @@ describe('@weekly: Gateway Plugins: Confluent', function () {
         const confluentRecords = await consumeAndExtractConfluentMessage(newTopic, consumePath)
         checkConfluentRecords(confluentRecords, 'body', '"test":"header-forwarding-test"')
         checkConfluentRecords(confluentRecords, 'headers', '"x-test-header":"test-header"')
-    })
-
+    })   
+    
     it('should be able to update confluent-consume plugin to forward method', async function () {
         // update confluent-consume plugin to forward headers
         const resp = await axios({

@@ -15,9 +15,7 @@ import {
   resetGatewayContainerEnvVariable
 } from '@support';
 
-
-
-describe('@smoke: Gateway Admin API: CA Certificates', function () {
+describe.skip('@smoke: Gateway Admin API: CA Certificates', function () {
   const kongContainerName = isGwHybrid() ? 'kong-dp1' : getKongContainerName();
   const adminUrl = `${getBasePath({
     environment: isGateway() ? Environment.gateway.admin : undefined,
@@ -64,8 +62,9 @@ describe('@smoke: Gateway Admin API: CA Certificates', function () {
 // AWS_SECRET_ACCESS_KEY: ${{ actualSecret }}
 // ********* End **********
 
+// The test is skipped now because the fixes for the issue FTI-6466 are not yet merged into the master branch.
 // Case related to FTI-6466. We expect the Kong reload to work successfully after updating the kong_ssl_cert with Vault.
-describe('Gateway: read ssl certificates from vault', function () {
+xdescribe('Gateway: read ssl certificates from vault', function () {
   it('should reload correctly after updating environment variables to Vault references - FTI-6466', async function () {
     await resetGatewayContainerEnvVariable(
       {

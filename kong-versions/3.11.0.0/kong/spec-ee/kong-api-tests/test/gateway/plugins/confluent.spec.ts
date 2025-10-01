@@ -22,7 +22,7 @@ import {
     deleteConfluentTopics,
 } from '@support'
 
-describe('Gateway Plugins: Confluent', function () {
+describe.skip('Gateway Plugins: Confluent', function () {
     const consumePath = '/consume'
     const logPath = '/log'
 

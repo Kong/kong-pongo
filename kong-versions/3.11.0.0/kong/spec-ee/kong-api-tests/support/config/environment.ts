@@ -103,6 +103,8 @@ const getPaths = (geo = getApiGeo()) => {
       wssProxy: `wss://${getGatewayHost()}:8443`,
       keycloak: `http://${getGatewayHost()}:8080`,
       keycloakSec: `https://${getGatewayHost()}:8543`,
+      grpc: `${getGatewayHost()}:8000`,
+      grpcs: `${getGatewayHost()}:8443`,
       ec2host: 'ec2-18-117-8-125.us-east-2.compue.amazonaws.com',
       ec2TestServer: '18.117.9.215',
       hostName: getGatewayHost(),

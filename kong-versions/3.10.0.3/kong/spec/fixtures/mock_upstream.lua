@@ -10,7 +10,7 @@ local cjson      = require "cjson"
 local ws_server  = require "resty.websocket.server"
 local pl_file    = require "pl.file"
 local strip      = require("kong.tools.string").strip
-local splitn      = require("kong.tools.string").splitn
+local split      = require("kong.tools.string").split
 
 
 local kong = {
@@ -31,10 +31,10 @@ local function parse_multipart_form_params(body, content_type)
   end
 
   local boundary    = m[1]
-  local parts_split, parts_count = splitn(body, '--' .. boundary)
+  local parts_split = split(body, '--' .. boundary)
   local params      = {}
   local part, from, to, part_value, part_name, part_headers, first_header
-  for i = 1, parts_count do
+  for i = 1, #parts_split do
     part = strip(parts_split[i])
 
     if part ~= '' and part ~= '--' then
@@ -45,8 +45,7 @@ local function parse_multipart_form_params(body, content_type)
 
       part_value   = part:sub(to + 2, #part) -- +2: trim leading line jump
       part_headers = part:sub(1, from - 1)
-      local part_headers_t = splitn(part_headers, '\\n')
-      first_header = part_headers_t[1]
+      first_header = split(part_headers, '\\n')[1]
       if first_header:lower():sub(1, 19) == "content-disposition" then
         local m, err = ngx.re.match(first_header, 'name="(.*?)"', "oj")
 
@@ -122,7 +121,7 @@ local function find_http_credentials(authorization_header)
     local decoded_basic = ngx.decode_base64(m[1])
 
     if decoded_basic then
-      local user_pass = splitn(decoded_basic, ":", 3)
+      local user_pass = split(decoded_basic, ":")
       return user_pass[1], user_pass[2]
     end
   end
@@ -410,24 +409,6 @@ local function set_ocsp(status)
   ocsp_status = status
 end
 
-local function increment_counter(key)
-  if not key or key == "" then
-    return ngx.exit(400)
-  end
-  local shm = get_logger()
-  shm:incr("counter::" .. key, 1, 0, 60)
-end
-
-local function read_counter(key)
-  if not key or key == "" then
-    return ngx.exit(400)
-  end
-  local shm = get_logger()
-  local count = shm:get("counter::" .. key)
-  ngx.header["Content-Type"] = "application/json"
-  ngx.print(cjson.encode({ count = count }))
-end
-
 
 return {
   get_default_json_response   = get_default_json_response,
@@ -442,6 +423,4 @@ return {
   reset_log                   = reset_log,
   handle_ocsp                 = handle_ocsp,
   set_ocsp                    = set_ocsp,
-  increment_counter           = increment_counter,
-  read_counter                = read_counter,
 }

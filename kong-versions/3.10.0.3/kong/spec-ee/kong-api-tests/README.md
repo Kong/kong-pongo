@@ -31,7 +31,7 @@ Create a `.env` file in the root directory.
 
 Make sure to have `KONG_LICENSE_DATA` environment variable set in your environment.
 
-Copy from the `.env.example` file in the root directory.
+Copy from the [.env.example](https://github.com/Kong/kong-api-tests/blob/contrib/readme-update/.env.example.gateway) file.
 
 Add the following gateway specific environment variable to your `.env` file.
 
@@ -157,8 +157,7 @@ Make sure to enable these services using [gateway-docker-compose-generator](http
 - `acme` test requires [Pebble](https://github.com/Kong/gateway-docker-compose-generator/blob/main/docker-compose.yml.sh#L1022) which will be automatically enabled when [ACME](https://github.com/Kong/gateway-docker-compose-generator/blob/main/docker-compose.yml.sh#L126) is set to `true`
 - `http-log` test requires [SPLUNK](https://github.com/Kong/gateway-docker-compose-generator/blob/5fe63e2753722bed90a6341dee5960303c82f965/docker-compose.yml.sh#L133)
 - `request-callout` test still requires [SQUID](https://github.com/Kong/gateway-docker-compose-generator/blob/5fe63e2753722bed90a6341dee5960303c82f965/docker-compose.yml.sh#L95), [CADDY](https://github.com/Kong/gateway-docker-compose-generator/blob/5fe63e2753722bed90a6341dee5960303c82f965/docker-compose.yml.sh#L141) and [TEST_DATA_VAULT](https://github.com/Kong/gateway-docker-compose-generator/blob/5fe63e2753722bed90a6341dee5960303c82f965/docker-compose.yml.sh#L140).
-- `datadog` test requires [DATADOG](https://github.com/Kong/gateway-docker-compose-generator/blob/ea914d4490731989fe998e3034d970d071093934/docker-compose.yml.sh#L1276)
-- `conjur` test requires [CONJUR](https://github.com/Kong/gateway-docker-compose-generator/blob/dc2129fff726f906dada8e2d1e70a35ca9805f5f/docker-compose.yml.sh#L1415)
+- `datadog` test required [DATADOG](https://github.com/Kong/gateway-docker-compose-generator/blob/ea914d4490731989fe998e3034d970d071093934/docker-compose.yml.sh#L1276)
 
 **Test specific configuration requirements for Gateway**
 
@@ -170,28 +169,6 @@ Make sure to enable these services using [gateway-docker-compose-generator](http
 - `dp-resilience` test requires `4` DPs (note: this test only runs in hybrid mode)[Learn More](https://docs.konghq.com/gateway/latest/kong-enterprise/cp-outage-handling/), so the test would generate additional dp configurations and attach it to the `docker-compose.yml` with `yq` command. You also need to export those env variables during your test run [GCP_SERVICE_ACCOUNT](https://start.1password.com/open/i?a=KJVYOL2OTVGRPAAAHEVOL6MXZE&v=5pl4itslluom5ochvfulebjs6m&i=z3chsqnxgtucpkgspdyonwfxvm&h=team-kong.1password.com), `KONG_VERSION`(note: required to compose the folder path for GCP cloud storage), `TF_VAR_kong_license_data`(note: only in GKE setup), `UNIX_TIMESTAMP`(note: only in GKE setup)
 
 - `jwt-singer` tests use a JWT token signed with the `jwt-singer-token-key-pair` public/private key pair, which is stored in the `credential.json` file. The corresponding public key is also available in [jwt-singer-token-public-key](https://github.com/Kong/gateway-docker-compose-generator/blob/main/json-server/jwk.json).
-
-
-**Weekly Test Runs**
-
-These are the tests that we run only once a week due to cost implications because the tests interract with paid 3-rd party services such as Confluent Cloud.<br>
-To enable the test run the `RUN_WEEKLY_TESTS` environment variable needs to be set to `True`.<br>
-The tests belong to this group only if they have `@weekly` tag specified in the title.<br>
-
-Below is the list of such tests:
-
-- confluent
-- confluent-consume
-
-
-`@weekly` tests will run in the following situations:
-
-1. When running `all` gateway tests, and `RUN_WEEKLY_TESTS` is **true**
-2. When running `non-smoke` gateway tests and `RUN_WEEKLY_TESTS` is **true**
-3. When running `@weekly` tagged tests individually using `RUN_SPEC` regardless of the value of `RUN_WEEKLY_TESTS`
-
-`RUN_WEEKLY_TESTS` is **false** by default.<br>
-`RUN_WEEKLY_TESTS` is **true** only when `manually` setting it to true, during `scheduled` workflow runs and during individual test runs when passing the test name via `target_test` workflow input parameter.
 
 **Gateway Mode**
 
@@ -219,37 +196,12 @@ If you want to write or run tests against **db-less** mode, make sure to
 npm run test-gateway
 ```
 
-- A single gateway test or multiple gateway tests
-
-**Recommended (future-safe) usage:**
+- A single gateway test
 
 ```bash
-# To run 'service.spec.ts' tests (single spec)
-npm run test-spec -- spec=service
-```
-
-```bash
-# To run both 'service.spec.ts' and 'routes.spec.ts' tests (multiple specs, separated by ;)
-npm run test-spec -- spec='service;routes'
-```
-
-**Legacy (currently supported, but will break in future npm major versions):**
-
-```bash
-# Single spec (legacy style, triggers npm warning)
+# for example if you want to run 'service.spec.ts' tests
 npm run test-spec --spec=service
 ```
-
-```bash
-# Multiple specs (legacy style, triggers npm warning)
-npm run test-spec --spec='service;routes'
-```
-
-> **Why?**
->
-> - The legacy style (`--spec=...`) relies on npm setting an environment variable (`npm_config_spec`), which will be removed in npm v11+ and already triggers a warning.
-> - The new, future-safe style (`-- spec=...`) passes arguments directly to your script via `process.argv`, making your workflow robust and compatible with all future npm versions.
-> - Both styles are currently supported for backward compatibility
 
 - Smoke tests
 

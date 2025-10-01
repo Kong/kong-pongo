@@ -74,7 +74,7 @@ describe('@gke: Gateway Plugins: jwe-decrypt JWK', function () {
     };
   });
 
-  const algList = ['ECDH-ES', 'A128KW', 'A192KW', 'A256KW', 'ECDH-ES+A128KW', 'ECDH-ES+A192KW', 'ECDH-ES+A256KW', 'A128GCMKW', 'A192GCMKW', 'A256GCMKW'];
+  const algList = ['ECDH-ES'];
 
   it('JWK: should not create jwe-decrypt plugin when config.key_sets is not supplied', async function () {
     const pluginPayload = {

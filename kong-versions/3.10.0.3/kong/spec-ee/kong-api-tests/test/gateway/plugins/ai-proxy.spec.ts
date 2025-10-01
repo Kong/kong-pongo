@@ -518,7 +518,7 @@ describe('Gateway Plugins: AI Proxy', function () {
         })
         logResponse(resp)
         expect(resp.status, 'Should have correct status code').to.equal(400)
-        expect(resp.data.error.message).to.equal('Missing required parameter: \'prompt\'.')
+        expect(resp.data.error.message).to.equal('[llm/v1/chat] message format is not compatible with [llm/v1/completions] route type')
       })
 
       it(`should be able to update the model of the ${provider.variant} AI proxy plugin from chat to completions model`, async function () {
