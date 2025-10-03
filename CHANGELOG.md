@@ -22,6 +22,10 @@
 
 ---
 
+## 2.21.0 released 03-Oct-2025
+
+* Feat: Kong Enterprise 3.12.0.0
+
 ## 2.20.0 released 08-Aug-2025
 
 * Feat: make custom CA bundle available during image build
