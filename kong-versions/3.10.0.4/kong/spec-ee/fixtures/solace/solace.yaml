@@ -1,0 +1,80 @@
+# docker-compose up
+services:
+  primary:
+    container_name: solace
+    image: solace/solace-pubsub-standard:10.25.0.24
+    volumes:
+      - "storage-group:/var/lib/solace"
+    shm_size: 1g
+    ulimits:
+      core: -1
+      nofile:
+        soft: 2448
+        hard: 1048576
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 1
+    ports:
+    #Port Mappings:  With the exception of SMF, ports are mapped straight
+    #through from host to container.  This may result in port collisions on
+    #commonly used ports that will cause failure of the container to start.
+      #Web transport
+      - ':8008'
+      #Web transport over TLS
+      - ':1443'
+      #SEMP over TLS
+      - ':1943'
+      #MQTT Default VPN
+      - ':1883'
+      #AMQP Default VPN over TLS
+      - ':5671'
+      #AMQP Default VPN
+      - ':5672'
+      #MQTT Default VPN over WebSockets
+      - ':8000'
+      #MQTT Default VPN over WebSockets / TLS
+      - ':8443'
+      #MQTT Default VPN over TLS
+      - ':8883'
+      #SEMP / PubSub+ Manager
+      - ':8080'
+      #REST Default VPN
+      - ':9000'
+      #REST Default VPN over TLS
+      - ':9443'
+      #SMF
+      - ':55555'
+      #SMF Compressed
+      - ':55003'
+      #SMF over TLS
+      - ':55443'
+    environment:
+      - username_admin_globalaccesslevel=admin
+      - username_admin_password=admin
+      - system_scaling_maxconnectioncount=100
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  port-exporter:
+    image: docker:latest
+    container_name: solace-port-exporter
+    depends_on:
+      primary:
+        condition: service_healthy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./export-ports.sh:/export-ports.sh
+      - ./:/output
+    command: >
+      sh -c "sh /export-ports.sh > /output/.env.solace && 
+             echo '✅ Port variables exported to .env.solace' &&
+             echo '🚀 Run: source start-solace.sh for automatic setup'"
+    restart: no
+
+volumes:
+  storage-group:
