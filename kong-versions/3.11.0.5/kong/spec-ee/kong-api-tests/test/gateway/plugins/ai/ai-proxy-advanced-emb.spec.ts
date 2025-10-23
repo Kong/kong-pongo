@@ -1,0 +1,612 @@
+import {
+  clearAllKongResources,
+  createAILogCollectingRoute,
+  createGatewayService,
+  createRouteForService,
+  Environment,
+  expect,
+  getBasePath,
+  isGateway,
+  logDebug,
+  logResponse,
+  retryAIRequest,
+  vars,
+  waitForConfigRebuild,
+} from '@support';
+import axios from 'axios';
+import _ from 'lodash';
+
+// This test verify the emebddings functionality of the AI Proxy advanced plugin with Openai llm format.
+describe('@ai: Gateway Plugins: AI Proxy Advanced Embedding Test', function () {
+
+  const aws_region = 'ap-northeast-1';
+  const sampleText = "The food was delicious and the waiter was very attentive.";
+
+  const adminUrl = getBasePath({
+    environment: isGateway() ? Environment.gateway.admin : undefined,
+  });
+  const proxyUrl = getBasePath({
+    environment: isGateway() ? Environment.gateway.proxy : undefined,
+  })
+  const routePathAzure = '/emb/azure';
+  const routePathBedrock = '/emb/bedrock';
+  const routePathBedrockTitanV1 = '/emb/bedrock-titan-v1';
+  const routePathBedrockTitanV2 = '/emb/bedrock-titan-v2';
+  const routePathOpenai = '/emb/openai';
+  const routePathGemini = '/emb/gemini';
+  const routePathMistral = '/emb/mistral';
+  const routePathGeminiVertex = '/emb/gemini-vertex';
+  const routePathHuggingFace = '/emb/huggingface';
+
+  const logsCollectingPathPrefix = `/ai/collect`;
+
+  let serviceId: string;
+
+  // Define providers
+  const providers = [
+    'openai',
+    'azure',
+    'bedrock',
+    'bedrock-titan-v1',
+    'bedrock-titan-v2',
+    'gemini',
+    'gemini-vertex',
+    'huggingface',
+    'mistral'
+  ] as const;
+
+  // Define a type for the providers
+  type EmbeddingProvider = typeof providers[number];
+
+
+  const emb_models: { [p in EmbeddingProvider]: string } = {
+    openai: "text-embedding-3-small",
+    mistral: "mistral-embed",
+    azure: "text-embedding-3-small",
+    bedrock: "amazon.titan-embed-text-v2:0",
+    "bedrock-titan-v1": "amazon.titan-embed-text-v1", // no :0 at the end
+    "bedrock-titan-v2": "amazon.titan-embed-text-v2:0",
+    gemini: "text-embedding-004",
+    "gemini-vertex": "text-embedding-004",
+    huggingface: "sentence-transformers/all-MiniLM-L6-v2",
+  };
+
+  // Define a configuration object to store provider-specific settings
+  const providerTestData: {
+    [key in EmbeddingProvider]: {
+      routePath: string;
+      routeId: string | null;
+      target: Record<string, any> | null;  // Allow object type for target
+    }
+  } = {
+    openai: {
+      routePath: routePathOpenai,
+      routeId: null,
+      target: null,
+    },
+    mistral: {
+      routePath: routePathMistral,
+      routeId: null,
+      target: null,
+    },
+    azure: {
+      routePath: routePathAzure,
+      routeId: null,
+      target: null,
+    },
+    bedrock: {
+      routePath: routePathBedrock,
+      routeId: null,
+      target: null,
+    },
+    'bedrock-titan-v1': {
+      routePath: routePathBedrockTitanV1,
+      routeId: null,
+      target: null,
+    },
+    'bedrock-titan-v2': {
+      routePath: routePathBedrockTitanV2,
+      routeId: null,
+      target: null,
+    },
+    gemini: {
+      routePath: routePathGemini,
+      routeId: null,
+      target: null,
+    },
+    'gemini-vertex': {
+      routePath: routePathGeminiVertex,
+      routeId: null,
+      target: null,
+    },
+    'huggingface': {
+      routePath: routePathHuggingFace,
+      routeId: null,
+      target: null,
+    }
+  };
+
+  const pluginPayload = {
+    config: {
+      max_request_body_size: 8192,
+      genai_category: "text/embeddings",
+      llm_format: 'openai', //using openai format for image gen and edit
+      model_name_header: true,
+      response_streaming: 'allow',
+      targets: [] as Array<Record<string, any>>,
+      balancer: {
+        algorithm: 'round-robin',
+        latency_strategy: 'tpot',
+        retries: 5,
+        slots: 1000,
+        hash_on_header: 'X-Kong-LLM-Request-ID',
+        failover_criteria: [
+          'error',
+          'timeout'
+        ],
+        connect_timeout: 60000,
+        read_timeout: 60000,
+        write_timeout: 60000
+      }
+    },
+    route: { id: '' },
+    name: 'ai-proxy-advanced'
+  };
+
+  type ProviderConfig = {
+    [p in EmbeddingProvider]: {
+      auth: object,
+      model: {
+        name: string,
+        provider: string,
+        options?: object,
+      },
+      route_type: string
+    }
+  }
+
+  // Provider-specific configurations
+  const providerConfigs: ProviderConfig = {
+    openai: {
+      auth: {
+        header_name: "Authorization",
+        header_value: `Bearer ${vars.ai_providers.OPENAI_API_KEY}`,
+      },
+      model: {
+        name: emb_models.openai,
+        options: {
+          input_cost: 100,
+          output_cost: 100,
+        },
+        provider: "openai"
+      },
+      route_type: "llm/v1/embeddings"
+    },
+    mistral: {
+      auth: {
+        header_name: "Authorization",
+        header_value: `Bearer ${vars.ai_providers.MISTRAL_API_KEY}`,
+      },
+      model: {
+        name: emb_models.mistral,
+        provider: "mistral",
+        options: {
+          mistral_format: 'openai',
+        }
+      },
+      route_type: "llm/v1/embeddings"
+    },
+    azure: {
+      auth: {
+        header_name: "api-key",
+        header_value: vars.ai_providers.AZUREAI_API_KEY,
+      },
+      model: {
+        name: emb_models.azure,
+        options: {
+          input_cost: 100,
+          output_cost: 100,
+          azure_instance: "ai-gw-sdet-e2e-test",
+          azure_deployment_id: emb_models.azure,
+          azure_api_version: "2024-10-21",
+        },
+        provider: "azure"
+      },
+      route_type: "llm/v1/embeddings"
+    },
+    bedrock: {
+      auth: {
+        allow_override: false,
+        aws_access_key_id: `${vars.aws.AWS_ACCESS_KEY_ID}`,
+        aws_secret_access_key: `${vars.aws.AWS_SECRET_ACCESS_KEY}`
+      },
+      model: {
+        name: emb_models.bedrock,
+        options: {
+          input_cost: 100,
+          output_cost: 100,
+          bedrock: {
+            aws_region: aws_region
+          }
+        },
+        provider: "bedrock"
+      },
+      route_type: "llm/v1/embeddings"
+    },
+    "bedrock-titan-v1": {
+      auth: {
+        allow_override: false,
+        aws_access_key_id: `${vars.aws.AWS_ACCESS_KEY_ID}`,
+        aws_secret_access_key: `${vars.aws.AWS_SECRET_ACCESS_KEY}`
+      },
+      model: {
+        name: emb_models['bedrock-titan-v1'],
+        options: {
+          input_cost: 100,
+          output_cost: 100,
+          bedrock: {
+            aws_region: aws_region
+          }
+        },
+        provider: "bedrock"
+      },
+      route_type: "llm/v1/embeddings"
+    },
+    "bedrock-titan-v2": {
+      auth: {
+        allow_override: false,
+        aws_access_key_id: `${vars.aws.AWS_ACCESS_KEY_ID}`,
+        aws_secret_access_key: `${vars.aws.AWS_SECRET_ACCESS_KEY}`
+      },
+      model: {
+        name: emb_models['bedrock-titan-v2'],
+        options: {
+          input_cost: 100,
+          output_cost: 100,
+          bedrock: {
+            aws_region: aws_region
+          }
+        },
+        provider: "bedrock"
+      },
+      route_type: "llm/v1/embeddings"
+    },
+    gemini: {
+      auth: {
+        param_location: "query",
+        param_name: "key",
+        param_value: `${vars.ai_providers.GEMINI_API_KEY}`,
+      },
+      model: {
+        name: emb_models.gemini,
+        options: {
+          input_cost: 100,
+          output_cost: 100,
+        },
+        provider: "gemini"
+      },
+      route_type: "llm/v1/embeddings"
+    },
+    'gemini-vertex': {
+      auth: {
+        gcp_use_service_account: true,
+        gcp_service_account_json: `${vars.ai_providers.VERTEX_API_KEY}`,
+      },
+      model: {
+        name: emb_models.gemini,
+        options: {
+          input_cost: 100,
+          output_cost: 100,
+          gemini: {
+            api_endpoint: "us-central1-aiplatform.googleapis.com",
+            project_id: "gcp-sdet-test",
+            location_id: "us-central1",
+          },
+        },
+        provider: "gemini"
+      },
+      route_type: "llm/v1/embeddings",
+    },
+    'huggingface': {
+      auth: {
+        header_name: "Authorization",
+        header_value: `Bearer ${vars.ai_providers.HUGGINGFACE_API_KEY}`,
+      },
+      model: {
+        name: emb_models.huggingface,
+        options: {
+          input_cost: 100,
+          output_cost: 100,
+        },
+        provider: "huggingface"
+      },
+      route_type: "llm/v1/embeddings"
+    },
+  };
+
+  // Factory function for generating target configurations
+  function createEmbTarget(provider: EmbeddingProvider) {
+    // Common base configuration structure
+    const baseConfig: Record<string, any> = {
+      logging: {
+        log_statistics: true,
+        log_payloads: false
+      },
+      weight: 100
+    };
+
+    // Combine configurations
+    return {
+      ...baseConfig,
+      ...providerConfigs[provider]
+    };
+  }
+
+
+  // Function to send embeddings request
+  async function sendEmbeddingsRequest(
+    url: string,
+    text: string | string[],
+    dimensions?: number
+  ) {
+    const data: any = {
+      input: text,
+      encoding_format: 'float'
+    };
+
+    if (dimensions !== undefined) {
+      data.dimensions = dimensions;
+    }
+
+    const resp = await axios({
+      method: 'post',
+      url: url,
+      data: data,
+      headers: {
+        'Accept-Encoding': 'gzip, deflate',
+        'Content-Type': 'application/json',
+        'Accept': '*/*'
+      },
+      validateStatus: null
+    });
+    return resp;
+  }
+
+  // Function to validate embeddings response
+  function validateEmbeddingsResponse(resp: any, provider = 'unknown') {
+    // Check for successful status code
+    expect(resp.status, `${provider} response should be successful`).to.equal(200);
+
+    // Check model information if available
+    if (resp.headers['x-kong-llm-model']) {
+      logDebug(`Provider used: ${resp.headers['x-kong-llm-model']}`);
+      if (provider in emb_models) {
+        const expectedModelFragment = emb_models[provider as keyof typeof emb_models];
+        expect(
+          resp.data.model.toLowerCase(),
+          `Response should include expected model for ${provider}`
+        ).to.include(expectedModelFragment.toLowerCase());
+      }
+    }
+
+    // Check for token usage information in the response body
+    if (resp.data.usage) {
+      logDebug('Token Usage Information:');
+
+      if (resp.data.usage.prompt_tokens) {
+        logDebug(`   Prompt tokens: ${resp.data.usage.prompt_tokens}`);
+        // Verify we're being charged for input tokens
+        expect(resp.data.usage.prompt_tokens, 'Should include prompt token count').to.be.greaterThan(0);
+      }
+
+      if (resp.data.usage.total_tokens) {
+        logDebug(`   Total tokens: ${resp.data.usage.total_tokens}`);
+        // Verify total tokens matches or exceeds prompt tokens
+        expect(resp.data.usage.total_tokens, 'Should include total token count').to.be.at.least(
+          resp.data.usage.prompt_tokens || 0
+        );
+      }
+    }
+
+    // Extract embedding based on what we see in the actual logs
+    let embedding;
+
+    if (resp.data.embedding) {
+      // Bedrock format
+      logDebug(`${provider} response format detected`);
+      embedding = resp.data.embedding;
+    } else if (resp.data.data && resp.data.data.length > 0) {
+      // OpenAI and Azure format
+      logDebug(`${provider} response format detected`);
+      embedding = resp.data.data[0].embedding;
+    }
+
+    // Validate embedding data - essential to confirm the response is valid
+    expect(embedding, `${provider} should return embedding data`).to.exist;
+    expect(embedding, `${provider} embedding should be an array`).to.be.an('array');
+    expect(embedding.length, `${provider} embedding should have dimensions`).to.be.greaterThan(0);
+
+    return embedding;
+  }
+
+  before(async function () {
+    //create a service and 3 different routes for use with ai-proxy-advanced plugin to different providers
+    const service = await createGatewayService('ai-emb-test-service');
+    serviceId = service.id;
+    // Create routes for each provider and store their IDs
+    for (const provider of providers) {
+      const routePath = providerTestData[provider].routePath;
+      const resp = await createRouteForService(serviceId, [routePath]);
+      providerTestData[provider].routeId = resp.id;
+
+      // Generate the target configuration
+      providerTestData[provider].target = createEmbTarget(provider);
+
+      await createAILogCollectingRoute(`ai-log-service-${provider}`, resp.id, `${logsCollectingPathPrefix}/${provider}`);
+    }
+
+    await waitForConfigRebuild();
+  })
+
+  // Create plugins for each provider
+  providers.forEach((provider) => {
+
+    it(`should create AI proxy advanced plugin scoped to route for ${provider} test`, async function () {
+      const embPayload = _.cloneDeep(pluginPayload);
+      const { routeId, target } = providerTestData[provider];
+      embPayload.route.id = routeId;
+      embPayload.config.targets = [target];
+
+      const resp = await axios({
+        method: 'post',
+        url: `${adminUrl}/routes/${routeId}/plugins`,
+        data: embPayload,
+        validateStatus: null
+      });
+
+      logResponse(resp);
+
+      expect(resp.status, 'Status should be 201').to.equal(201);
+      expect(resp.data.name, 'Should have correct plugin name').to.equal('ai-proxy-advanced');
+
+      await waitForConfigRebuild();
+    });
+
+    it(`should successfully retrieve embeddings from ${provider} via ai-proxy-advanced plugin`, async function () {
+      const { routePath } = providerTestData[provider];
+      logDebug(`Testing embeddings for provider: ${provider} with route: ${routePath}`);
+
+      const makeRequest = () => sendEmbeddingsRequest(
+        `${proxyUrl}${routePath}/embeddings`,
+        sampleText
+      );
+
+      await retryAIRequest(
+        makeRequest,
+        (resp) => validateEmbeddingsResponse(resp, provider),
+        provider
+      );
+    });
+
+    if (provider !== 'bedrock' && provider !== 'bedrock-titan-v1' && provider !== 'bedrock-titan-v2') {
+      it(`should successfully retrieve embeddings using array from ${provider} via ai-proxy-advanced plugin`, async function () {
+        const { routePath } = providerTestData[provider];
+        logDebug(`Testing embeddings for provider: ${provider} with route: ${routePath}`);
+
+        const makeRequest = () => sendEmbeddingsRequest(
+          `${proxyUrl}${routePath}/embeddings`,
+          [sampleText, sampleText],
+        );
+
+        await retryAIRequest(
+          makeRequest,
+          (resp) => validateEmbeddingsResponse(resp, provider),
+          provider
+        );
+      });
+    }
+
+    it(`should successfully retrieve embeddings from ${provider} via ai-proxy-advanced plugin with logs`, async function () {
+      const logsResp = await axios({
+        method: 'get',
+        url: `${proxyUrl}${logsCollectingPathPrefix}/${provider}`,
+        validateStatus: null
+      });
+
+      logResponse(logsResp);
+      expect(logsResp.status, `Logs response should be 200 for ${provider}`).to.equal(200);
+      const logs = logsResp.data;
+      expect(logs.proxy, `Logs should contain proxy information for ${provider}`).to.exist;
+      expect(logs.proxy.meta, `Logs should contain meta information for ${provider}`).to.exist;
+      expect(logs.proxy.usage, `Logs should contain usage information for ${provider}`).to.exist;
+      const model = providerConfigs[provider].model;
+      expect(logs.proxy.meta.response_model, `Response model should be present for ${provider}`).to.equal(model.name);
+      expect(logs.proxy.meta.request_model, `Request model should be present for ${provider}`).to.equal(model.name);
+      expect(logs.proxy.meta.provider_name, `Provider should be present for ${provider}`).to.equal(model.provider);
+      expect(logs.proxy.meta.request_mode, `Request mode should be present for ${provider}`).to.equal('oneshot');
+      expect(logs.proxy.usage.time_to_first_token, `Time to first token should be present for ${provider}`).to.be.greaterThan(0);
+      expect(logs.proxy.usage.time_per_token, `Time per token should be present for ${provider}`).to.be.greaterThanOrEqual(0);
+      if (provider !== 'gemini' && provider !== 'huggingface') {
+        expect(logs.proxy.usage.prompt_tokens, `Prompt tokens should be present for ${provider}`).to.be.greaterThan(0);
+        expect(logs.proxy.usage.total_tokens, `Total tokens should be present for ${provider}`).to.be.greaterThan(0);
+        expect(logs.proxy.usage.completion_tokens, `Completion tokens should be present for ${provider}`).to.be.greaterThanOrEqual(0); // 0 is fine, openai does this
+        if (provider !== 'mistral' ) {
+          expect(logs.proxy.usage.cost, `Cost should be present for ${provider}`).to.be.greaterThan(0);
+        }
+      }
+      expect(logs.proxy.tried_targets, `Tried targets should be present for ${provider}`).to.be.an('object');
+    })
+
+  });
+
+  context('Bedrock Titan Embed: dimension configuration', function () {
+    const TITAN_V2_SUPPORTED_DIMENSIONS = [256, 512, 1024];
+    const TITAN_V1_DEFAULT_DIMENSIONS = 1536;
+    const TITAN_V2_DEFAULT_DIMENSIONS = 1024;
+
+    const dimensionTests = TITAN_V2_SUPPORTED_DIMENSIONS.map((dim) => ({
+      dimension: dim,
+      description: `${dim} dimensions`
+    }));
+
+    for (const test of dimensionTests) {
+      it(`should support ${test.description} for Titan v2`, async function () {
+        const { routePath } = providerTestData['bedrock-titan-v2'];
+
+        const resp = await sendEmbeddingsRequest(
+          `${proxyUrl}${routePath}/embeddings`,
+          sampleText,
+          test.dimension
+        );
+
+        logResponse(resp);
+
+        const embedding = validateEmbeddingsResponse(resp, 'bedrock-titan-v2');
+        expect(embedding.length, `Embedding should have ${test.dimension} dimensions`).to.equal(
+          test.dimension
+        );
+      });
+    }
+
+    it(`should verify default dimensions for Titan v2`, async function () {
+      const { routePath } = providerTestData['bedrock-titan-v2'];
+
+      const resp = await sendEmbeddingsRequest(
+        `${proxyUrl}${routePath}/embeddings`,
+        sampleText
+      );
+
+      logResponse(resp);
+
+      const embedding = validateEmbeddingsResponse(resp, 'bedrock-titan-v2');
+      expect(embedding.length, `Embedding should have default ${TITAN_V2_DEFAULT_DIMENSIONS} dimensions`).to.equal(
+        TITAN_V2_DEFAULT_DIMENSIONS
+      );
+    });
+
+    it(`should verify Titan v1 ignore dimensions parameter`, async function () {
+      const { routePath } = providerTestData['bedrock-titan-v1'];
+      const randomDimension = TITAN_V2_SUPPORTED_DIMENSIONS[
+        Math.floor(Math.random() * TITAN_V2_SUPPORTED_DIMENSIONS.length)
+      ];
+
+      const resp = await sendEmbeddingsRequest(
+        `${proxyUrl}${routePath}/embeddings`,
+        sampleText,
+        randomDimension
+      );
+
+      logResponse(resp);
+
+      const embedding = validateEmbeddingsResponse(resp, 'bedrock-titan-v1');
+      expect(embedding.length, `Embedding should have ${TITAN_V1_DEFAULT_DIMENSIONS} dimensions`).to.equal(
+        TITAN_V1_DEFAULT_DIMENSIONS
+      );
+    });
+  });
+
+  after(async function () {
+    await clearAllKongResources();
+  });
+
+});
