@@ -1,2 +1,4 @@
+name: "kong-pongo CodeQL Config"
+
 paths-ignore:
   - kong-versions/**
