@@ -22,6 +22,12 @@
 
 ---
 
+## 2.22.0 released 22-Nov-2025
+
+* Feat: Kong Enterprise 3.4.3.22
+* Chore: clean up images after test to free up space.
+  [#709](https://github.com/Kong/kong-pongo/pull/709)
+
 ## 2.21.0 released 03-Oct-2025
 
 * Feat: Kong Enterprise 3.12.0.0
