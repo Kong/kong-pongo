@@ -128,6 +128,15 @@ function test_single_version {
   else
     tfailure
   fi
+
+  # cleanup the images to free space
+  ttest "pongo clean"
+  KONG_VERSION=$VERSION pongo clean
+  if [ $? -eq 0 ]; then
+    tsuccess
+  else
+    tfailure
+  fi
 }
 
 
