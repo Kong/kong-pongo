@@ -6,7 +6,7 @@ ARG PONGO_VERSION=master
 USER root
 
 RUN apt update \
-    && apt install -y git curl docker-compose \
+    && apt install -y git curl docker-compose-v2 \
     && git clone https://github.com/kong/kong-pongo.git /kong-pongo \
     && cd /kong-pongo \
     && git checkout $PONGO_VERSION
