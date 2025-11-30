@@ -1,0 +1,2 @@
+mcp==1.9.1
+jsonschema==4.24.0
