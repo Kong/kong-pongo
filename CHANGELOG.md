@@ -22,6 +22,42 @@
 
 ---
 
+## 2.24.0 released 04-Dec-2025
+
+* Chore: disable the test coverage by default.
+  [#713](https://github.com/Kong/kong-pongo/pull/713)
+
+* Feat: Kong Enterprise 3.11.0.1
+
+* Feat: Kong Enterprise 3.11.0.2
+
+* Feat: Kong Enterprise 3.11.0.3
+
+* Feat: Kong Enterprise 3.11.0.4
+
+* Feat: Kong Enterprise 3.11.0.5
+
+* Feat: Kong Enterprise 3.11.0.6
+
+* Feat: Kong Enterprise 3.10.0.4
+
+* Feat: Kong Enterprise 3.10.0.5
+
+* Feat: Kong Enterprise 3.10.0.6
+
+* Feat: Kong Enterprise 3.9.1.2
+
+* Feat: Kong Enterprise 3.8.1.2
+
+* Feat: Kong Enterprise 3.4.3.21
+
+## 2.23.0 released 02-Dec-2025
+
+* Fix: use version v2 of docker-compose for the base image.
+  [#711](https://github.com/Kong/kong-pongo/pull/711)
+
+* Feat: Kong Enterprise 3.12.0.1
+
 ## 2.22.0 released 22-Nov-2025
 
 * Feat: Kong Enterprise 3.4.3.22
