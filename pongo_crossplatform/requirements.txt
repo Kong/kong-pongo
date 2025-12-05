@@ -1,0 +1,24 @@
+pytest
+psycopg2-binary
+redis
+cassandra-driver
+grpcio
+httpx
+pyyaml
+colorama
+click
+# For plugin packaging and Lua integration
+lupa
+# For logging and debugging
+loguru
+# For cross-platform file operations
+pathlib
+# For environment variable management
+python-dotenv
+# For advanced test orchestration
+pytest-xdist
+# For custom CA handling
+certifi
+# For shell command emulation (if needed)
+sh
+# Add any other dependencies as needed for full feature parity

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pongo Todo List (Live)</title>
+    <link rel="stylesheet" href="./todo_src/todo.css">
+    <script src="./todo_src/todo.js" defer></script>
+</head>
+<body>
+    <h1>Pongo Cross-Platform Todo List</h1>
+    <div style="display: flex;">
+        <table id="todo-table">
+            <thead>
+                <tr>
+                    <th>Task ID</th>
+                    <th>Task</th>
+                    <th>Subtask</th>
+                    <th>Status</th>
+                    <th>Purpose</th>
+                    <th>Comments</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Populated by JS from todo_list.md or a JSON source -->
+            </tbody>
+        </table>
+        <div id="live-panel">
+            <div id="live-title">Live Activity & Approvals</div>
+            <div id="live-log"></div>
+            <div id="approval-panel"></div>
+        </div>
+    </div>
+</body>
+</html>
