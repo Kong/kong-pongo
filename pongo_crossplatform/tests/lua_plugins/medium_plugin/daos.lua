@@ -1,0 +1,2 @@
+-- Stub for daos.lua
+-- Add your DAO logic here

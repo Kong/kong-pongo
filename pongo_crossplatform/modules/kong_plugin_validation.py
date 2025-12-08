@@ -16,7 +16,7 @@ class KongPluginValidator:
         self.logger = LoggingManager(log_level)
         self.logger.setup()
         if plugin_dir is None:
-            with open("config/config.json") as f:
+            with open("../config/config.json") as f:
                 config = json.load(f)
             plugin_dir = config.get("plugins_directory", "pongo_crossplatform/tests/lua_plugins")
         self.plugin_dir = Path(plugin_dir)

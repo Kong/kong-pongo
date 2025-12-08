@@ -1,4 +1,4 @@
-from scripts.kong_plugin_validation import KongPluginValidator
+from pongo_crossplatform.scripts.kong_plugin_validation import KongPluginValidator
 import tempfile
 import os
 from pathlib import Path

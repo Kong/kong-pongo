@@ -1,4 +1,4 @@
-from scripts.shell_emulation import ShellEmulator
+from pongo_crossplatform.scripts.shell_emulation import ShellEmulator
 
 def test_run_shell_command():
     emulator = ShellEmulator()

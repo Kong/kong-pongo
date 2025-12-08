@@ -1,5 +1,5 @@
 import os
-from scripts.environment_management import EnvironmentManager
+from pongo_crossplatform.scripts.environment_management import EnvironmentManager
 
 def test_setup_environment():
     env_vars = {"TEST_ENV_VAR": "test_value"}

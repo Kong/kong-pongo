@@ -1,4 +1,4 @@
-from scripts.dependency_orchestration import DependencyManager
+from pongo_crossplatform.scripts.dependency_orchestration import DependencyManager
 
 def test_start_stop_dependencies():
     config = {

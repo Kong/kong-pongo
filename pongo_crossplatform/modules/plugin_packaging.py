@@ -22,8 +22,8 @@ class PluginPackager:
         """
         if not self.plugin_dir.exists():
             raise FileNotFoundError(f"Plugin directory {self.plugin_dir} does not exist.")
-        if output_dir is None:
-            output_dir = self.plugin_dir.parent / "dist"
+            if output_dir is None and (self.plugin_dir.parent / "config").exists():
+                output_dir = self.plugin_dir.parent / "config" / "dist"
         else:
             output_dir = Path(output_dir)
         output_dir.mkdir(exist_ok=True)

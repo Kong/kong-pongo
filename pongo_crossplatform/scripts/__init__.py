@@ -1,1 +1,1 @@
-from .plugin_packaging import PluginPackager
+from pongo_crossplatform.modules.plugin_packaging import PluginPackager

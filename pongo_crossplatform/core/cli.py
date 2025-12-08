@@ -3,8 +3,8 @@ Unified CLI entrypoint for Pongo Cross-Platform Tool
 Uses click for modular subcommands
 """
 import click
-from modules.plugin_packaging import PluginPackager
-from modules.kong_plugin_validation import KongPluginValidator
+from pongo_crossplatform.modules.plugin_packaging import PluginPackager
+from pongo_crossplatform.modules.kong_plugin_validation import KongPluginValidator
 # ... import other modules as needed
 
 @click.group()

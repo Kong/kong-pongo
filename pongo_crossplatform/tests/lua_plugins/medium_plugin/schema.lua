@@ -1,0 +1,2 @@
+-- Stub for schema.lua
+-- Add your schema definition here

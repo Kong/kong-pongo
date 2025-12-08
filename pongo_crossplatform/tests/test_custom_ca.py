@@ -1,6 +1,6 @@
 import tempfile
 from pathlib import Path
-from scripts.custom_ca import CustomCAHandler
+from pongo_crossplatform.scripts.custom_ca import CustomCAHandler
 
 def test_add_custom_ca():
     # Create a dummy CA file

@@ -1,0 +1,212 @@
+[
+  {
+    "plugin": "medium_plugin",
+    "status": "PASS",
+    "details": {
+      "structure": {
+        "found": {
+          "handler.lua": true,
+          "schema.lua": true,
+          "daos.lua": true,
+          "access.lua": true,
+          "init.lua": true,
+          "LICENSE": true,
+          "README.md": true
+        },
+        "missing": [],
+        "valid": true
+      },
+      "lifecycle_hooks": {
+        "found": {
+          "init_worker": true,
+          "access": true,
+          "header_filter": true,
+          "body_filter": true,
+          "log": true,
+          "certificate": true,
+          "rewrite": true
+        },
+        "missing": [],
+        "valid": true
+      },
+      "kong_variables": {
+        "found": {
+          "kong.ctx": true,
+          "kong.request": true,
+          "kong.response": true,
+          "kong.service": true,
+          "kong.log": true,
+          "kong.db": true,
+          "kong.configuration": true,
+          "kong.router": true,
+          "kong.cache": true,
+          "kong.cluster": true,
+          "kong.worker_events": true
+        },
+        "missing": [],
+        "valid": true
+      },
+      "version_compatibility": {
+        "deprecated_found": [],
+        "required_found": [
+          "kong.ctx",
+          "kong.request"
+        ],
+        "valid": true
+      },
+      "functionality_coverage": {
+        "found": {
+          "access": true,
+          "init_worker": true,
+          "header_filter": true,
+          "body_filter": true,
+          "log": true,
+          "certificate": true,
+          "rewrite": true
+        },
+        "missing": [],
+        "valid": true
+      }
+    }
+  },
+  {
+    "plugin": "low_plugin",
+    "status": "PASS",
+    "details": {
+      "structure": {
+        "found": {
+          "handler.lua": true,
+          "schema.lua": true,
+          "daos.lua": true,
+          "access.lua": true,
+          "init.lua": true,
+          "LICENSE": true,
+          "README.md": true
+        },
+        "missing": [],
+        "valid": true
+      },
+      "lifecycle_hooks": {
+        "found": {
+          "init_worker": true,
+          "access": true,
+          "header_filter": true,
+          "body_filter": true,
+          "log": true,
+          "certificate": true,
+          "rewrite": true
+        },
+        "missing": [],
+        "valid": true
+      },
+      "kong_variables": {
+        "found": {
+          "kong.ctx": true,
+          "kong.request": true,
+          "kong.response": true,
+          "kong.service": true,
+          "kong.log": true,
+          "kong.db": true,
+          "kong.configuration": true,
+          "kong.router": true,
+          "kong.cache": true,
+          "kong.cluster": true,
+          "kong.worker_events": true
+        },
+        "missing": [],
+        "valid": true
+      },
+      "version_compatibility": {
+        "deprecated_found": [],
+        "required_found": [
+          "kong.ctx",
+          "kong.request"
+        ],
+        "valid": true
+      },
+      "functionality_coverage": {
+        "found": {
+          "access": true,
+          "init_worker": true,
+          "header_filter": true,
+          "body_filter": true,
+          "log": true,
+          "certificate": true,
+          "rewrite": true
+        },
+        "missing": [],
+        "valid": true
+      }
+    }
+  },
+  {
+    "plugin": "high_plugin",
+    "status": "PASS",
+    "details": {
+      "structure": {
+        "found": {
+          "handler.lua": true,
+          "schema.lua": true,
+          "daos.lua": true,
+          "access.lua": true,
+          "init.lua": true,
+          "LICENSE": true,
+          "README.md": true
+        },
+        "missing": [],
+        "valid": true
+      },
+      "lifecycle_hooks": {
+        "found": {
+          "init_worker": true,
+          "access": true,
+          "header_filter": true,
+          "body_filter": true,
+          "log": true,
+          "certificate": true,
+          "rewrite": true
+        },
+        "missing": [],
+        "valid": true
+      },
+      "kong_variables": {
+        "found": {
+          "kong.ctx": true,
+          "kong.request": true,
+          "kong.response": true,
+          "kong.service": true,
+          "kong.log": true,
+          "kong.db": true,
+          "kong.configuration": true,
+          "kong.router": true,
+          "kong.cache": true,
+          "kong.cluster": true,
+          "kong.worker_events": true
+        },
+        "missing": [],
+        "valid": true
+      },
+      "version_compatibility": {
+        "deprecated_found": [],
+        "required_found": [
+          "kong.ctx",
+          "kong.request"
+        ],
+        "valid": true
+      },
+      "functionality_coverage": {
+        "found": {
+          "access": true,
+          "init_worker": true,
+          "header_filter": true,
+          "body_filter": true,
+          "log": true,
+          "certificate": true,
+          "rewrite": true
+        },
+        "missing": [],
+        "valid": true
+      }
+    }
+  }
+]

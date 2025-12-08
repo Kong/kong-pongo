@@ -1,4 +1,4 @@
-from scripts.logging_debugging import LoggingManager
+from pongo_crossplatform.scripts.logging_debugging import LoggingManager
 
 def test_logging_manager():
     manager = LoggingManager(log_level="DEBUG")

@@ -1,4 +1,4 @@
-from scripts.config_parsing import ConfigParser
+from pongo_crossplatform.scripts.config_parsing import ConfigParser
 import tempfile
 
 def test_parse_yaml_config():

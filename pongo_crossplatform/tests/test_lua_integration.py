@@ -1,4 +1,4 @@
-from scripts.lua_integration import LuaManager
+from pongo_crossplatform.scripts.lua_integration import LuaManager
 import tempfile
 
 def test_run_lua_script():
