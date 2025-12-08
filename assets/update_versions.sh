@@ -112,7 +112,7 @@ function update_single_version_artifacts {
             mkdir "../kong-versions/$VERSION/kong/spec-ee"
             for fname in spec-ee/*; do
                 case $fname in
-                (spec-ee/@([0-9]*|kong-api-tests))
+                (spec-ee/[0-9]*|spec-ee/kong-api-tests)
                     # These we skip
                     ;;
                 (*)
