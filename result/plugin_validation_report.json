@@ -70,7 +70,7 @@
     }
   },
   {
-    "plugin": "low_plugin",
+    "plugin": "high_plugin",
     "status": "PASS",
     "details": {
       "structure": {
@@ -140,7 +140,7 @@
     }
   },
   {
-    "plugin": "high_plugin",
+    "plugin": "low_plugin",
     "status": "PASS",
     "details": {
       "structure": {

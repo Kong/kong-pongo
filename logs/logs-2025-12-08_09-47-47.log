@@ -1,0 +1,18 @@
+[2025-12-08 09:47:47,603] INFO pongo-enterprise: Installing required Python modules...
+[2025-12-08 09:47:48,365] INFO pongo-enterprise: Luarocks is already installed.
+[2025-12-08 09:47:48,366] INFO pongo-enterprise: Listing plugins in: pongo_crossplatform/tests/lua_plugins
+[2025-12-08 09:47:48,367] INFO pongo-enterprise: Checklist for plugins to be tested:
+[2025-12-08 09:47:48,367] INFO pongo-enterprise: - low_plugin: PENDING
+[2025-12-08 09:47:48,367] INFO pongo-enterprise: - medium_plugin: PENDING
+[2025-12-08 09:47:48,367] INFO pongo-enterprise: - high_plugin: PENDING
+[2025-12-08 09:47:48,367] INFO pongo-enterprise: Kong version 3.11.0.0 is available.
+[2025-12-08 09:47:48,423] INFO pongo-enterprise: Testing low_plugin... Status: TESTING
+[2025-12-08 09:47:48,424] INFO pongo-enterprise: Testing medium_plugin... Status: TESTING
+[2025-12-08 09:47:48,424] INFO pongo-enterprise: Testing high_plugin... Status: TESTING
+[2025-12-08 09:47:48,437] INFO pongo-enterprise: Completed medium_plugin. Status: PASS
+[2025-12-08 09:47:48,444] INFO pongo-enterprise: Completed high_plugin. Status: PASS
+[2025-12-08 09:47:48,444] INFO pongo-enterprise: Completed low_plugin. Status: PASS
+[2025-12-08 09:47:48,452] INFO pongo-enterprise: 
+Validation Report:
+[2025-12-08 09:47:48,453] INFO pongo-enterprise: 
+Report saved to result/plugin_validation_report.json
