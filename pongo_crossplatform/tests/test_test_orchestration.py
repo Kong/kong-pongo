@@ -1,4 +1,4 @@
-from test_orchestration import TestOrchestrator
+from scripts.test_orchestration import TestOrchestrator
 
 def test_run_tests():
     config = {'test_dir': 'tests', 'verbose': True}

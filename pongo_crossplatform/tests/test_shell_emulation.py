@@ -1,4 +1,4 @@
-from shell_emulation import ShellEmulator
+from scripts.shell_emulation import ShellEmulator
 
 def test_run_shell_command():
     emulator = ShellEmulator()

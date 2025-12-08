@@ -1,8 +1,0 @@
-Usage: pongo nuke
-
-This will tear down the environment (see 'pongo down') and delete all generated
-test images. Action 'pongo nuke' is an alias to 'pongo clean'.
-
-Example usage:
-  pongo clean
-  pongo nuke

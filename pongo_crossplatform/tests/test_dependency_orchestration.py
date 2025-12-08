@@ -1,4 +1,4 @@
-from dependency_orchestration import DependencyManager
+from scripts.dependency_orchestration import DependencyManager
 
 def test_start_stop_dependencies():
     config = {

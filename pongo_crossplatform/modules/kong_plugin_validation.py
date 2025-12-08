@@ -5,13 +5,22 @@ Validates custom Lua plugins for Kong 3.11+
 from pathlib import Path
 from typing import Dict, Any
 import re
+import json
+from pongo_crossplatform.core.logging import LoggingManager
 
 class KongPluginValidator:
     """
     Validates Kong custom Lua plugins for Kong 3.11+
     """
-    def __init__(self, plugin_dir: str):
+    def __init__(self, plugin_dir: str = None, log_level: str = "INFO"):
+        self.logger = LoggingManager(log_level)
+        self.logger.setup()
+        if plugin_dir is None:
+            with open("config/config.json") as f:
+                config = json.load(f)
+            plugin_dir = config.get("plugins_directory", "pongo_crossplatform/tests/lua_plugins")
         self.plugin_dir = Path(plugin_dir)
+        self.logger.info(f"Initialized KongPluginValidator with plugin_dir: {self.plugin_dir}")
 
     def validate(self) -> Dict[str, Any]:
         """
@@ -19,13 +28,16 @@ class KongPluginValidator:
         Returns:
             dict: Validation results for each check.
         """
-        return {
+        self.logger.info("Running plugin validation checks...")
+        results = {
             'structure': self.check_structure(),
             'lifecycle_hooks': self.check_lifecycle_hooks(),
             'kong_variables': self.check_kong_variables(),
             'version_compatibility': self.check_version_compatibility(),
             'functionality_coverage': self.check_functionality_coverage()
         }
+        self.logger.info(f"Validation results: {results}")
+        return results
 
     def check_structure(self) -> Dict[str, Any]:
         required_files = [

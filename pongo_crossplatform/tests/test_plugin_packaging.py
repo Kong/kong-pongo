@@ -1,7 +1,7 @@
 import os
 import shutil
 from pathlib import Path
-from plugin_packaging import PluginPackager
+from scripts.plugin_packaging import PluginPackager
 
 def test_package_plugin(tmp_path):
     # Setup: create a dummy plugin directory
