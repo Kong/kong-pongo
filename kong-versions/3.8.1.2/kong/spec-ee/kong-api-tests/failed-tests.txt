@@ -1,5 +1,0 @@
-test/gateway/admin-api/vaults/azure-functions-secret-reference.spec.ts
-test/gateway/admin-api/vaults/azure-functions-secret-reference.spec.ts
-test/gateway/admin-api/vaults/azure-functions-secret-reference.spec.ts
-test/gateway/admin-api/vaults/azure-functions-secret-reference.spec.ts
-test/gateway/admin-api/vaults/azure-functions-secret-reference.spec.ts
