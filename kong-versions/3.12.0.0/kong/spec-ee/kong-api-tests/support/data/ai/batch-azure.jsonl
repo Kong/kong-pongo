@@ -1,2 +1,0 @@
-{"custom_id": "request-1", "method": "POST", "url": "/chat/completions", "body": {"model": "gpt-4.1-nano-batch", "messages": [{"role": "system", "content": "You are a helpful assistant."},{"role": "user", "content": "Say yes"}],"max_tokens": 1000}}
-{"custom_id": "request-2", "method": "POST", "url": "/chat/completions", "body": {"model": "gpt-4.1-nano-batch", "messages": [{"role": "system", "content": "You are an unhelpful assistant."},{"role": "user", "content": "Say no"}],"max_tokens": 1000}}
