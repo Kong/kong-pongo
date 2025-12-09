@@ -139,16 +139,10 @@ end
 -- @tparam number forced_admin_port to override the default port of admin API (optional)
 -- @usage helpers.wait_timer("rate-limiting", true, "all-finish", 10)
 local function wait_timer(timer_name_pattern, plain,
-                          mode, wait_opts,
+                          mode, timeout,
                           admin_client_timeout, forced_admin_port)
-  -- if not set, we will use pass nil to wait_until for defaults
-  local step
-  local timeout
-  if type(wait_opts) == "table" then
-    step = wait_opts.step
-    timeout = wait_opts.timeout
-  elseif type(wait_opts) == "number" then
-    timeout = wait_opts
+  if not timeout then
+    timeout = 2
   end
 
   local _admin_client
@@ -257,7 +251,7 @@ local function wait_timer(timer_name_pattern, plain,
     end
 
     error("unexpected error")
-  end, timeout, step)
+  end, timeout)
 end
 
 

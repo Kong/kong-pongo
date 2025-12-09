@@ -12,7 +12,7 @@ services:
       - ./zookeper_jaas.conf:/etc/kafka/zookeper_jaas.conf
 
   add-kafka-users:
-    image: confluentinc/cp-kafka:7.9.1
+    image: confluentinc/cp-kafka:latest
     network_mode: "host"
     command: >
      /bin/bash -c "
@@ -27,7 +27,7 @@ services:
       test: nc -z localhost 9092
 
   create-delegation-token:
-    image: confluentinc/cp-kafka:7.9.1
+    image: confluentinc/cp-kafka:latest
     network_mode: "host"
     user: root
     command: >
@@ -107,7 +107,7 @@ services:
       - ./broker-config/kafka_server_jaas.conf:/etc/kafka/kafka_server_jaas.conf
 
   schema-registry:
-    image: confluentinc/cp-schema-registry:7.9.1
+    image: confluentinc/cp-schema-registry:latest
     hostname: schema-registry
     network_mode: "host"
     depends_on:

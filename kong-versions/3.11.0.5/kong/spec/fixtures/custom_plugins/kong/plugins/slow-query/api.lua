@@ -10,23 +10,10 @@ return {
     GET = function(self)
       local delay = self.params.delay or 1
 
-      -- remove the stack traceback in the error message
-      local function wrap_query_error(err)
-        if type(err) == "string" then
-          local pos = err:find("stack traceback:")
-          if pos then
-            err = err:sub(1, pos - 1)
-            return err:gsub("%s*$", "")
-          end
-        end
-        return err
-      end
-
       if self.params.prime then
         ngx.timer.at(0, function()
           local _, err = kong.db.connector:query("SELECT pg_sleep(" .. delay .. ")")
           if err then
-            err = wrap_query_error(err)
             ngx.log(ngx.ERR, err)
           end
         end)
@@ -36,7 +23,6 @@ return {
 
       local _, err = kong.db.connector:query("SELECT pg_sleep(" .. delay .. ")")
       if err then
-        err = wrap_query_error(err)
         return kong.response.exit(500, { error = err })
       end
 

@@ -9,9 +9,7 @@
         "text_tokens": 178,
         "cached_tokens_details": {
           "audio_tokens": 128,
-          "text_tokens": 125,
-          "image_tokens": 3,
-          "bananas": 0
+          "text_tokens": 128
         },
         "audio_tokens": 187
       },
@@ -21,8 +19,7 @@
       },
       "input_tokens": 365,
       "total_tokens": 698,
-      "output_tokens": 333,
-      "monkeys": 0
+      "output_tokens": 333
     },
     "modalities": [
       "audio",

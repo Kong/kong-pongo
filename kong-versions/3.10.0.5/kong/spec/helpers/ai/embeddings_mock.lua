@@ -11,7 +11,6 @@
 
 local cjson = require("cjson")
 local gzip = require("kong.tools.gzip")
-local _TITAN_EMBED_PATTERN = "amazon.titan.-embed.-text.-.*"
 
 --
 -- public vars
@@ -97,7 +96,8 @@ local function generate_bedrock_embeddings(opts, url)
   end
 
   local request_body = cjson.decode(opts.body)
-    if string.find(model, _TITAN_EMBED_PATTERN) then
+
+    if string.find(model, "amazon.titan.-embed.-text.-.*") then
       if request_body.dimensions then
         return nil, "titan embed model does not support dimensions"
       end
@@ -199,20 +199,12 @@ local function mock_bedrock_embeddings(opts, url)
   )
 end
 
-local mock_gemini_embeddings = function(opts, url, batch_mode)
-  if batch_mode then
-    return make_response({
-      embeddings = { {
-        values = assert(generate_gemini_embeddings(opts, false)),
-      } },
-    })
-  else
-    return make_response({
-      embedding = {
-        values = assert(generate_gemini_embeddings(opts, false)),
-      },
-    })
-  end
+local mock_gemini_embeddings = function(opts, url)
+  return make_response({
+    embedding = {
+      values = assert(generate_gemini_embeddings(opts, false)),
+    },
+  })
 end
 
 local mock_vertex_embeddings = function(opts, url)

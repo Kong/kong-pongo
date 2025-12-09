@@ -25,7 +25,6 @@ local mock_vertex_embeddings = require("spec.helpers.ai.embeddings_mock").mock_v
 --
 
 local mock_request_router = function(_self, url, opts)
-  url = url:gsub("%?.*$", "") -- strip query params
   if string.find(url, "404") then
     return {
       status = 404,
@@ -66,13 +65,13 @@ local mock_request_router = function(_self, url, opts)
     return mock_vertex_embeddings(opts, url)
   end
 
-  -- Public Gemini API pattern: https://generativelanguage.googleapis.com/v1beta/models/{model}:batchEmbedContents
-  if string.find(url, "generativelanguage%.googleapis%.com/v1beta/models/.+:batchEmbedContents$") then
+  -- Public Gemini API pattern: https://generativelanguage.googleapis.com/v1beta/models/{model}:batchEmbedContent
+  if string.find(url, "generativelanguage%.googleapis%.com/v1beta/models/.+:batchEmbedContent") then
     return mock_gemini_embeddings(opts, url, true)
   end
 
   -- Public Gemini API pattern: https://generativelanguage.googleapis.com/v1beta/models/{model}:embedContent
-  if string.find(url, "generativelanguage%.googleapis%.com/v1beta/models/.+:embedContent$") then
+  if string.find(url, "generativelanguage%.googleapis%.com/v1beta/models/.+:embedContent") then
     return mock_gemini_embeddings(opts, url, false)
   end
 

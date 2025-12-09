@@ -452,9 +452,7 @@ function _M.setup_oauth_introspection_fixture(ip, port, path)
                         args.token == "valid_expired" or
                         args.token == "invalid_with_errors" or
                         args.token == "invalid_without_errors" or
-                        args.token == "valid_complex" or
-                        string.sub(args.token, 1, 5) == "echo:"
-                        then
+                        args.token == "valid_complex" then
 
                         if args.token == "valid_consumer" then
                           ngx.say([[{"active":true,
@@ -488,10 +486,6 @@ function _M.setup_oauth_introspection_fixture(ip, port, path)
                           ngx.say([[{"active":false, "error":"dummy error", "error_description": "dummy error desc"}]])
                         elseif args.token == "invalid_without_errors" then
                           ngx.say([[{"active":false}]])
-
-                        elseif string.sub(args.token, 1, 5) == "echo:" then
-                          ngx.say(string.sub(args.token, 6))
-
                         else
                           ngx.say([[{"active":true}]])
                         end

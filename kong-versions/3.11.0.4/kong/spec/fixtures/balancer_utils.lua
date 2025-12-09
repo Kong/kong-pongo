@@ -108,7 +108,6 @@ local function put_target_endpoint(upstream_id, host, port, endpoint)
   return res, err
 end
 
-
 -- client_sync_request requires a route with
 -- hosts = { "200.test" } to sync requests
 local function client_sync_request(proxy_host , proxy_port)
@@ -133,7 +132,6 @@ local function client_sync_request(proxy_host , proxy_port)
   proxy_client:close()
   return status == 200
 end
-
 
 local function client_requests(n, host_or_headers, proxy_host, proxy_port, protocol, uri)
   local oks, fails = 0, 0
@@ -521,7 +519,6 @@ local function begin_testcase_setup(strategy, bp)
   end
 end
 
-
 local function begin_testcase_setup_update(strategy, bp)
   if strategy == "off" then
     bp.reset_back()
@@ -588,7 +585,6 @@ local function get_db_utils_for_dc_and_admin_api(strategy, tables)
   return bp
 end
 
-
 local function setup_prefix(p)
   prefix = p
   local bp = require("spec.fixtures.admin_api")
@@ -602,7 +598,6 @@ local function teardown_prefix()
   bp.set_prefix(prefix)
 end
 
-
 local localhosts = {
   ipv4 = "127.0.0.1",
   ipv6 = "[::1]",
@@ -610,31 +605,17 @@ local localhosts = {
 }
 
 
-local algorithms = {
-  "consistent-hashing",
-  "latency",
-  "least-connections",
-  "round-robin",
-  "sticky-sessions",
-}
-
-
-local consistencies = { "strict", "eventual" }
+local consistencies = {"strict", "eventual"}
 
 
 local balancer_utils = {}
 --balancer_utils.
-balancer_utils.add_api = add_api
 balancer_utils.add_certificate = add_certificate
---- adds a target
----@param bp table blueprint
----@param upstream_id string
----@param host string
----@param port string|int? if nil, add_target will call get_available_port()
----@param data table table with other target params, any value here will be used with no validation done
+balancer_utils.add_api = add_api
 balancer_utils.add_target = add_target
+balancer_utils.update_target = update_target
 balancer_utils.add_upstream = add_upstream
-balancer_utils.algorithms = algorithms
+balancer_utils.remove_upstream = remove_upstream
 balancer_utils.begin_testcase_setup = begin_testcase_setup
 balancer_utils.begin_testcase_setup_update = begin_testcase_setup_update
 balancer_utils.client_requests = client_requests
@@ -658,10 +639,8 @@ balancer_utils.poll_wait_address_health = poll_wait_address_health
 balancer_utils.poll_wait_health = poll_wait_health
 balancer_utils.put_target_address_health = put_target_address_health
 balancer_utils.put_target_endpoint = put_target_endpoint
-balancer_utils.remove_upstream = remove_upstream
 balancer_utils.SLOTS = SLOTS
 balancer_utils.tcp_client_requests = tcp_client_requests
-balancer_utils.update_target = update_target
 balancer_utils.wait_for_router_update = wait_for_router_update
 
 -- XXX: EE [[

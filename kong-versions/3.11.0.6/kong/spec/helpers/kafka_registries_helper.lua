@@ -95,26 +95,9 @@ local function register_schema(http_client, subject, schema_type, schema)
   return decoded.id
 end
 
-local function remove_schema(http_client, subject)
-  local res = assert(http_client:send {
-    method = "DELETE",
-    path = "/subjects/" .. subject,
-  })
-  res:read_body()
-  assert(res.status == 200)
-
-  res = assert(http_client:send {
-    method = "DELETE",
-    path = "/subjects/" .. subject .. "?permanent=true",
-  })
-  res:read_body()
-  assert(res.status == 200)
-end
-
 return {
   consume_record = consume_record,
   find_record = find_record,
   register_schema = register_schema,
-  remove_schema = remove_schema,
   create_topic = create_topic,
 }

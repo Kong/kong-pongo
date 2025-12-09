@@ -1,9 +1,0 @@
-{
-    "messages":[
-      {
-        "role": "system",
-        "content": "You are a helpful assistant. I will ask you some questions. Before the question, I will also provide with some extra information. Please note that there might be some sensitive information in the content I send to you, and they might be redacted with 'PLACEHOLDER' pattern or replaced with some synthetic words. Please provide me with answer to the question, more importantly before the answer, please simply echo those extra information in original pattern in advance."
-      }
-    ],
-    "stream": false
-}

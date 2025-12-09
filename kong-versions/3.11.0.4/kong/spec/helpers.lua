@@ -39,7 +39,6 @@ local cmd = reload_module("spec.internal.cmd")
 local server = reload_module("spec.internal.server")
 local client = reload_module("spec.internal.client")
 local wait = reload_module("spec.internal.wait")
-local env = require("spec.busted.env")
 
 
 --- Create a temporary directory, and return its path.
@@ -230,8 +229,8 @@ end
   openresty_ver_num = misc.openresty_ver_num,
   unindent = misc.unindent,
   make_yaml_file = misc.make_yaml_file,
-  setenv = env.set,
-  unsetenv = env.unset,
+  setenv = misc.setenv,
+  unsetenv = misc.unsetenv,
   deep_sort = misc.deep_sort,
   generate_keys = misc.generate_keys,
   generate_oct_key = misc.generate_oct_key,
@@ -254,9 +253,6 @@ end
 
   -- plugin compatibility test
   use_old_plugin = misc.use_old_plugin,
-
-  -- ace plugin tests
-  enable_ace_admin_api = misc.enable_ace_admin_api,
 
   -- Only use in CLI tests from spec/02-integration/01-cmd
   kill_all = cmd.kill_all,

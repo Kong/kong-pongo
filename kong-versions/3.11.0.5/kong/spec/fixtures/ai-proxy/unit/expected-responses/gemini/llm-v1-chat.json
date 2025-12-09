@@ -10,7 +10,7 @@
     }
   ],
   "created": 1751926593,
-  "model": "gemini-1.5-pro-002",
+  "model": "gemini-pro",
   "object": "chat.completion",
   "id": "QUdsaIKDBs-u3NoP5Iyb8QY",
   "usage": {

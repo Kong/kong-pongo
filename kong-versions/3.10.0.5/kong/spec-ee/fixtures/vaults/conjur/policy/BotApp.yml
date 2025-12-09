@@ -1,4 +1,0 @@
-- !policy
-  id: BotApp
-  body:
-  - !host myDemoApp

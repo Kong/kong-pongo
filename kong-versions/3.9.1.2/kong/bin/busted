@@ -2,29 +2,29 @@
 
 setmetatable(_G, nil)
 
-if not os.getenv("KONG_BUSTED_RESPAWNED") then
-  local pl_path = require("pl.path")
-  local pl_file = require("pl.file")
-  local tools_system = require("kong.tools.system")
+local pl_path = require("pl.path")
+local pl_file = require("pl.file")
 
-  local cert_path do
-    local busted_cert_file = pl_path.tmpname()
-    local busted_cert_content = pl_file.read("spec/fixtures/kong_spec.crt")
+local tools_system = require("kong.tools.system")
 
-    local system_cert_path, err = tools_system.get_system_trusted_certs_filepath()
-    if system_cert_path then
-      busted_cert_content = busted_cert_content .. "\n" .. pl_file.read(system_cert_path)
-    end
+local emmy_debugger = require("kong.tools.emmy_debugger")
 
-    local cluster_cert_content = assert(pl_file.read("spec/fixtures/kong_clustering.crt"))
-    busted_cert_content = busted_cert_content .. "\n" .. cluster_cert_content
+local cert_path do
+  local busted_cert_file = pl_path.tmpname()
+  local busted_cert_content = pl_file.read("spec/fixtures/kong_spec.crt")
 
-    pl_file.write(busted_cert_file, busted_cert_content)
-    cert_path = busted_cert_file
+  local system_cert_path, err = tools_system.get_system_trusted_certs_filepath()
+  if system_cert_path then
+    busted_cert_content = busted_cert_content .. "\n" .. pl_file.read(system_cert_path)
   end
 
-  local DEFAULT_RESTY_FLAGS = string.format(" -c 4096 --http-conf 'lua_ssl_trusted_certificate %s;' ", cert_path)
+  pl_file.write(busted_cert_file, busted_cert_content)
+  cert_path = busted_cert_file
+end
 
+local DEFAULT_RESTY_FLAGS=string.format(" -c 4096 --http-conf 'lua_ssl_trusted_certificate %s;' ", cert_path)
+
+if not os.getenv("KONG_BUSTED_RESPAWNED") then
   -- initial run, so go update the environment
   local script = {}
   for line in io.popen("set"):lines() do
@@ -63,11 +63,6 @@ if not os.getenv("KONG_BUSTED_RESPAWNED") then
   -- create shared dict
   resty_flags = resty_flags .. require("spec.fixtures.shared_dict")
 
-  -- create lmdb environment
-  local lmdb_env = os.tmpname()
-  resty_flags = resty_flags .. string.format(' --main-conf "lmdb_environment_path %s;" ', lmdb_env)
-  resty_flags = resty_flags .. string.format(' --main-conf "lmdb_max_databases %s;" ', 3)
-
   if resty_flags then
     table.insert(cmd, cmd_prefix_count+1, resty_flags)
   end
@@ -80,7 +75,7 @@ if not os.getenv("KONG_BUSTED_RESPAWNED") then
 end
 
 if os.getenv("BUSTED_EMMY_DEBUGGER") then
-  require("kong.tools.emmy_debugger").init({
+  emmy_debugger.init({
     debugger = os.getenv("BUSTED_EMMY_DEBUGGER"),
     host = os.getenv("BUSTED_EMMY_DEBUGGER_HOST"),
     port = os.getenv("BUSTED_EMMY_DEBUGGER_PORT"),

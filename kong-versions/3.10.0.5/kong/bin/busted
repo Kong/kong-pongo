@@ -67,7 +67,6 @@ if not os.getenv("KONG_BUSTED_RESPAWNED") then
   local lmdb_env = os.tmpname()
   resty_flags = resty_flags .. string.format(' --main-conf "lmdb_environment_path %s;" ', lmdb_env)
   resty_flags = resty_flags .. string.format(' --main-conf "lmdb_max_databases %s;" ', 3)
-  resty_flags = resty_flags .. string.format(' --main-conf "lmdb_map_size %s;" ', "5m")
 
   if resty_flags then
     table.insert(cmd, cmd_prefix_count+1, resty_flags)

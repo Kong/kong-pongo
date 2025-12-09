@@ -528,8 +528,8 @@ do
       return nil, err
     end
     local _, err = plugins_schema:validate_insert(entity_to_insert)
-    if err then
-      return nil, err
+    if err then return
+      nil, err
     end
     return entity_to_insert
   end

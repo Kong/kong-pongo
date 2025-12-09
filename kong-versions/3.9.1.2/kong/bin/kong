@@ -42,6 +42,8 @@ local skip_inject_cmds = {
   version = true,
   roar = true,
   check = true,
+  stop = true,
+  quit = true,
   health = true,
   hybrid = true,
   debug = true,
@@ -144,9 +146,9 @@ require("kong.cmd.init")("%s", %s)
 
 local resty_ngx_log_level
 if arg.vv then
-  resty_ngx_log_level = skip_inject_cmds[cmd_name] and "notice" or "debug"
+  resty_ngx_log_level = "debug"
 elseif arg.v then
-  resty_ngx_log_level = skip_inject_cmds[cmd_name] and "warn" or "info"
+  resty_ngx_log_level = "info"
 end
 
 local resty_cmd = string.format(

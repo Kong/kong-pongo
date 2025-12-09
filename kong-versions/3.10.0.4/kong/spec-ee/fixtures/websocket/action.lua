@@ -13,8 +13,6 @@ local find = string.find
 local re_find = ngx.re.find
 local OPCODES = const.opcode
 local sleep = ngx.sleep
-local tablex = require "pl.tablex"
-local cjson = require "cjson.safe"
 
 ---
 -- WebSocket "actions" represent small pieces of code that are to be
@@ -163,16 +161,6 @@ local function recv_type(ws, exp_type, exp_data, exp_status)
 
   elseif typ ~= exp_type then
     return nil, fmt("expected %s frame but got %s frame", exp_type, typ)
-
-  elseif type(exp_data) == "table" then
-    local data_t, err = cjson.decode(data)
-    if err then
-      return nil, fmt("expected payload to be JSON but got: %q", data)
-    end
-
-    if not tablex.compare(exp_data, data_t, "==") then
-      return nil, fmt("expected payload: %s, received: %s", cjson.encode(exp_data), data)
-    end
 
   elseif exp_data and data ~= exp_data then
     return nil, fmt("expected payload: %q, received: %q", exp_data, data)

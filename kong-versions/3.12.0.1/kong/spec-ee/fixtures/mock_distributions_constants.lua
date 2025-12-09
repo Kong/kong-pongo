@@ -5,23 +5,6 @@
 -- at https://konghq.com/enterprisesoftwarelicense/.
 -- [ END OF LICENSE 0867164ffc95e54f04670b5169c09574bdbd9bba ]
 
-local DENY_WRITES = { POST = true, PUT = true, PATCH = true, DELETE = true }
-
-local function all_endpoints(verbs_map)
-  local application = require("kong.api")
-  local each_route = require("lapis.application.route_group").each_route
-
-  local endpoints = {}
-  each_route(application, true, function(route)
-    for k,_ in pairs(route) do
-      endpoints[k] = verbs_map
-    end
-  end)
-
-  return endpoints
-
-end
-
 local c = {}
 
 c.plugins = {
@@ -32,6 +15,8 @@ c.plugins = {
 }
 
 -- This is a mock of the distributions_constants.lua file.
+-- Additionally, full_expired and free are now the same, so if making a change to
+-- one, make sure to also change the other.
 c.featureset = {
   full = {
     conf = {},
@@ -53,7 +38,6 @@ c.featureset = {
       ["rbac_roles"] = true,
       ["rbac_user_roles"] = true,
       ["rbac_users"] = true,
-      ["rbac_user_groups"] = true,
     },
   },
   -- Free is the same as full_expired
@@ -62,7 +46,6 @@ c.featureset = {
     allow_admin_api = {
       ["/licenses"] = { ["*"] = true },
       ["/licenses/:licenses"] = { ["*"] = true },
-      ["/keyring/recover"] = { ["*"] = true },
     },
     allow_ee_entity = { READ = true, WRITE = false },
     disabled_ee_entities = {
@@ -77,11 +60,6 @@ c.featureset = {
       ["rbac_users"] = true,
       ["rbac_user_groups"] = true,
     },
-    -- READ-ONLY for all endpoints
-    deny_admin_api = function()
-        local endpoints =  all_endpoints(DENY_WRITES)
-        return endpoints
-        end,
   },
 }
 

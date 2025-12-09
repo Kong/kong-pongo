@@ -334,21 +334,6 @@ local function setup(finally)
               data = {}
               return red:ret(true, nil)
             end,
-            ["INFO"] = function (red, section)
-              if forced_error_msg then
-                return red:ret(nil, forced_error_msg)
-              end
-              if not section or section == "server" then
-                return red:ret("redis_version:6.2.6\nused_memory:123456\nused_memory_rss:123456\n")
-              end
-
-              if section ~= "memory" then
-                return red:ret(nil, "unsupported section " .. section)
-              end
-
-              -- return a mock memory info response
-              return red:ret("used_memory:123456\nused_memory_rss:123456\n")
-            end,
             ["expire"] = function(red, key, t)
               ngx.update_time()
               ttl[key] = t + ngx.now()

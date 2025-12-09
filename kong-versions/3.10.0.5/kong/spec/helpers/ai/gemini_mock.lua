@@ -65,14 +65,9 @@ local mock_request_router = function(_self, url, opts)
     return mock_vertex_embeddings(opts, url)
   end
 
-  -- Public Gemini API pattern: https://generativelanguage.googleapis.com/v1beta/models/{model}:batchEmbedContent
-  if string.find(url, "generativelanguage%.googleapis%.com/v1beta/models/.+:batchEmbedContent") then
-    return mock_gemini_embeddings(opts, url, true)
-  end
-
   -- Public Gemini API pattern: https://generativelanguage.googleapis.com/v1beta/models/{model}:embedContent
   if string.find(url, "generativelanguage%.googleapis%.com/v1beta/models/.+:embedContent") then
-    return mock_gemini_embeddings(opts, url, false)
+    return mock_gemini_embeddings(opts, url)
   end
 
   return nil, "URL " .. url .. " is not supported by gemini mocking"

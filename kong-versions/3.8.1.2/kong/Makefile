@@ -1,15 +1,13 @@
 OS := $(shell uname | awk '{print tolower($$0)}')
 MACHINE := $(shell uname -m)
 
-BAZEL_REMOTE_CACHE_OPT := $(if $(BAZEL_REMOTE_CACHE),--remote_cache=$(BAZEL_REMOTE_CACHE))
-LUAROCKS_OPTS ?= --server https://kong.github.io/kongrocks-dev/rocks/ OPENSSL_DIR=$(OPENSSL_DIR) YAML_DIR=$(YAML_DIR) AVRO_INCDIR=$(AVRO_INCDIR) AVRO_LIBDIR=$(AVRO_LIBDIR)
-DEV_ROCKS = "busted 2.2.0" "busted-hjtest 0.0.5" "luacheck 1.2.0" "lua-llthreads2 0.1.6" "ldoc 1.5.0" "luacov 0.16.0" "lua-reqwest 0.1.1"
+DEV_ROCKS = "busted 2.2.0" "busted-hjtest 0.0.5" "luacheck 1.2.0" "lua-llthreads2 0.1.6" "ldoc 1.5.0" "luacov 0.15.0"
 WIN_SCRIPTS = "bin/busted" "bin/kong" "bin/kong-health"
 BUSTED_ARGS ?= -v
 TEST_CMD ?= bin/busted $(BUSTED_ARGS)
 
 BUILD_NAME ?= kong-dev
-BAZEL_ARGS ?= --verbose_failures --action_env=BUILD_NAME=$(BUILD_NAME) --//:skip_webui=true  --//:skip_tools=true $(BAZEL_REMOTE_CACHE_OPT) --remote_upload_local_results=false
+BAZEL_ARGS ?= --verbose_failures --action_env=BUILD_NAME=$(BUILD_NAME) --//:skip_webui=true  --//:skip_tools=true
 
 ifeq ($(OS), darwin)
 HOMEBREW_DIR ?= /opt/homebrew
@@ -18,8 +16,6 @@ EXPAT_DIR ?= $(HOMEBREW_DIR)/opt/expat
 LIBXML2_DIR ?= $(HOMEBREW_DIR)/opt/libxml2
 GRPCURL_OS ?= osx
 YAML_DIR ?= $(shell brew --prefix)/opt/libyaml
-AVRO_LIBDIR ?= $(shell brew --prefix)/opt/avro/lib
-AVRO_INCDIR ?= $(shell brew --prefix)/opt/avro/include
 else
 LIBRARY_PREFIX ?= /usr
 OPENSSL_DIR ?= $(LIBRARY_PREFIX)
@@ -27,8 +23,6 @@ EXPAT_DIR ?= $(LIBRARY_PREFIX)
 LIBXML2_DIR ?= $(LIBRARY_PREFIX)
 GRPCURL_OS ?= $(OS)
 YAML_DIR ?= /usr
-AVRO_LIBDIR ?= /usr/local/kong/lib
-AVRO_INCDIR ?= /usr/local/kong/include/avro
 endif
 
 ifeq ($(MACHINE), aarch64)
@@ -50,12 +44,12 @@ endif
 .PHONY: install dev \
 	sca test test-integration test-plugins test-all \
 	pdk-phase-check functional-tests \
-	fix-windows release test-logs
+	fix-windows release wasm-test-filters test-logs
 
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 KONG_SOURCE_LOCATION ?= $(ROOT_DIR)
 GRPCURL_VERSION ?= 1.8.5
-BAZLISK_VERSION ?= 1.25.0
+BAZLISK_VERSION ?= 1.20.0
 H2CLIENT_VERSION ?= 0.4.4
 BAZEL := $(shell command -v bazel 2> /dev/null)
 VENV = /dev/null # backward compatibility when no venv is built
@@ -82,24 +76,14 @@ bin/h2client:
 		https://github.com/Kong/h2client/releases/download/v$(H2CLIENT_VERSION)/h2client_$(H2CLIENT_VERSION)_$(OS)_$(H2CLIENT_MACHINE).tar.gz | tar xz -C bin;
 	@$(RM) bin/README.md
 
-install-rust-toolchain:
-	@if command -v cargo; then \
-		echo "Rust is already installed in the local directory, skipping"; \
-	else \
-		echo "Installing Rust..."; \
-		curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path; \
-		. $$HOME/.cargo/env; \
-		rustup toolchain install stable; \
-		rustup default stable; \
-	fi
 
 check-bazel: bin/bazel
 ifndef BAZEL
 	$(eval BAZEL := bin/bazel)
 endif
 
-build-cache: check-bazel
-	$(BAZEL) build //build:cacheable-targets $(BAZEL_REMOTE_CACHE_OPT)
+wasm-test-filters:
+	./scripts/build-wasm-test-filters.sh
 
 build-kong: check-bazel
 	$(BAZEL) build //build:kong $(BAZEL_ARGS)
@@ -121,18 +105,17 @@ build-openresty: check-bazel
 
 install-dev-rocks: build-venv
 	@. $(VENV) ;\
-	export PATH=$$PATH:$$HOME/.cargo/bin; \
 	for rock in $(DEV_ROCKS) ; do \
 	  if luarocks list --porcelain $$rock | grep -q "installed" ; then \
 		echo $$rock already installed, skipping ; \
 	  else \
 		echo $$rock not found, installing via luarocks... ; \
 		LIBRARY_PREFIX=$$(pwd)/bazel-bin/build/$(BUILD_NAME)/kong ; \
-		luarocks install $$rock $(LUAROCKS_OPTS) || exit 1; \
+		luarocks install $$rock OPENSSL_DIR=$(OPENSSL_DIR) YAML_DIR=$(YAML_DIR) --server https://github.com/Kong/kongrocks-dev/raw/refs/heads/main/rocks/ || exit 1; \
 	  fi \
 	done;
 
-dev: install-rust-toolchain build-venv install-dev-rocks bin/grpcurl bin/h2client
+dev: build-venv install-dev-rocks bin/grpcurl bin/h2client wasm-test-filters
 
 build-release: check-bazel
 	$(BAZEL) clean --expunge
@@ -240,21 +223,20 @@ remove:
 	$(warning 'remove' target is deprecated, please use `make dev` instead)
 	-@luarocks remove kong
 
-dependencies: install-rust-toolchain bin/grpcurl bin/h2client
+dependencies: bin/grpcurl bin/h2client
 	$(warning 'dependencies' target is deprecated, this is now not needed when using `make dev`, but are kept for installation that are not built by Bazel)
 
-	export PATH=$$PATH:$$HOME/.cargo/bin; \
 	for rock in $(DEV_ROCKS) ; do \
 	  if luarocks list --porcelain $$rock | grep -q "installed" ; then \
 		echo $$rock already installed, skipping ; \
 	  else \
 		echo $$rock not found, installing via luarocks... ; \
-		luarocks install $$rock $(LUAROCKS_OPTS) || exit 1; \
+		luarocks install $$rock OPENSSL_DIR=$(OPENSSL_DIR) YAML_DIR=$(YAML_DIR) || exit 1; \
 	  fi \
 	done;
 
 install-legacy:
-	@luarocks make OPENSSL_DIR=$(OPENSSL_DIR) YAML_DIR=$(YAML_DIR) AVRO_INCDIR=$(AVRO_INCDIR) AVRO_LIBDIR=$(AVRO_LIBDIR)
+	@luarocks make OPENSSL_DIR=$(OPENSSL_DIR) YAML_DIR=$(YAML_DIR)
 
 dev-legacy: remove install-legacy dependencies
 
