@@ -15,6 +15,10 @@ local llmlingua_model_name_global = "gpt-3.5-turbo"
 local function ceil(x) return math.ceil(x) end
 
 local function count_tokens_mock(text, model_name)
+  if model_name ~= "gpt-3.5-turbo" then
+    return 0
+  end
+
   -- crude token count: words counted * 1.3 ceiling
   local _, count = string.gsub(text, "%S+", "")
   return ceil(count * 1.3)

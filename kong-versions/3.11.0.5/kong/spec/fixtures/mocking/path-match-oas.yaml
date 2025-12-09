@@ -61,15 +61,3 @@ paths:
       responses:
         201:
           description: Created
-  /special/{path}:
-    get:
-      parameters:
-        - name: path
-          in: path
-          description: 'Path with special characters'
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: Success

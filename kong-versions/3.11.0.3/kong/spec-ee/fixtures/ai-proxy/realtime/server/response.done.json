@@ -9,8 +9,8 @@
         "text_tokens": 178,
         "cached_tokens_details": {
           "audio_tokens": 128,
-          "text_tokens": 125,
-          "image_tokens": 3,
+          "text_tokens": 128,
+          "image_tokens": 0,
           "bananas": 0
         },
         "audio_tokens": 187

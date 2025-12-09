@@ -98,12 +98,11 @@ local function generate_bedrock_embeddings(opts, url)
 
   local request_body = cjson.decode(opts.body)
     if string.find(model, _TITAN_EMBED_PATTERN) then
-      local version = model:match("v%d+")
-
-      if request_body.dimensions and version == "v1" then
+      if request_body.dimensions then
         return nil, "titan embed model does not support dimensions"
       end
 
+      local version = model:match("v%d+")
       if version == "v1" and request_body.normalize then
         return nil, "Malformed input request: extraneous key [normalize] is not permitted, please reformat your input and try again"
       end
@@ -123,7 +122,7 @@ local function generate_bedrock_embeddings(opts, url)
   return embedding
 end
 
-local function generate_gemini_embeddings(opts, vertex_mode, batch)
+local function generate_gemini_embeddings(opts, vertex_mode)
   if opts.method ~= "POST" then
     return nil, "Only POST method is supported"
   end
@@ -139,15 +138,8 @@ local function generate_gemini_embeddings(opts, vertex_mode, batch)
     prompt = request_body ~= ngx.null and request_body.instances
       and request_body.instances[1] and request_body.instances[1].content
   else
-    if batch then
-      local request = request_body ~= ngx.null and request_body.requests
-        and request_body.requests[1]
-      prompt = request ~= ngx.null and request.content and request.content.parts
-        and request.content.parts[1] and request.content.parts[1].text
-    else
-      prompt = request_body ~= ngx.null and request_body.content and request_body.content.parts
-        and request_body.content.parts[1] and request_body.content.parts[1].text
-    end
+    prompt = request_body ~= ngx.null and request_body.content and request_body.content.parts
+      and request_body.content.parts[1] and request_body.content.parts[1].text
   end
 
   if not prompt then
@@ -211,13 +203,13 @@ local mock_gemini_embeddings = function(opts, url, batch_mode)
   if batch_mode then
     return make_response({
       embeddings = { {
-        values = assert(generate_gemini_embeddings(opts, false, true)),
+        values = assert(generate_gemini_embeddings(opts, false)),
       } },
     })
   else
     return make_response({
       embedding = {
-        values = assert(generate_gemini_embeddings(opts, false, false)),
+        values = assert(generate_gemini_embeddings(opts, false)),
       },
     })
   end
@@ -227,7 +219,7 @@ local mock_vertex_embeddings = function(opts, url)
   return make_response({
     predictions = { {
       embeddings = {
-        values = assert(generate_gemini_embeddings(opts, true, false)),
+        values = assert(generate_gemini_embeddings(opts, true)),
         statistics = {
           truncated = false,
           token_count = 8,

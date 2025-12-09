@@ -202,16 +202,9 @@ function https_server.start(self)
   end
 
   for _ = 1, HTTPS_SERVER_START_MAX_RETRY do
-    local ok, stdout, stderr, reason, status = shell.run("nginx -c " .. file .. " -p " .. self.base_path, nil, 0)
-    if ok then
+    if shell.run("nginx -c " .. file .. " -p " .. self.base_path, nil, 0) then
       return
     end
-
-    ngx.log(ngx.DEBUG, "failed to start HTTPS server")
-    ngx.log(ngx.DEBUG, "stdout: ", stdout)
-    ngx.log(ngx.DEBUG, "stderr: ", stderr)
-    ngx.log(ngx.DEBUG, "reason: ", reason)
-    ngx.log(ngx.DEBUG, "status: ", status)
 
     ngx.sleep(1)
   end

@@ -153,8 +153,6 @@ function resty_http_proxy_mt:send(opts, is_reopen)
       body = opts.body,
       headers = opts.headers,
       tls_verify = false,
-      timeout = opts.timeout or 30,
-      connect_timeout = opts.connect_timeout or 30,
     }
     local res, err = reqwest.request(url, reqwest_opt)
     if not res then
@@ -751,8 +749,7 @@ local function make_synchronized_clients(clients)
     luassert.res_status(404, res)
     luassert.equals("unknown", res.headers['x-kong-reconfiguration-status'])
   end)
-  .with_timeout(10)
-  .has_no_error()
+          .has_no_error()
 
   -- Save the original request functions for the admin and proxy client
   local proxy_request = synchronized_proxy_client.request
@@ -874,20 +871,6 @@ local function clustering_client(opts)
 
   local data, typ, err
   data, typ, err = c:recv_frame()
-  -- prefer config over pong: if first frame is PONG, keep waiting a bit for binary
-  if typ ~= "binary" then
-    local deadline = ngx.now() + (opts.wait_binary_seconds or 5)
-    c:set_timeout(500)
-    repeat
-      local d, t, e = c:recv_frame()
-      if t == "binary" and d then
-        data, typ, err = d, t, e
-        break
-      end
-      ngx.sleep(0.1)
-    until ngx.now() >= deadline
-  end
-
   c:close()
 
   if typ == "binary" then

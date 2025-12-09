@@ -7,7 +7,7 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/zookeper_jaas.conf -Dzookeeper.admin.serverPort=28080"
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/zookeper_jaas.conf"
     volumes:
       - ./zookeper_jaas.conf:/etc/kafka/zookeper_jaas.conf
 
@@ -117,17 +117,6 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: localhost:9092
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: localhost:2181
-      SCHEMA_REGISTRY_KAFKASTORE_TOPIC: schema_registry
-
-  schema-registry-oauth2:
-    extends: schema-registry
-    environment:
-      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8082
-      SCHEMA_REGISTRY_KAFKASTORE_TOPIC: schema_registry_oauth2
-      SCHEMA_REGISTRY_REST_SERVLET_INITIALIZOR_CLASSES: io.confluent.common.security.jetty.initializer.AuthenticationHandler
-      SCHEMA_REGISTRY_OAUTHBEARER_JWKS_ENDPOINT_URL: http://localhost:18080/realms/test/protocol/openid-connect/certs
-      SCHEMA_REGISTRY_OAUTHBEARER_EXPECTED_ISSUER: http://localhost:18080/realms/test
-      SCHEMA_REGISTRY_OAUTHBEARER_EXPECTED_AUDIENCE: account
 
   kong:
     image: kong/kong:3.8

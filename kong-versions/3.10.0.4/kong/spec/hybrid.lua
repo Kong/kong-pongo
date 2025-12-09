@@ -69,6 +69,8 @@ local function get_patched_helpers(strategy, deploy, rpc, rpc_sync, opts)
       cp_envs.cluster_control_plane = nil
       cp_envs.cluster_telemetry_endpoint = nil
 
+      assert(helpers.start_kong(cp_envs, tables, preserve_prefix, fixtures))
+
       local dp_envs = kong_table.deep_merge(env, hybrid_envs)
       dp_envs.database = "off"
       dp_envs.role = "data_plane"
@@ -78,9 +80,7 @@ local function get_patched_helpers(strategy, deploy, rpc, rpc_sync, opts)
       dp_envs.cluster_listen = nil
       dp_envs.cluster_telemetry_listen = nil
 
-      assert(helpers.start_kong_hybrid(
-        { env = cp_envs, tables = tables, preserve_prefix = preserve_prefix, fixtures = fixtures },
-        { env = dp_envs, preserve_prefix = preserve_prefix }))
+      assert(helpers.start_kong(dp_envs, nil, preserve_prefix, nil))
 
       _M.control_plane = helpers.get_running_conf("servroot")
       _M.data_plane = helpers.get_running_conf("servroot2")

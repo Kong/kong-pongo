@@ -1191,13 +1191,25 @@ end
 -- that use license data.
 -- It returns a function to set the envs back.
 function _M.clear_license_env()
+  local kld = os.getenv("KONG_LICENSE_DATA")
   helpers.unsetenv("KONG_LICENSE_DATA")
+
+  local klp = os.getenv("KONG_LICENSE_PATH")
   helpers.unsetenv("KONG_LICENSE_PATH")
 
-  -- not sure if this makes sense, but I've seen some test cases that forcibly
-  -- unset these vars
-  helpers.unsetenv("KONG_TEST_LICENSE_DATA")
-  helpers.unsetenv("KONG_TEST_LICENSE_PATH")
+  return function()
+    if kld then
+      helpers.setenv("KONG_LICENSE_DATA", kld)
+    else
+      helpers.unsetenv("KONG_LICENSE_DATA")
+    end
+
+    if klp then
+      helpers.setenv("KONG_LICENSE_PATH", klp)
+    else
+      helpers.unsetenv("KONG_LICENSE_PATH")
+    end
+  end
 end
 
 -- This function replace distributions_constants.lua to mock a GA release distribution.

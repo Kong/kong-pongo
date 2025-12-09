@@ -3,12 +3,10 @@ MACHINE := $(shell uname -m)
 
 BAZEL_REMOTE_CACHE_OPT := $(if $(BAZEL_REMOTE_CACHE),--remote_cache=$(BAZEL_REMOTE_CACHE))
 LUAROCKS_OPTS ?= --server https://kong.github.io/kongrocks-dev/rocks/ OPENSSL_DIR=$(OPENSSL_DIR) YAML_DIR=$(YAML_DIR) AVRO_INCDIR=$(AVRO_INCDIR) AVRO_LIBDIR=$(AVRO_LIBDIR)
-DEV_ROCKS = "busted 2.2.0" "busted-hjtest 0.0.5" "luacheck 1.2.0" "lua-llthreads2 0.1.6" "ldoc 1.5.0" "luacov 0.16.0" "lua-reqwest 0.1.2"
+DEV_ROCKS = "busted 2.2.0" "busted-hjtest 0.0.5" "luacheck 1.2.0" "lua-llthreads2 0.1.6" "ldoc 1.5.0" "luacov 0.16.0" "lua-reqwest 0.1.1"
 WIN_SCRIPTS = "bin/busted" "bin/kong" "bin/kong-health"
 BUSTED_ARGS ?= -v
 TEST_CMD ?= bin/busted $(BUSTED_ARGS)
-PYTHON ?= python3
-TEST_PYTHON_REQUIREMENTS_FILE = "spec-ee/fixtures/mcp/requirements.txt"
 
 BUILD_NAME ?= kong-dev
 BAZEL_ARGS ?= --verbose_failures --action_env=BUILD_NAME=$(BUILD_NAME) --//:skip_webui=true  --//:skip_tools=true $(BAZEL_REMOTE_CACHE_OPT) --remote_upload_local_results=false
@@ -57,7 +55,7 @@ endif
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 KONG_SOURCE_LOCATION ?= $(ROOT_DIR)
 GRPCURL_VERSION ?= 1.8.5
-BAZLISK_VERSION ?= 1.26.0
+BAZLISK_VERSION ?= 1.25.0
 H2CLIENT_VERSION ?= 0.4.4
 BAZEL := $(shell command -v bazel 2> /dev/null)
 VENV = /dev/null # backward compatibility when no venv is built
@@ -121,9 +119,6 @@ build-openresty: check-bazel
 		$(BAZEL) build //build:dev-make-openresty --verbose_failures --action_env=BUILD_NAME=$(BUILD_NAME); \
 	fi
 
-build-static-assets: check-bazel
-	$(BAZEL) build //build:install-static-assets --verbose_failures --action_env=BUILD_NAME=$(BUILD_NAME)
-
 install-dev-rocks: build-venv
 	@. $(VENV) ;\
 	export PATH=$$PATH:$$HOME/.cargo/bin; \
@@ -137,18 +132,7 @@ install-dev-rocks: build-venv
 	  fi \
 	done;
 
-install-test-python-packages: build-venv
-	@. $(VENV) ;\
-	$(PYTHON) -m pip --version || { \
-	  echo "Python pip is not installed, install it first"; \
-	  bash ./scripts/install-pip.sh; \
-	}; \
-	for file in $(TEST_PYTHON_REQUIREMENTS_FILE); do \
-	  echo "Installing Python package from $$file"; \
-	  $(PYTHON) -m pip install --user --break-system-packages -r $$file; \
-	done;
-
-dev: install-rust-toolchain build-venv install-dev-rocks install-test-python-packages bin/grpcurl bin/h2client
+dev: install-rust-toolchain build-venv install-dev-rocks bin/grpcurl bin/h2client
 
 build-release: check-bazel
 	$(BAZEL) clean --expunge
@@ -273,3 +257,4 @@ install-legacy:
 	@luarocks make OPENSSL_DIR=$(OPENSSL_DIR) YAML_DIR=$(YAML_DIR) AVRO_INCDIR=$(AVRO_INCDIR) AVRO_LIBDIR=$(AVRO_LIBDIR)
 
 dev-legacy: remove install-legacy dependencies
+

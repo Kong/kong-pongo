@@ -1,6 +1,7 @@
 #!/usr/bin/env resty
 
 setmetatable(_G, nil)
+pcall(require, "luarocks.loader")
 package.path = (os.getenv("KONG_LUA_PATH_OVERRIDE") or "") .. "./?.lua;./?/init.lua;" .. package.path
 require("kong.globalpatches")({ cli = true })
 math.randomseed() -- Generate PRNG seed
@@ -30,7 +31,6 @@ local cmds = {
   roar = true,
   hybrid = true,
   vault = true,
-  drain = true,
   -- [=[ EE
   runner = true,
   debug = true,
@@ -42,10 +42,11 @@ local skip_inject_cmds = {
   version = true,
   roar = true,
   check = true,
+  stop = true,
+  quit = true,
   health = true,
   hybrid = true,
   debug = true,
-  drain = true,
 }
 
 for k in pairs(cmds) do
@@ -137,6 +138,8 @@ local args_str = table.concat(args_table, " ")
 local inline_code = string.format([[
 setmetatable(_G, nil)
 
+pcall(require, "luarocks.loader")
+
 package.path = (os.getenv("KONG_LUA_PATH_OVERRIDE") or "") .. "./?.lua;./?/init.lua;" .. package.path
 
 require("kong.cmd.init")("%s", %s)
@@ -144,9 +147,9 @@ require("kong.cmd.init")("%s", %s)
 
 local resty_ngx_log_level
 if arg.vv then
-  resty_ngx_log_level = skip_inject_cmds[cmd_name] and "notice" or "debug"
+  resty_ngx_log_level = "debug"
 elseif arg.v then
-  resty_ngx_log_level = skip_inject_cmds[cmd_name] and "warn" or "info"
+  resty_ngx_log_level = "info"
 end
 
 local resty_cmd = string.format(

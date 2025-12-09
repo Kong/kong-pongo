@@ -24,7 +24,7 @@ services:
       # SSL
       KAFKA_TLS_TYPE: JKS
       KAFKA_CERTIFICATE_PASSWORD: confluent
-      KAFKA_SSL_CLIENT_AUTH: "requested"
+      KAFKA_SSL_CLIENT_AUTH: "required"
       KAFKA_NUM_PARTITIONS: 3
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_SSL_KEYSTORE_FILENAME: keystore/kafka.keystore.jks

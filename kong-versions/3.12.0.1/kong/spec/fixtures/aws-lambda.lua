@@ -85,10 +85,6 @@ local fixtures = {
                       ngx.header["Content-Type"] = "application/json"
                       ngx.say("{\"statusCode\": 200, \"body\": \"{}\", \"headers\": {\"Content-Type\": \"application/json\", \"Content-Length\": 2}}")
 
-                    elseif string.match(ngx.var.uri, "functionWithErrorBadRequest") then
-                      ngx.status = 400
-                      ngx.header["Content-Length"] = 0
-                      ngx.say("")
 
                     elseif type(res) == 'string' then
                       ngx.header["Content-Length"] = #res + 1

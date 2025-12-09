@@ -153,8 +153,6 @@ function resty_http_proxy_mt:send(opts, is_reopen)
       body = opts.body,
       headers = opts.headers,
       tls_verify = false,
-      timeout = opts.timeout or 30,
-      connect_timeout = opts.connect_timeout or 30,
     }
     local res, err = reqwest.request(url, reqwest_opt)
     if not res then

@@ -12,8 +12,6 @@ local test_vault = require "spec.fixtures.custom_vaults.kong.vaults.test"
 local utils = require "kong.tools.utils"
 local cjson = require "cjson"
 local assert = require("luassert")
-local http = require "resty.luasocket.http"
-local fmt = string.format
 
 
 -- AWS dependencies
@@ -32,11 +30,6 @@ local access_token = require "resty.gcp.request.credentials.accesstoken"
 
 -- HCV dependencies
 local hcv = require "kong.vaults.hcv"
-
-
--- Conjur dependencies
-local conjur = require "kong.vaults.conjur"
-local conjur_authn = require "kong.vaults.conjur.authn"
 
 
 --- A vault test harness is a driver for vault backends, which implements
@@ -358,92 +351,6 @@ local VAULTS = {
           method = "DELETE",
         })
       assert.is_nil(err)
-    end
-  },
-
-  -- conjur vault
-  {
-    name = "conjur",
-
-    config = {
-      endpoint_url = "http://localhost:8300",
-      account = assert(os.getenv("CONJUR_TEST_ACCOUNT")),
-      login = "host/BotApp/myDemoApp",
-      api_key = assert(os.getenv("CONJUR_TEST_API_KEY"))
-    },
-
-    admin_config = {
-      endpoint_url = "http://localhost:8300",
-      account = assert(os.getenv("CONJUR_TEST_ACCOUNT")),
-      login = "admin",
-      api_key = assert(os.getenv("CONJUR_ADMIN_API_KEY"))
-    },
-
-    secret_prefix = "BotApp/",
-
-    create_secret = function(self, secret, value, ...)
-      local token, err = conjur_authn.vault_token_exchange(self.admin_config)
-      assert.is_nil(err)
-      local secret_name = secret:match("^BotApp/(.+)")
-      local req_opts = {
-        method = "PATCH",
-        headers = {
-          ["Authorization"] = "Token token=\"" .. token .. "\"",
-        },
-        body = fmt([[- !policy
-  id: BotApp
-  body:
-  - !variable %s
-  - !permit
-    # Give permissions to the non-human identity to fetch the secret.
-    role: !host myDemoApp
-    privileges: [read, update, execute]
-    resource:
-      - !variable %s]], secret_name, secret_name)
-      }
-      local client, err = http.new()
-      assert.is_not_nil(client, err)
-      local url = fmt("%s/policies/%s/policy/root", self.admin_config.endpoint_url, self.admin_config.account)
-      local res, err = client:request_uri(url, req_opts)
-      assert.is_nil(err)
-      assert.same(201, res.status)
-      return self:update_secret(secret, value, ...)
-    end,
-
-    update_secret = function(self, secret, value, _)
-      local token, err = conjur_authn.vault_token_exchange(self.admin_config)
-      assert.is_nil(err)
-      local req_opts = {
-        method = "POST",
-        headers = {
-          ["Authorization"] = "Token token=\"" .. token .. "\"",
-        },
-        body = cjson.encode({secret = value})
-      }
-      local client, err = http.new()
-      assert.is_not_nil(client, err)
-      local res, err = client:request_uri(conjur._get_secret_url(self.admin_config, secret), req_opts)
-      assert.is_nil(err)
-      assert.same(201, res.status)
-    end,
-
-    delete_secret = function(self, secret)
-      local token, err = conjur_authn.vault_token_exchange(self.admin_config)
-      assert.is_nil(err)
-      local req_opts = {
-        method = "PATCH",
-        headers = {
-          ["Authorization"] = "Token token=\"" .. token .. "\"",
-        },
-        body = fmt([[- !delete
-  record: !variable %s]], secret)
-      }
-      local client, err = http.new()
-      assert.is_not_nil(client, err)
-      local url = fmt("%s/policies/%s/policy/root", self.admin_config.endpoint_url, self.admin_config.account)
-      local res, err = client:request_uri(url, req_opts)
-      assert.is_nil(err)
-      assert.same(201, res.status)
     end
   }
 }

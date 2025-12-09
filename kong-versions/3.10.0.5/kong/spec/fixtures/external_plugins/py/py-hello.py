@@ -3,17 +3,7 @@ import os
 import kong_pdk.pdk.kong as kong
 
 Schema = (
-    {
-        "message": {
-            "type": "string"
-        }
-    },
-    {
-        "secret": {
-            "type": "string",
-            "referenceable": True,
-        }
-    },
+    {"message": {"type": "string"}},
 )
 
 version = '0.1.0'
@@ -39,7 +29,6 @@ class Plugin(object):
             message = self.config['message']
         kong.response.set_header("x-hello-from-python", "Python says %s to %s" % (message, host))
         kong.response.set_header("x-python-pid", str(os.getpid()))
-        kong.response.set_header("x-python-secret", self.config.get('secret') or "")
 
 
 # add below section to allow this plugin optionally be running in a dedicated process

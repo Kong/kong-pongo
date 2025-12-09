@@ -7,8 +7,6 @@ DEV_ROCKS = "busted 2.2.0" "busted-hjtest 0.0.5" "luacheck 1.2.0" "lua-llthreads
 WIN_SCRIPTS = "bin/busted" "bin/kong" "bin/kong-health"
 BUSTED_ARGS ?= -v
 TEST_CMD ?= bin/busted $(BUSTED_ARGS)
-PYTHON ?= python3
-TEST_PYTHON_REQUIREMENTS_FILE = "spec-ee/fixtures/mcp/requirements.txt"
 
 BUILD_NAME ?= kong-dev
 BAZEL_ARGS ?= --verbose_failures --action_env=BUILD_NAME=$(BUILD_NAME) --//:skip_webui=true  --//:skip_tools=true $(BAZEL_REMOTE_CACHE_OPT) --remote_upload_local_results=false
@@ -134,14 +132,7 @@ install-dev-rocks: build-venv
 	  fi \
 	done;
 
-install-test-python-packages: build-venv
-	@. $(VENV) ;\
-	for file in $(TEST_PYTHON_REQUIREMENTS_FILE); do \
-	  echo "Installing Python package from $$file"; \
-	  $(PYTHON) -m pip install --user --break-system-packages -r $$file; \
-	done;
-
-dev: install-rust-toolchain build-venv install-dev-rocks install-test-python-packages bin/grpcurl bin/h2client
+dev: install-rust-toolchain build-venv install-dev-rocks bin/grpcurl bin/h2client
 
 build-release: check-bazel
 	$(BAZEL) clean --expunge

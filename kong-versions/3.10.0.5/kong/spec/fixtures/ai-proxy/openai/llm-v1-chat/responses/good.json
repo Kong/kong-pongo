@@ -17,16 +17,6 @@
   "usage": {
       "completion_tokens": 12,
       "prompt_tokens": 25,
-      "total_tokens": 37,
-      "prompt_tokens_details": {
-        "cached_tokens": 0,
-        "audio_tokens": 2
-      },
-      "completion_tokens_details": {
-        "reasoning_tokens": 3,
-        "audio_tokens": 4,
-        "accepted_prediction_tokens": 5,
-        "rejected_prediction_tokens": 6
-      }
+      "total_tokens": 37
   }
 }

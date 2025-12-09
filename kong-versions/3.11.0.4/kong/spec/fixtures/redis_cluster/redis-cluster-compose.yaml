@@ -1,3 +1,4 @@
+version: '3.5'
 name: redis-cluster
 services:
   rc-node-1:
@@ -60,3 +61,7 @@ volumes:
   rc-node-4-data:
   rc-node-5-data:
   rc-node-6-data:
+
+networks:
+  default:
+    name: redis-cluster
