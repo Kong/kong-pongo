@@ -56,10 +56,10 @@ function versions_to_test {
       if ((segments == 4)); then
         # this is a 4 segment version, which means it is an EE version.
         # For an EE version we need to replace the last 2 digits
-        VERSION="${VERSION:0:${#VERSION}-3}x.x"
+        VERSION="$(echo $VERSION | cut -d. -f1,2).x.x"
       else
         # this should then be an OSS version, replace 1 digit
-        VERSION="${VERSION:0:${#VERSION}-1}x"
+        VERSION="$(echo $VERSION | cut -d. -f1,2).x"
       fi
     fi
 
