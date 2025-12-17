@@ -1,0 +1,211 @@
+openapi: 3.0.1
+info:
+  title: A OpenAPI spec
+  description: A OpenAPI spec for multiple test cases
+  version: 1.0.0
+
+paths:
+
+  /nullable/properties:
+    post:
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/NullablePropertiesObject'
+        required: true
+      responses:
+        200:
+          description: OK
+          content: {}
+
+  /nullable/object:
+    post:
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/NullableObject'
+        required: true
+      responses:
+        200:
+          description: OK
+          content: {}
+
+  /nullable/enum:
+    post:
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/NullableEnum'
+        required: true
+      responses:
+        200:
+          description: OK
+          content: {}
+
+  /regex/pattern/{anything}:
+    get:
+      parameters:
+        - name: anything
+          in: path
+          required: true
+          schema:
+            pattern: .+
+            type: string
+      responses:
+        200:
+          description: OK
+          content: {}
+
+    post:
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/RegexPatternObject'
+        required: true
+      responses:
+        200:
+          description: OK
+          content: {}
+
+  /anytype/{anytype}:
+    get:
+      parameters:
+        - name: anytype
+          in: path
+          required: true
+          style: simple
+          explode: false
+          schema: {}
+      responses:
+        200:
+          description: OK
+          content: {}
+
+  /cookie/required:
+    get:
+      parameters:
+        - name: cookie_boolean_required
+          in: cookie
+          schema:
+            type: boolean
+          required: true
+      responses:
+        200:
+          description: OK
+          content: { }
+  /cookie/optional:
+    get:
+      parameters:
+        - name: cookie_integer
+          in: cookie
+          schema:
+            type: integer
+        - name: cookie_string
+          in: cookie
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+          content: { }
+  /cookie/array:
+    get:
+      parameters:
+        - name: cookie_array
+          in: cookie
+          schema:
+            type: array
+            items:
+              type: integer
+          required: true
+          explode: false
+      responses:
+        200:
+          description: OK
+          content: { }
+  /cookie/object:
+    get:
+      parameters:
+        - name: cookie_object
+          in: cookie
+          schema:
+            $ref: "#/components/schemas/CookieObject"
+          required: true
+          explode: false
+      responses:
+        200:
+          description: OK
+          content: { }
+  /readonly-writeonly:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                write_only_field:
+                  type: string
+                  writeOnly: true 
+                normal_field:
+                  type: string
+              required:
+                - write_only_field
+        required: true
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  read_only_field:
+                    type: string
+                    readOnly: true
+                  normal_field:
+                    type: string
+
+components:
+  schemas:
+    NullablePropertiesObject:
+      type: object
+      properties:
+        string_nullable:
+          type: string
+          nullable: true
+        integer_nullable:
+          type: integer
+          nullable: true
+        boolean_nullable:
+          type: boolean
+          nullable: true
+        object_nullable:
+          type: object
+          nullable: true
+    NullableObject:
+      type: object
+      nullable: true
+    NullableEnum:
+      type: string
+      nullable: true
+      enum:
+        - "hello world"
+        - null
+    RegexPatternObject:
+      type: object
+      properties:
+        email:
+          type: string
+          pattern: "^[a-zA-Z0-9_!#$%&’*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$"
+    CookieObject:
+      type: object
+      properties:
+        string:
+          type: string
+        integer:
+          type: integer

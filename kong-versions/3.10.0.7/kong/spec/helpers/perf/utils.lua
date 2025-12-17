@@ -39,7 +39,6 @@ local function execute(cmd, opts)
 
   local proc, err = ngx_pipe.spawn(cmd, {
     merge_stderr = true,
-    environ = opts and opts.environ or nil,
   })
   if not proc then
     return "", "failed to start process: " .. err

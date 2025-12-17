@@ -97,7 +97,6 @@ end
 -- @tparam[opt=false] bool opts.log_opts.collect_resp_body whether to log response bodies
 -- @tparam[opt=true] bool opts.log_opts.collect_err: whether to log errors
 -- @tparam[opt] string opts.init: the lua code injected into the init_by_lua_block
--- @tparam[opt=false] bool opts.check_client_abort: sets `lua_check_client_abort on` to catch downstream disconnects
 -- @treturn http_mock a mock instance
 -- @treturn string the port the mock server listens to
 -- @usage
@@ -200,10 +199,6 @@ function http_mock.new(listens, routes, opts)
   local tls_certificate = opts.tls_certificate or "../../spec/fixtures/kong_spec.crt"
   local tls_certificate_key = opts.tls_certificate_key or "../../spec/fixtures/kong_spec.key"
 
-  default_field(opts, "check_client_abort", false)
-  if opts.check_client_abort then
-    table.insert(directives, "lua_check_client_abort on;")
-  end
 
   local _self = setmetatable({
     prefix = prefix,
@@ -214,7 +209,6 @@ function http_mock.new(listens, routes, opts)
     dicts = opts.dicts,
     init = opts.init,
     log_opts = log_opts,
-    opts = opts,
     logs = {},
     tls = opts.tls,
     tls_certificate = tls_certificate,

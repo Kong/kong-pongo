@@ -75,14 +75,6 @@ http {
 
     setmetatable(_G, g_meta)
 # end
-
-# if opts.check_client_abort then
-    _G.on_client_abort = function()
-      ngx.log(ngx.NOTICE, "client abort")
-      ngx.exit(499)
-    end
-# end
-
 # if init then
 $(init)
 # end
@@ -154,13 +146,6 @@ $(init)
       $(route.directives)
 
 # end
-
-# if opts.check_client_abort then
-      rewrite_by_lua_block {
-        assert(ngx.on_abort(_G.on_client_abort))
-      }
-# end
-
 # if route.access or log_opts.req then
       access_by_lua_block {
 # if log_opts.req then

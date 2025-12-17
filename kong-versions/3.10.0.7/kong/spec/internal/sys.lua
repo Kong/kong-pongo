@@ -19,7 +19,6 @@ local ffi = require("ffi")
 ffi.cdef [[
   int setenv(const char *name, const char *value, int overwrite);
   int unsetenv(const char *name);
-  extern char **environ;
 ]]
 
 
@@ -45,39 +44,7 @@ local function unsetenv(env)
 end
 
 
--- mostly copy/paste from `kong.cmd.utils.env`
----@return { [string]: string? }
-local function readenv()
-  local env = {}
-
-  local environ = ffi.C.environ
-  if not environ then
-    error("failed to read **environ")
-  end
-
-  local i = 0
-
-  while environ[i] ~= nil do
-    local l = ffi.string(environ[i])
-    local eq = string.find(l, "=", nil, true)
-
-    if eq then
-      local name = string.sub(l, 1, eq - 1)
-      local val = string.sub(l, eq + 1)
-      env[name] = val
-    end
-
-    i = i + 1
-  end
-
-  return env
-end
-
-
-
 return {
-  getenv = os.getenv,
   setenv = setenv,
   unsetenv = unsetenv,
-  readenv = readenv,
 }

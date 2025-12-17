@@ -18,16 +18,10 @@ local helpers     = require "spec.helpers"
 local listeners = require "kong.conf_loader.listeners"
 local cjson = require "cjson.safe"
 local assert = require "luassert"
+local utils = require "kong.tools.utils"
 local admins_helpers = require "kong.enterprise_edition.admins_helpers"
 local pl_file = require "pl.file"
 local map = require "pl.tablex".map
-local vectordb = require("kong.llm.vectordb")
-local sha256_hex = require("kong.tools.sha256").sha256_hex
-
-
-local splitn = require("kong.tools.string").splitn
-local uuid = require("kong.tools.uuid").uuid
-
 
 local _M = {}
 
@@ -55,7 +49,7 @@ function _M.parsed_redis_cluster_nodes()
 
   local redis_cluster_nodes = {}
   for node in string.gmatch(env_cluster_addresses, "[^,]+") do
-    local parts = splitn(node, ":", 3)
+    local parts = utils.split(node, ":")
     local parsed_address = { ip = parts[1], port = tonumber(parts[2]) }
     table.insert(redis_cluster_nodes, parsed_address)
   end
@@ -78,7 +72,7 @@ function _M.parsed_redis_sentinel_nodes()
 
   local redis_sentinel_nodes = {}
   for node in string.gmatch(env_sentinel_addresses, "[^,]+") do
-    local parts = splitn(node, ":", 3)
+    local parts = utils.split(node, ":")
     local parsed_address = { host = parts[1], port = tonumber(parts[2]) }
     table.insert(redis_sentinel_nodes, parsed_address)
   end
@@ -124,7 +118,7 @@ function _M.register_rbac_resources(db, ws_name, ws_table)
 
   -- first, a read-only role across everything
   roles.read_only, err = db.rbac_roles:insert({
-    id = uuid(),
+    id = utils.uuid(),
     name = "read-only",
     comment = "Read-only access across all initial RBAC resources",
   }, opts)
@@ -153,7 +147,7 @@ function _M.register_rbac_resources(db, ws_name, ws_table)
 
   -- admin role with CRUD access to all resources except RBAC resource
   roles.admin, err = db.rbac_roles:insert({
-    id = uuid(),
+    id = utils.uuid(),
     name = "admin",
     comment = "CRUD access to most initial resources (no RBAC)",
   }, opts)
@@ -191,7 +185,7 @@ function _M.register_rbac_resources(db, ws_name, ws_table)
 
   -- finally, a super user role who has access to all initial resources
   roles.super_admin, err = db.rbac_roles:insert({
-    id = uuid(),
+    id = utils.uuid(),
     name = "super-admin",
     comment = "Full CRUD access to all initial resources, including RBAC entities",
   }, opts)
@@ -223,7 +217,7 @@ function _M.register_rbac_resources(db, ws_name, ws_table)
   end
 
   local super_admin, err = db.rbac_users:insert({
-    id = uuid(),
+    id = utils.uuid(),
     name = "super_gruce-" .. ws_name,
     user_token = "letmein-" .. ws_name,
     enabled = true,
@@ -454,9 +448,7 @@ function _M.setup_oauth_introspection_fixture(ip, port, path)
                         args.token == "valid_expired" or
                         args.token == "invalid_with_errors" or
                         args.token == "invalid_without_errors" or
-                        args.token == "valid_complex" or
-                        string.sub(args.token, 1, 5) == "echo:"
-                        then
+                        args.token == "valid_complex" then
 
                         if args.token == "valid_consumer" then
                           ngx.say([[{"active":true,
@@ -490,10 +482,6 @@ function _M.setup_oauth_introspection_fixture(ip, port, path)
                           ngx.say([[{"active":false, "error":"dummy error", "error_description": "dummy error desc"}]])
                         elseif args.token == "invalid_without_errors" then
                           ngx.say([[{"active":false}]])
-
-                        elseif string.sub(args.token, 1, 5) == "echo:" then
-                          ngx.say(string.sub(args.token, 6))
-
                         else
                           ngx.say([[{"active":true}]])
                         end
@@ -648,8 +636,8 @@ do
 
     if id then
       table.insert(msg, "--- Request ID: " .. id)
-      local pok, log = pcall(ws.get_session_log, id)
-      if pok and log then
+      local log = ws.get_session_log(id)
+      if log then
         table.insert(msg, "--- kong.log.serialize():")
         table.insert(msg, inspect(log))
       end
@@ -1191,13 +1179,25 @@ end
 -- that use license data.
 -- It returns a function to set the envs back.
 function _M.clear_license_env()
+  local kld = os.getenv("KONG_LICENSE_DATA")
   helpers.unsetenv("KONG_LICENSE_DATA")
+
+  local klp = os.getenv("KONG_LICENSE_PATH")
   helpers.unsetenv("KONG_LICENSE_PATH")
 
-  -- not sure if this makes sense, but I've seen some test cases that forcibly
-  -- unset these vars
-  helpers.unsetenv("KONG_TEST_LICENSE_DATA")
-  helpers.unsetenv("KONG_TEST_LICENSE_PATH")
+  return function()
+    if kld then
+      helpers.setenv("KONG_LICENSE_DATA", kld)
+    else
+      helpers.unsetenv("KONG_LICENSE_DATA")
+    end
+
+    if klp then
+      helpers.setenv("KONG_LICENSE_PATH", klp)
+    else
+      helpers.unsetenv("KONG_LICENSE_PATH")
+    end
+  end
 end
 
 -- This function replace distributions_constants.lua to mock a GA release distribution.
@@ -1249,69 +1249,5 @@ _M.admin_gui_listeners = listeners._parse_listeners(helpers.test_conf.admin_gui_
 _M.redis_cluster_nodes = _M.parsed_redis_cluster_nodes()
 _M.redis_sentinel_nodes = _M.parsed_redis_sentinel_nodes()
 _M.redis_cluster_addresses = _M.redis_cluster_nodes_joined()
-
---- Helper function to check if a vector exists in the vector database
--- @param vectordb_config table the vector database configuration (contains strategy)
--- @param namespace string the namespace to check in
--- @param key string the key (e.g., sha256 hash) to check for
--- @return boolean true if vector exists, false otherwise
--- @return string error message if any
-local function check_vector_exists(vectordb_config, namespace, key)
-  local vector_strategy = vectordb_config.strategy
-  local vector_connector, err = vectordb.new(vector_strategy, namespace, vectordb_config)
-  if err then
-    return nil, "Failed to create vector connector: " .. err
-  end
-  
-  local namespaced_key = namespace .. ":" .. key
-  
-  local value, err = vector_connector:get(namespaced_key)
-  
-  if err then
-    return nil, "Failed to get key: " .. err
-  end
-  
-  return value ~= nil
-end
-
---- Check if vectors exist in the vector database
--- @param vectordb_config table the vector database configuration (contains strategy)
--- @param namespace string the namespace to check in
--- @param texts table array of texts to check for
--- @return boolean true if all vectors exist, false otherwise
--- @return string error message if any
-function _M.check_vectors_exist(vectordb_config, namespace, texts)
-  for _, text in ipairs(texts) do
-    local key = sha256_hex(text)
-    local exists, err = check_vector_exists(vectordb_config, namespace, key)
-    if err then
-      return false, err
-    end
-    if not exists then
-      return false
-    end
-  end
-  return true
-end
-
---- Check if vectors have been deleted from the vector database
--- @param vectordb_config table the vector database configuration (contains strategy)
--- @param namespace string the namespace to check in
--- @param texts table array of texts to check for deletion
--- @return boolean true if all vectors are deleted, false otherwise
--- @return string error message if any
-function _M.check_vectors_deleted(vectordb_config, namespace, texts)
-  for _, text in ipairs(texts) do
-    local key = sha256_hex(text)
-    local exists, err = check_vector_exists(vectordb_config, namespace, key)
-    if err then
-      return false, err
-    end
-    if exists then
-      return false
-    end
-  end
-  return true
-end
 
 return _M

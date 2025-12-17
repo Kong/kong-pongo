@@ -72,13 +72,12 @@ require("spec.helpers.wait")
 -- @param timeout (optional) maximum time to wait after which an error is
 -- thrown, defaults to 5.
 -- @param step (optional) interval between checks, defaults to 0.05.
--- @param message (optional) custom message to display on timeout for debugging.
 -- @return nothing. It returns when the condition is met, or throws an error
 -- when it times out.
 -- @usage
 -- -- wait 10 seconds for a file "myfilename" to appear
 -- helpers.wait_until(function() return file_exist("myfilename") end, 10)
-local function wait_until(f, timeout, step, message)
+local function wait_until(f, timeout, step)
   if CONSTANTS.TEST_COVERAGE_MODE == "true" then
     timeout = CONSTANTS.TEST_COVERAGE_TIMEOUT
   end
@@ -88,7 +87,6 @@ local function wait_until(f, timeout, step, message)
     fn = f,
     timeout = timeout,
     step = step,
-    message = message,
   })
 end
 
@@ -141,16 +139,10 @@ end
 -- @tparam number forced_admin_port to override the default port of admin API (optional)
 -- @usage helpers.wait_timer("rate-limiting", true, "all-finish", 10)
 local function wait_timer(timer_name_pattern, plain,
-                          mode, wait_opts,
+                          mode, timeout,
                           admin_client_timeout, forced_admin_port)
-  -- if not set, we will use pass nil to wait_until for defaults
-  local step
-  local timeout
-  if type(wait_opts) == "table" then
-    step = wait_opts.step
-    timeout = wait_opts.timeout
-  elseif type(wait_opts) == "number" then
-    timeout = wait_opts
+  if not timeout then
+    timeout = 2
   end
 
   local _admin_client
@@ -259,7 +251,7 @@ local function wait_timer(timer_name_pattern, plain,
     end
 
     error("unexpected error")
-  end, timeout, step)
+  end, timeout)
 end
 
 
@@ -747,41 +739,6 @@ end
 -- XXX EE ]]
 
 
---- Waits for a Kong instance's status API to return ready.
--- @function wait_until_kong_status_ready
--- @param config the `env` config table. `status_listen` must be set in order
---               to check the status endpoint and determine the instance is ready.
--- @param timeout timeout in seconds to wait for the instance to be ready
--- @param step time in seconds to wait between each check
--- @return true when the instance is ready
-local function wait_until_kong_status_ready(config, timeout, step)
-  assert(type(config) == "table", "config must be a table")
-  assert(config.status_listen, "status_listen is not set in the config")
-
-  local port = config.status_listen:match(":(%d+)")
-  assert(tonumber(port), "could not find valid port in status_listen")
-
-  timeout = timeout or 60
-  step = step or 0.1
-
-  wait_until(function()
-    local ok, status_client = pcall(client.http_client, "127.0.0.1", port, 20000)
-    if not ok then
-      return false
-    end
-
-    local res = status_client:send {
-      method = "GET",
-      path = "/status/ready",
-    }
-    status_client:close()
-
-    return res and res.status == 200
-  end, timeout, step)
-  return true
-end
-
-
 return {
   get_available_port = get_available_port,
 
@@ -793,7 +750,6 @@ return {
   wait_for_file = wait_for_file,
   wait_for_file_contents = wait_for_file_contents,
   wait_until_no_common_workers = wait_until_no_common_workers,
-  wait_until_kong_status_ready = wait_until_kong_status_ready,
 
   get_kong_workers = get_kong_workers,
   reload_kong = reload_kong,

@@ -172,16 +172,9 @@ local function setup(finally)
 
               -- gather the distance metric
               local args = { ... }
-              local num_args = #args
               local distance_metric
-              for i, k in ipairs(args) do
-                if k == "DISTANCE_METRIC" then
-                  if i + 1 > num_args then
-                    return red:ret(false, "DISTANCE_METRIC specified without value")
-                  end
-                  distance_metric = args[i + 1]
-                  break
-                end
+              for _, k in pairs(args) do
+                distance_metric = k
               end
               if distance_metric ~= "L2" and distance_metric ~= "COSINE" then
                 return red:ret(false, "Invalid distance metric " .. (distance_metric or "nil"))
@@ -340,21 +333,6 @@ local function setup(finally)
             ["FLUSHALL"] = function(red)
               data = {}
               return red:ret(true, nil)
-            end,
-            ["INFO"] = function (red, section)
-              if forced_error_msg then
-                return red:ret(nil, forced_error_msg)
-              end
-              if not section or section == "server" then
-                return red:ret("redis_version:6.2.6\nused_memory:123456\nused_memory_rss:123456\n")
-              end
-
-              if section ~= "memory" then
-                return red:ret(nil, "unsupported section " .. section)
-              end
-
-              -- return a mock memory info response
-              return red:ret("used_memory:123456\nused_memory_rss:123456\n")
             end,
             ["expire"] = function(red, key, t)
               ngx.update_time()
