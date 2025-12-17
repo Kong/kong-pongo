@@ -710,6 +710,13 @@ function _M.new(db)
     return {}
   end)
 
+  local filter_chains_seq = new_sequence("filter-chains-%d")
+  res.filter_chains = new_blueprint(db.filter_chains, function()
+    return {
+      name = filter_chains_seq:next(),
+    }
+  end)
+
   res.audit_requests = new_blueprint(db.audit_requests, function (overrides)
     return {
       method = overrides.method or "GET",
@@ -748,72 +755,6 @@ function _M.new(db)
     if is_cli then
       ngx.IS_CLI = true
     end
-  end)
-
-  res.ace_operations = new_blueprint(db.ace_operations, function(overrides)
-    return {
-      id = overrides.id or utils.uuid(),
-      expression = overrides.expression or "http.method == \"GET\" && http.path == \"/default\"",
-      priority = overrides.priority or 0,
-      created_at = overrides.created_at,
-      updated_at = overrides.updated_at,
-      tags = overrides.tags,
-      ws_id = overrides.ws_id,
-    }
-  end)
-
-  res.ace_auth_strategies = new_blueprint(db.ace_auth_strategies, function(overrides)
-    return {
-      id = overrides.id or utils.uuid(),
-      type = overrides.type or "key-auth",
-      config = overrides.config or {
-        key_auth = {
-          key_names = { "apikey" }
-        },
-        oidc = {
-          key_names = { "apikey" }
-        }
-      },
-      ws_id = overrides.ws_id,
-    }
-  end)
-
-  res.ace_credentials = new_blueprint(db.ace_credentials, function(overrides)
-    return {
-      id = overrides.id or utils.uuid(),
-      ws_id = overrides.ws_id,
-    }
-  end)
-
-  res.ace_operation_groups = new_blueprint(db.ace_operation_groups, function(overrides)
-    return {
-      id = overrides.id or utils.uuid(),
-      ratelimiting = overrides.ratelimiting,
-      created_at = overrides.created_at,
-      updated_at = overrides.updated_at,
-      tags = overrides.tags,
-      ws_id = overrides.ws_id,
-    }
-  end)
-
-  res.ace_operation_groups_operations = new_blueprint(db.ace_operation_groups_operations, function(overrides)
-    return {
-      id = overrides.id or utils.uuid(),
-      operation_group = overrides.operation_group,
-      operation = overrides.operation,
-      ratelimiting = overrides.ratelimiting,
-      created_at = overrides.created_at,
-      updated_at = overrides.updated_at,
-      tags = overrides.tags,
-      ws_id = overrides.ws_id,
-    }
-  end)
-
-  res.ace_operation_groups_credentials = new_blueprint(db.ace_operation_groups_credentials, function(overrides)
-    return {
-      id = overrides.id or utils.uuid(),
-      ws_id = overrides.ws_id,
-    }
   end)
 
   return res

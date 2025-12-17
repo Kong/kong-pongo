@@ -622,11 +622,20 @@ do
   luassert:register("modifier", "errlog", modifier_errlog) -- backward compat
   luassert:register("modifier", "logfile", modifier_errlog)
 
-  local string_find = string.find
-  local ngx_re_find = ngx.re.find
-
   local function substr(subject, pattern)
-    if string_find(subject, pattern, nil, true) ~= nil then
+    if subject:find(pattern, nil, true) ~= nil then
+      return subject
+    end
+  end
+
+  local function re_match(subject, pattern)
+    local pos, _, err = ngx.re.find(subject, pattern, "oj")
+    if err then
+      error(("invalid regex provided to logfile assertion %q: %s")
+            :format(pattern, err), 5)
+    end
+
+    if pos then
       return subject
     end
   end
@@ -664,405 +673,25 @@ do
   end
   -- XXX EE ]]
 
+  local function find_in_file(fpath, pattern, matcher)
+    local fh = assert(io.open(fpath, "r"))
+    local found
 
-  local line_matcher = {}
-  line_matcher.__index = line_matcher
-
-  function line_matcher.new()
-    local self = setmetatable({
-      plain = {},
-      regex = {},
-      lines_matched = {},
-      patterns_matched = {},
-    }, line_matcher)
-    return self
-  end
-
-  ---@param s string
-  function line_matcher:add(s)
-    if s:sub(1, 1) == '~' then
-      s = s:sub(2)
-      self:add_regex(s)
-    else
-      self:add_plain(s)
-    end
-  end
-
-  ---@param s string
-  function line_matcher:add_plain(s)
-    table.insert(self.plain, s)
-    return self
-  end
-
-  ---@param re string
-  function line_matcher:add_regex(re)
-    local _, _, err = ngx_re_find("", re, "oj")
-    if err then
-      error("invalid regex '" .. re .. "': " .. err)
-    end
-    table.insert(self.regex, re)
-    return self
-  end
-
-  ---@param line string
-  ---@return boolean
-  function line_matcher:match(line)
-    if is_ee_license_warning(line) then
-      return false
-    end
-
-    local plain = self.plain
-    for _ = 1, #plain do
-      local str = table.remove(plain, 1)
-      if substr(line, str) then
-        table.insert(self.lines_matched, line)
-        table.insert(self.patterns_matched, str)
-        return str
-
-      else
-        table.insert(plain, str)
-      end
-    end
-
-    local regex = self.regex
-    for _ = 1, #regex do
-      local re = table.remove(regex, 1)
-      if ngx_re_find(line, re, "oj") then
-        table.insert(self.lines_matched, line)
-        table.insert(self.patterns_matched, "~" .. re)
-        return regex
-
-      else
-        table.insert(regex, re)
-      end
-    end
-
-    return false
-  end
-
-  ---@return boolean
-  function line_matcher:matched_all()
-    return #self.plain == 0 and #self.regex == 0
-  end
-
-  ---@return string[]
-  function line_matcher:missing()
-    local missing = {}
-    for _, elem in ipairs(self.plain) do
-      table.insert(missing, elem)
-    end
-    for _, elem in ipairs(self.regex) do
-      table.insert(missing, "~" .. elem)
-    end
-
-    return missing
-  end
-
-  local line_reader = {}
-  line_reader.__index = line_reader
-
-
-  ---@param fname string
-  ---@param timeout? integer
-  function line_reader.new(fname, timeout)
-    assert(type(fname) == "string")
-    assert(timeout == nil or
-           (type(timeout) == "number" and timeout >= 0))
-
-    timeout = timeout or 0
-
-    local self = {
-      fname = fname,
-      ---@type file*
-      fh = nil,
-      timeout = timeout,
-      deadline = nil,
-    }
-    setmetatable(self, line_reader)
-    return self
-  end
-
-  ---@param err string
-  ---@return boolean
-  local function is_enoent(err)
-    return type(err) == "string"
-           and err:lower():find("no such file")
-  end
-
-  ---@return boolean
-  function line_reader:try_open()
-    self.fh = nil
-
-    local fh, err = io.open(self.fname, "r")
-
-    if fh then
-      self.fh = fh
-      return true
-    end
-
-    -- okay to retry open() on ENOENT if the caller gave us a nonzero timeout
-    if is_enoent(err) and not self:timed_out() then
-      self.err = nil
-    else
-      self.err = err
-    end
-
-    return false
-  end
-
-  ---@return boolean
-  function line_reader:open()
-    if self:try_open() then
-      return true
-
-    elseif self.err then
-      return false
-    end
-
-    while not self:timed_out() do
-      ngx.sleep(0.05)
-
-      if self:try_open() then
-        return true
-
-      elseif self.err then
+    for line in fh:lines() do
+      -- XXX EE [[
+      -- see comment above re: filtering out license warnings
+      if matcher(line, pattern) and not is_ee_license_warning(line) then
+      -- XXX EE ]]
+        found = line
         break
       end
     end
 
-    return false
+    fh:close()
+
+    return found
   end
 
-  function line_reader:close()
-    if self.fh then
-      self.fh:close()
-      self.fh = nil
-    end
-  end
-
-  ---@return string? line
-  ---@return string? error
-  function line_reader:readline()
-    return self.fh:read("*l")
-  end
-
-  ---@return boolean
-  function line_reader:timed_out()
-    if self.timeout == 0 then
-      return true
-    end
-
-    -- The timer isn't started until the first time we have to retry some I/O
-    -- operation (`read()` or `open()`).
-    --
-    -- This means that in the happy path (file exists) we always read the
-    -- entire file at least once.
-    if not self.deadline then
-      self.deadline = ngx.now() + self.timeout
-    end
-
-    ngx.update_time()
-    return ngx.now() > self.deadline
-  end
-
-  ---@return string? line
-  ---@return string? error
-  function line_reader:get()
-    if not self.fh and not self:open() then
-      return nil, self.err
-    end
-
-    local line, err = self:readline()
-    if line then
-      return line
-
-    elseif err then
-      self:close()
-      return nil, err
-    end
-
-    -- EOF
-
-    -- no timeout => stream ends on the first EOF
-    if self.timeout == 0 then
-      self:close()
-      return nil, "timeout"
-    end
-
-    -- to ensure we read the entire file at least once,
-    -- the timer isn't started until the first EOF
-    self.deadline = self.deadline or (ngx.now() + self.timeout)
-    while not self:timed_out() do
-      ngx.sleep(0.05)
-      line, err = self:readline()
-      if line then
-        return line
-
-      elseif err then
-        break
-      end
-    end
-
-    -- XXX: we don't check for partial data at EOF, so your test really
-    -- shouldn't rely on this
-
-    self:close()
-  end
-
-  --- Match multiple lines within a file.
-  ---
-  --- This is more optimal than `assert.logfile().has.line(...)` when you have
-  --- multiple strings to search for in a large file.
-  ---
-  --- Inputs are matched as plain substrings by default.
-  --- Prefix entries with a `~` to match with regex.
-  ---
-  --- In the **positive** case (`has.lines(...)`), an assertion error is raised
-  --- unless **all** inputs match a line.
-  ---
-  --- In the **negative** case (`has.no.lines(...)`), an assertion error is raised
-  --- if **any** inputs match a line.
-  ---
-  --- ```lua
-  --- -- timeout == 0
-  --- -- only reads the current file contents once
-  --- assert.logfile().has.lines({
-  ---  "my plain string",
-  ---  "~my regex [a-z]+ string",
-  --- }, 0)
-  ---
-  --- -- timeout > 0
-  --- -- read the file and continues polling for new lines until
-  --- -- all matches are found (or the timeout is reached)
-  --- assert.logfile().has.lines({
-  ---  "my plain string",
-  ---  "~my regex [a-z]+ string",
-  --- }, 10)
-  ---
-  --- -- negative usage example
-  --- -- this fails if _any_ line matches
-  --- assert.logfile().has.no.lines({
-  ---   "[error]", "[crit]", "[emerg]",
-  --- }, 0)
-  ---
-  --- ```
-  local function match_lines(state, args)
-    local lines = args[1]
-    local timeout = args[2]
-    local fpath = args[3] or rawget(state, "errlog_path")
-
-    assert(type(lines) == "table" and type(lines[1]) == "string",
-           "'lines' must be a non-empty table of strings")
-    assert(type(fpath) == "string",
-           "Expected the file path argument to be a string")
-
-    assert(timeout == nil or type(timeout) == "number" and timeout >= 0,
-           "Expected the timeout argument to be a number >= 0")
-
-    timeout = timeout or 2
-
-    local match_any = false
-    if state.mod == false then
-      match_any = true
-    end
-
-    local matcher = line_matcher.new()
-    for _, line in ipairs(lines) do
-      matcher:add(line)
-    end
-
-    if timeout > 0 then
-      -- pad the timeout to account for FS slowness
-      timeout = math.max(timeout, 1)
-    end
-
-    local stream = line_reader.new(fpath, timeout)
-
-    local status = false
-    local msg
-    local lines_seen = 0
-
-    while true do
-      local line, err = stream:get()
-      if line then
-        if matcher:match(line) then
-          lines_seen = lines_seen + 1
-
-          if match_any or matcher:matched_all() then
-            status = true
-            break
-          end
-
-        elseif strip(line) ~= "" then
-          lines_seen = lines_seen + 1
-        end
-
-      elseif err then
-        msg = err
-        break
-
-      else
-        -- timeout
-        break
-      end
-    end
-
-    stream:close()
-
-    args[1] = fpath
-    args[2] = lines
-    args.n = 2
-
-    -- XXX: negative logfile assertions are an anti-pattern
-    --
-    -- in the case of `assert.logfile().has.no.line()`, attempt to guard
-    -- against cases where an error might otherwise produce a false negative
-    if state.mod == false then
-      if msg ~= "timeout" then
-        luassert.is_nil(msg, "failed reading from file")
-      end
-    end
-
-    if status then
-      args[3] = matcher.patterns_matched[1]
-      args[4] = matcher.lines_matched[1]
-      args.n = 4
-    else
-      args[3] = matcher.patterns_matched
-      args[4] = matcher:missing()
-      args.n = 4
-    end
-
-    if match_any then
-      return status, { matcher.lines_matched[1], matcher.patterns_matched[1] }
-    end
-
-    return status, { matcher.lines_matched, matcher.patterns_matched }
-  end
-
-  say:set("assertion.match_lines.negative", misc.unindent [[
-    Expected file at:
-    %s
-    To match all of:
-    %s
-    Matched:
-    %s
-    Not matched:
-    %s
-  ]])
-  say:set("assertion.match_lines.positive", misc.unindent [[
-    Expected file at:
-    %s
-    To not match any of:
-    %s
-    But matched:
-    %s
-    Line:
-    %s
-  ]])
-  luassert:register("assertion", "lines", match_lines,
-                    "assertion.match_lines.negative",
-                    "assertion.match_lines.positive")
 
   --- Assertion checking if any line from a file matches the given regex or
   -- substring.
@@ -1095,28 +724,27 @@ do
     assert(type(timeout) == "number" and timeout >= 0,
            "Expected the timeout argument to be a number >= 0")
 
-    if not plain then
-      regex = "~" .. regex
+
+    local matcher = plain and substr or re_match
+
+    local found = find_in_file(fpath, regex, matcher)
+    local deadline = ngx.now() + timeout
+
+    while not found and ngx.now() <= deadline do
+      ngx.sleep(0.05)
+      found = find_in_file(fpath, regex, matcher)
     end
-
-    args[1] = { regex }
-    args[2] = timeout
-    args[3] = fpath
-    args[4] = nil
-    args.n = 3
-
-    local status, lines = match_lines(state, args)
 
     args[1] = fpath
     args[2] = regex
     args.n = 2
 
-    if status then
-      args[3] = lines[1]
+    if found then
+      args[3] = found
       args.n = 3
     end
 
-    return status, lines[1]
+    return found
   end
 
   say:set("assertion.match_line.negative", misc.unindent [[

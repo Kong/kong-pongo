@@ -289,20 +289,6 @@ lua_shared_dict kong_mock_upstream_loggers  10m;
                 return mu.set_ocsp(ngx.var.arg_status)
             }
         }
-
-        location = /counter/inc {
-            content_by_lua_block {
-                local mu = require "spec.fixtures.mock_upstream"
-                mu.increment_counter(ngx.var.arg_counter)
-            }
-        }
-
-        location = /counter/read {
-            content_by_lua_block {
-                local mu = require "spec.fixtures.mock_upstream"
-                mu.read_counter(ngx.var.arg_counter)
-            }
-        }
     }
 > end -- role ~= "data_plane"
 

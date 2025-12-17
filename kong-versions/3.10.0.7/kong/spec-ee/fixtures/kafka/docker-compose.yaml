@@ -7,9 +7,9 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/zookeeper_jaas.conf -Dzookeeper.admin.serverPort=28080"
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/zookeper_jaas.conf"
     volumes:
-      - ./zookeper_jaas.conf:/etc/kafka/zookeeper_jaas.conf
+      - ./zookeper_jaas.conf:/etc/kafka/zookeper_jaas.conf
 
   add-kafka-users:
     image: confluentinc/cp-kafka:7.9.1
@@ -57,9 +57,9 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: localhost:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,SSL:SSL,SASL_SSL:SASL_SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SSLGOODCERT:SSL,SSLBADCERT:SSL
-      KAFKA_LISTENERS:  SASL_SSL://localhost:9093,PLAINTEXT_HOST://localhost:9092,PLAINTEXT://localhost:29092,SSL://localhost:29093,SASL_PLAINTEXT://localhost:19093,SSLGOODCERT://localhost:29094,SSLBADCERT://localhost:29095
-      KAFKA_ADVERTISED_LISTENERS: SASL_SSL://localhost:9093,PLAINTEXT_HOST://localhost:9092,PLAINTEXT://localhost:29092,SSL://localhost:29093,SASL_PLAINTEXT://localhost:19093,SSLGOODCERT://localhost:29094,SSLBADCERT://localhost:29095
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,SSL:SSL,SASL_SSL:SASL_SSL,SASL_PLAINTEXT:SASL_PLAINTEXT
+      KAFKA_LISTENERS:  SASL_SSL://localhost:9093,PLAINTEXT_HOST://localhost:9092,PLAINTEXT://localhost:29092,SSL://localhost:29093,SASL_PLAINTEXT://localhost:19093
+      KAFKA_ADVERTISED_LISTENERS: SASL_SSL://localhost:9093,PLAINTEXT_HOST://localhost:9092,PLAINTEXT://localhost:29092,SSL://localhost:29093,SASL_PLAINTEXT://localhost:19093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -99,40 +99,9 @@ services:
       KAFKA_OPTS: "-Djavax.net.debug=all -Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf"
 
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-
-
-
-
-      # for SSLGOODCERT, we have a cert signed by the kong test fixture CA
-      KAFKA_LISTENER_NAME_SSLGOODCERT_SSL_TRUSTSTORE_FILENAME: truststore2/kafka.truststore.jks
-      KAFKA_LISTENER_NAME_SSLGOODCERT_SSL_KEYSTORE_FILENAME: keystore2/kafka.keystore.jks
-      KAFKA_LISTENER_NAME_SSLGOODCERT_SSL_KEYSTORE_CREDENTIALS: ssl_key_credentials
-      KAFKA_LISTENER_NAME_SSLGOODCERT_SSL_TRUSTSTORE_CREDENTIALS: ssl_key_credentials
-      KAFKA_LISTENER_NAME_SSLGOODCERT_SSL_KEY_CREDENTIALS: ssl_key_credentials
-      KAFKA_LISTENER_NAME_SSLGOODCERT_SSL_CLIENT_AUTH: none
-      KAFKA_LISTENER_NAME_SSLGOODCERT_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/keystore2/kafka.keystore.jks
-      KAFKA_LISTENER_NAME_SSLGOODCERT_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/truststore2/kafka.truststore.jks
-      KAFKA_LISTENER_NAME_SSLGOODCERT_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: 'https'
-
-      # for SSLBADCERT, we have a self-signed, untrusted cert
-      KAFKA_LISTENER_NAME_SSLBADCERT_SSL_TRUSTSTORE_FILENAME: truststore3/kafka.truststore.jks
-      KAFKA_LISTENER_NAME_SSLBADCERT_SSL_KEYSTORE_FILENAME: keystore3/kafka.keystore.jks
-      KAFKA_LISTENER_NAME_SSLBADCERT_SSL_KEYSTORE_CREDENTIALS: ssl_key_credentials
-      KAFKA_LISTENER_NAME_SSLBADCERT_SSL_TRUSTSTORE_CREDENTIALS: ssl_key_credentials
-      KAFKA_LISTENER_NAME_SSLBADCERT_SSL_KEY_CREDENTIALS: ssl_key_credentials
-      KAFKA_LISTENER_NAME_SSLBADCERT_SSL_CLIENT_AUTH: none
-      KAFKA_LISTENER_NAME_SSLBADCERT_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/keystore3/kafka.keystore.jks
-      KAFKA_LISTENER_NAME_SSLBADCERT_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/truststore3/kafka.truststore.jks
-      KAFKA_LISTENER_NAME_SSLBADCERT_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: 'https'
-
-
     volumes:
       - ./truststore:/etc/kafka/secrets/truststore
       - ./keystore:/etc/kafka/secrets/keystore
-      - ./truststore2:/etc/kafka/secrets/truststore2
-      - ./keystore2:/etc/kafka/secrets/keystore2
-      - ./truststore3:/etc/kafka/secrets/truststore3
-      - ./keystore3:/etc/kafka/secrets/keystore3
       - ./credentials:/etc/kafka/secrets/
       - ./client.config:/etc/kafka/client.config
       - ./broker-config/kafka_server_jaas.conf:/etc/kafka/kafka_server_jaas.conf
@@ -148,17 +117,6 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: localhost:9092
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: localhost:2181
-      SCHEMA_REGISTRY_KAFKASTORE_TOPIC: schema_registry
-
-  schema-registry-oauth2:
-    extends: schema-registry
-    environment:
-      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8082
-      SCHEMA_REGISTRY_KAFKASTORE_TOPIC: schema_registry_oauth2
-      SCHEMA_REGISTRY_REST_SERVLET_INITIALIZOR_CLASSES: io.confluent.common.security.jetty.initializer.AuthenticationHandler
-      SCHEMA_REGISTRY_OAUTHBEARER_JWKS_ENDPOINT_URL: http://localhost:18080/realms/test/protocol/openid-connect/certs
-      SCHEMA_REGISTRY_OAUTHBEARER_EXPECTED_ISSUER: http://localhost:18080/realms/test
-      SCHEMA_REGISTRY_OAUTHBEARER_EXPECTED_AUDIENCE: account
 
   kong:
     image: kong/kong:3.8
