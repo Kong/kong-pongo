@@ -22,6 +22,16 @@
 
 ---
 
+## 2.25.0 released 24-Dec-2025
+
+* Feat: Kong Enterprise 3.13.0.0
+
+* Feat: Kong Enterprise 3.12.0.2
+
+* Feat: Kong Enterprise 3.10.0.7
+
+* Chore: remove unnecessary kong-api-tests
+
 ## 2.24.0 released 04-Dec-2025
 
 * Chore: disable the test coverage by default.
