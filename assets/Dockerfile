@@ -101,10 +101,12 @@ RUN pip3 install httpie || echo -e "\n\n\nFailed installing httpie, continuing w
 RUN curl -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
 RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
-    && make dependencies -t install-rust-toolchain $LUAROCKS_OPTS \
+    && make dependencies $LUAROCKS_OPTS \
     && luarocks install busted-htest \
     && luarocks install luacov \
-    && luarocks install kong-plugin-dbless-reload 0.1.0
+    && luarocks install kong-plugin-dbless-reload 0.1.0 \
+    && . $HOME/.cargo/env && rustup self uninstall -y
+
 
 # restore the insecure settings from above to secure
 RUN if [ -e ~/.bashrc ]; then rm ~/.bashrc; fi; \
