@@ -104,7 +104,9 @@ RUN cd /kong \
     && make dependencies $LUAROCKS_OPTS \
     && luarocks install busted-htest \
     && luarocks install luacov \
-    && luarocks install kong-plugin-dbless-reload 0.1.0
+    && luarocks install kong-plugin-dbless-reload 0.1.0 \
+    && if [ -e ~/.cargo/env ]; then . $HOME/.cargo/env; rustup self uninstall -y; fi;
+
 
 # restore the insecure settings from above to secure
 RUN if [ -e ~/.bashrc ]; then rm ~/.bashrc; fi; \
