@@ -6,9 +6,9 @@
 -- [ END OF LICENSE 0867164ffc95e54f04670b5169c09574bdbd9bba ]
 
 -- busted-ci-helper.lua
+local busted = require 'busted'
 
----@param busted _busted
-local function shutdown_timers_on_exit(busted)
+do
   local shutdown_timers = require("kong.cmd.utils.timer").shutdown
   assert(type(shutdown_timers) == "function")
 
@@ -22,14 +22,8 @@ local function shutdown_timers_on_exit(busted)
   end)
 end
 
-
----@param busted _busted
-local function forward_events(busted)
-  local BUSTED_EVENT_PATH = os.getenv("BUSTED_EVENT_PATH")
-  if not BUSTED_EVENT_PATH then
-    return
-  end
-
+local BUSTED_EVENT_PATH = os.getenv("BUSTED_EVENT_PATH")
+if BUSTED_EVENT_PATH then
   -- needed before requiring 'socket.unix'
   require 'socket'
 
@@ -94,23 +88,4 @@ local function forward_events(busted)
       return nil, true --continue
     end)
   end
-end
-
-
----@param busted _busted # this is the "real" busted runtime instance and exposes more APIs than what is returned by `require("busted")`
----@param _helper string # name of the helper library/file
----@param options table # parsed busted CLI options
-return function(busted, _helper, options)
-  -- make these things available to other test code
-  busted.exportApi("context", busted.context)
-  busted.exportApi("options", options)
-
-  require("spec.internal.log").set_verbose(options.verbose)
-  require("spec.busted.env").busted_init()
-
-  shutdown_timers_on_exit(busted)
-  forward_events(busted)
-
-  -- expected by busted
-  return true
 end

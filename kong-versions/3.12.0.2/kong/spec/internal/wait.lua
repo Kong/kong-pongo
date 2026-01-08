@@ -72,13 +72,12 @@ require("spec.helpers.wait")
 -- @param timeout (optional) maximum time to wait after which an error is
 -- thrown, defaults to 5.
 -- @param step (optional) interval between checks, defaults to 0.05.
--- @param message (optional) custom message to display on timeout for debugging.
 -- @return nothing. It returns when the condition is met, or throws an error
 -- when it times out.
 -- @usage
 -- -- wait 10 seconds for a file "myfilename" to appear
 -- helpers.wait_until(function() return file_exist("myfilename") end, 10)
-local function wait_until(f, timeout, step, message)
+local function wait_until(f, timeout, step)
   if CONSTANTS.TEST_COVERAGE_MODE == "true" then
     timeout = CONSTANTS.TEST_COVERAGE_TIMEOUT
   end
@@ -88,7 +87,6 @@ local function wait_until(f, timeout, step, message)
     fn = f,
     timeout = timeout,
     step = step,
-    message = message,
   })
 end
 

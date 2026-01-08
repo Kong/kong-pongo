@@ -64,13 +64,9 @@ trust_store_private_key_file=""
   echo "First, the private key."
   echo
 
-  # openssl req -new -x509 -keyout $TRUSTSTORE_WORKING_DIRECTORY/ca-key \
-  #   -out $TRUSTSTORE_WORKING_DIRECTORY/ca-cert -days $VALIDITY_IN_DAYS -nodes \
-  #   -subj "/C=$COUNTRY/ST=$STATE/L=$LOCATION/O=$OU/CN=$CN"
-
-  # use kong fixtures cert and key
-  cp ../../../spec/fixtures/kong_spec.crt $TRUSTSTORE_WORKING_DIRECTORY/ca-cert
-  cp ../../../spec/fixtures/kong_spec.key $TRUSTSTORE_WORKING_DIRECTORY/ca-key
+  openssl req -new -x509 -keyout $TRUSTSTORE_WORKING_DIRECTORY/ca-key \
+    -out $TRUSTSTORE_WORKING_DIRECTORY/ca-cert -days $VALIDITY_IN_DAYS -nodes \
+    -subj "/C=$COUNTRY/ST=$STATE/L=$LOCATION/O=$OU/CN=$CN"
 
   trust_store_private_key_file="$TRUSTSTORE_WORKING_DIRECTORY/ca-key"
 

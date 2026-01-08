@@ -15,5 +15,5 @@
       "prompt_tokens": 19,
       "total_tokens": 138
   },
-  "model": "claude-some-model"
+  "model": "bedrock"
 }

@@ -13,25 +13,6 @@ local strip      = require("kong.tools.string").strip
 local splitn      = require("kong.tools.string").splitn
 
 
-local function truthy(v)
-  local typ = type(v)
-
-  if typ == "boolean" then
-    return typ
-
-  elseif typ == "string" then
-    v = v:lower()
-    return v == "true"
-      or v == "yes"
-      or v == "on"
-      or v == "1"
-      or v == "enabled"
-  end
-
-  return false
-end
-
-
 local kong = {
   table = require("kong.pdk.table").new()
 }
@@ -251,28 +232,15 @@ end
 
 
 local function get_default_json_response()
-  local uri_args = ngx.req.get_uri_args(0)
-  local raw_headers = truthy(uri_args.raw_headers)
-
-  local headers = ngx.req.get_headers(0, raw_headers)
+  local headers = ngx.req.get_headers(0)
   local vars    = get_ngx_vars()
-
-  local content_type = headers["Content-Type"]
-  if not content_type and raw_headers then
-    for k, v in pairs(headers) do
-      if k:lower() == "content-type" then
-        content_type = v
-        break
-      end
-    end
-  end
 
   return {
     headers   = headers,
-    post_data = get_post_data(content_type),
+    post_data = get_post_data(headers["Content-Type"]),
     url       = ("%s://%s:%s%s"):format(vars.scheme, vars.host,
                                         vars.server_port, vars.request_uri),
-    uri_args  = uri_args,
+    uri_args  = ngx.req.get_uri_args(0),
     vars      = vars,
   }
 end

@@ -172,16 +172,9 @@ local function setup(finally)
 
               -- gather the distance metric
               local args = { ... }
-              local num_args = #args
               local distance_metric
-              for i, k in ipairs(args) do
-                if k == "DISTANCE_METRIC" then
-                  if i + 1 > num_args then
-                    return red:ret(false, "DISTANCE_METRIC specified without value")
-                  end
-                  distance_metric = args[i + 1]
-                  break
-                end
+              for _, k in pairs(args) do
+                distance_metric = k
               end
               if distance_metric ~= "L2" and distance_metric ~= "COSINE" then
                 return red:ret(false, "Invalid distance metric " .. (distance_metric or "nil"))
