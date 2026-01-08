@@ -25,7 +25,6 @@ local dicts = {
   "kong_secrets 5m",
   "test_vault 5m",
   "prometheus_metrics 5m",
-  "otel_metrics 5m",
   "lmdb_mlcache 5m",
   "kong_test_cp_mock 1m",
 
@@ -42,7 +41,6 @@ local dicts = {
   "kong_test_rla_schema_abcd 1m",
   "kong_test_sp_schema_abcd 1m",
   "kong_debug_session 1m",
-  "kong_basic_auth_counters 12m",
 
   -- stream shared dicts
   "stream_kong 5m",
@@ -58,7 +56,6 @@ local dicts = {
   "stream_kong_db_cache_miss_2 12m",
   "stream_kong_secrets 5m",
   "stream_prometheus_metrics 5m",
-  "stream_otel_metrics 5m",
 
   --- XXX EE stream shared dicts
   "stream_kong_counters 50m",
