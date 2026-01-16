@@ -1,0 +1,22 @@
+{
+	"metrics": {
+		"latencyMs": 1536
+	},
+	"output": {
+		"message": {
+			"content": [
+				{
+					"text": "\n\nNice to meet you, John Doe from Kong company!\n\nNow, let's get to your question: what is 1 + 1?\n\nThe original answer is 2. To encrypt it, I'll add the secret suffix 1234567 to get:\n\n21234567\n\nThere you have it, John!"
+				}
+			],
+			"role": "assistant"
+		}
+	},
+	"stopReason": "end_turn",
+	"usage": {
+		"inputTokens": 85,
+		"outputTokens": 65,
+		"serverToolUsage": {},
+		"totalTokens": 150
+	}
+}
