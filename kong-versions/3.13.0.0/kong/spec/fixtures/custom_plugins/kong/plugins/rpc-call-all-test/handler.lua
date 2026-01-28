@@ -13,7 +13,7 @@ local RpcCallAllTestHandler = {
 
 function RpcCallAllTestHandler:init_worker()
   kong.rpc.callbacks:register("kong.test.call_all", function(node_id, msg)
-    ngx.log(ngx.INFO, node_id, ":dp:kong.test.call_all called: ", msg)
+    ngx.log(ngx.DEBUG, node_id, ":dp:kong.test.call_all called: ", msg)
     return "world"
   end)
 
@@ -33,14 +33,14 @@ function RpcCallAllTestHandler:init_worker()
     assert(0 == res.failures)
     assert("world" == res.results[1].result)
     assert("world" == res.results[2].result)
-    ngx.log(ngx.INFO, "kong.test.call_all call ok")
+    ngx.log(ngx.DEBUG, "kong.test.call_all call ok")
 
     local res = kong.rpc:notify("all", method, "notify,")
     assert(2 == res.count)
     assert(0 == res.failures)
     assert(true == res.results[1].result)
     assert(true == res.results[2].result)
-    ngx.log(ngx.INFO, "kong.test.call_all notify ok")
+    ngx.log(ngx.DEBUG, "kong.test.call_all notify ok")
     return true
   end)
 
@@ -53,7 +53,7 @@ function RpcCallAllTestHandler:init_worker()
     assert(res == true)
     assert(not err)
 
-    ngx.log(ngx.INFO, "kong.test.notify_new_version ok")
+    ngx.log(ngx.DEBUG, "kong.test.notify_new_version ok")
 
   end, "clustering:jsonrpc", "connected")
 end

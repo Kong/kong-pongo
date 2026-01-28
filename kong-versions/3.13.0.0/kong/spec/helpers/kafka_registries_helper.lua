@@ -20,7 +20,7 @@ local function create_topic(broker_list, topic)
   return true
 end
 
-local function consume_record(topic, group)
+local function consume_record(topic)
   -- setup a consumer and poll latest messages
   local c, err = consumer:new({ { host = "localhost", port = 9092 } })
   if not c then
@@ -35,7 +35,7 @@ local function consume_record(topic, group)
     }
   }
 
-  local sub_ok, sub_err = c:subscribe(group or "test-topic-group-1", topics_config,
+  local sub_ok, sub_err = c:subscribe("test-topic-group-1", topics_config,
     {
       commit_strategy = "auto",
       auto_offset_reset = "latest",

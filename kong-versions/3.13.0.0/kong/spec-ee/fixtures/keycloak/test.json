@@ -445,8 +445,8 @@
   ],
   "users": [
     {
-      "id": "d8ba2c97-47bf-46fb-b8f1-5ed84d6e2194",
-      "createdTimestamp": 1628676021584,
+      "id": "23e1af17-b1be-43c9-be4e-082ea31ab553",
+      "createdTimestamp": 1628676021583,
       "username": "john",
       "enabled": true,
       "totp": false,
@@ -456,9 +456,9 @@
       "email": "john.doe@konghq.com",
       "credentials": [
         {
-          "id": "43268376-67a8-4baf-b846-f611814ef5f1",
+          "id": "70218019-13d1-4bb1-99c2-1a08bb596d36",
           "type": "password",
-          "createdDate": 1628676035271,
+          "createdDate": 1628676035270,
           "secretData": "{\"value\":\"CsTBttTniJG3uzuFtaJXKq5ezKa/UaBXiuP2nFizaNdVlzwDMJqzKudtcSR/BI7wZYl0QslYg20v3guqAwV2ig==\",\"salt\":\"Q+lfM8ILDHw+mSMLEGXVPQ==\",\"additionalParameters\":{}}",
           "credentialData": "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
         }

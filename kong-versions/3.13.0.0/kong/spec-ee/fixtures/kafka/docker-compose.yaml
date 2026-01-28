@@ -64,7 +64,6 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      KAFKA_HEAP_OPTS: -Xms256m -Xmx512m
 
       # ssl
       KAFKA_SSL_KEYSTORE_FILENAME: keystore/kafka.keystore.jks
@@ -96,7 +95,8 @@ services:
       # 'requested' for TLS
       # KAFKA_SSL_CLIENT_AUTH: requested
 
-      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf"
+      # Enables tcp lib level debugging
+      KAFKA_OPTS: "-Djavax.net.debug=all -Djava.security.auth.login.config=/etc/kafka/kafka_server_jaas.conf"
 
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
 
@@ -170,7 +170,6 @@ services:
       KONG_DECLARATIVE_CONFIG: /kong/tcp-proxy.yaml
       KONG_STREAM_LISTEN: "0.0.0.0:9993 ssl reuseport backlog=65536"
       KONG_ROUTER_FLAVOR: traditional
-      KONG_NGINX_WORKER_PROCESSES: 1
     network_mode: "host"
     volumes:
       - ./kong/tcp-proxy.yaml:/kong/tcp-proxy.yaml
