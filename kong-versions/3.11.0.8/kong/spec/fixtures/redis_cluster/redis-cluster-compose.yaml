@@ -1,0 +1,67 @@
+version: '3.5'
+name: redis-cluster
+services:
+  rc-node-1:
+    image: redis:7.0.2
+    volumes:
+    - rc-node-1-data:/data
+    ports:
+    - "7000:7000"
+    command: redis-server --port 7000 --cluster-enabled yes --cluster-port 17000 --cluster-config-file rc-node-1.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-port 7000 --cluster-announce-bus-port 17000 --cluster-preferred-endpoint-type hostname --cluster-announce-hostname localhost --daemonize no --loglevel debug
+  rc-node-2:
+    image: redis:7.0.2
+    volumes:
+    - rc-node-2-data:/data
+    ports:
+    - "7001:7001"
+    command: redis-server --port 7001 --cluster-enabled yes --cluster-port 17001 --cluster-config-file rc-node-2.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-port 7001 --cluster-announce-bus-port 17001 --cluster-preferred-endpoint-type hostname --cluster-announce-hostname localhost --daemonize no --loglevel debug
+  rc-node-3:
+    image: redis:7.0.2
+    volumes:
+    - rc-node-3-data:/data
+    ports:
+    - "7002:7002"
+    command: redis-server --port 7002 --cluster-enabled yes --cluster-port 17002 --cluster-config-file rc-node-3.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-port 7002 --cluster-announce-bus-port 17002 --cluster-preferred-endpoint-type hostname --cluster-announce-hostname localhost --daemonize no --loglevel debug
+  rc-node-4:
+    image: redis:7.0.2
+    volumes:
+    - rc-node-4-data:/data
+    ports:
+    - "7003:7003"
+    command: redis-server --port 7003 --cluster-enabled yes --cluster-port 17003 --cluster-config-file rc-node-4.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-port 7003 --cluster-announce-bus-port 17003 --cluster-preferred-endpoint-type hostname --cluster-announce-hostname localhost --daemonize no --loglevel debug
+  rc-node-5:
+    image: redis:7.0.2
+    volumes:
+    - rc-node-5-data:/data
+    ports:
+    - "7004:7004"
+    command: redis-server --port 7004 --cluster-enabled yes --cluster-port 17004 --cluster-config-file rc-node-5.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-port 7004 --cluster-announce-bus-port 17004 --cluster-preferred-endpoint-type hostname --cluster-announce-hostname localhost --daemonize no --loglevel debug
+  rc-node-6:
+    image: redis:7.0.2
+    volumes:
+    - rc-node-6-data:/data
+    ports:
+    - "7005:7005"
+    command: redis-server --port 7005 --cluster-enabled yes --cluster-port 17005 --cluster-config-file rc-node-6.conf --cluster-node-timeout 5000 --appendonly yes --cluster-announce-port 7005 --cluster-announce-bus-port 17005 --cluster-preferred-endpoint-type hostname --cluster-announce-hostname localhost --daemonize no --loglevel debug
+  create-cluster:
+    image: redis:7.0.2
+    command: redis-cli --cluster create rc-node-1:7000 rc-node-2:7001 rc-node-3:7002 rc-node-4:7003 rc-node-5:7004 rc-node-6:7005 --cluster-replicas 1 --cluster-yes
+    depends_on:
+    - rc-node-1
+    - rc-node-2
+    - rc-node-3
+    - rc-node-4
+    - rc-node-5
+    - rc-node-6
+
+volumes:
+  rc-node-1-data:
+  rc-node-2-data:
+  rc-node-3-data:
+  rc-node-4-data:
+  rc-node-5-data:
+  rc-node-6-data:
+
+networks:
+  default:
+    name: redis-cluster
