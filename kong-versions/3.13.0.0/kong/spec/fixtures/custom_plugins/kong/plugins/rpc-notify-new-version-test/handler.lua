@@ -37,7 +37,7 @@ function RpcSyncV2NotifyNewVersioinTestHandler:init_worker()
       },
     }
 
-    ngx.log(ngx.INFO, "kong.sync.v2.get_delta ok: ", counter)
+    ngx.log(ngx.DEBUG, "kong.sync.v2.get_delta ok: ", counter)
     counter = counter + 1
 
     return { default = { deltas = deltas, full_sync = true, }, }
@@ -80,7 +80,7 @@ function RpcSyncV2NotifyNewVersioinTestHandler:init_worker()
     assert(res)
     assert(not err)
 
-    ngx.log(ngx.INFO, "kong.test.notify_new_version ok")
+    ngx.log(ngx.DEBUG, "kong.test.notify_new_version ok")
 
     return true
   end)
@@ -96,7 +96,7 @@ function RpcSyncV2NotifyNewVersioinTestHandler:init_worker()
     assert(res == true)
     assert(not err)
 
-    ngx.log(ngx.INFO, "kong.test.notify_new_version ok")
+    ngx.log(ngx.DEBUG, "kong.test.notify_new_version ok")
 
   end, "clustering:jsonrpc", "connected")
 end
