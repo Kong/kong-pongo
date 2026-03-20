@@ -94,7 +94,7 @@ function run_test {
   tmessage "cleanup; clear working directory (servroot)"
   if [ -d ./servroot ]; then
     #rm -rf servroot                   doesn't work; priviledge issue
-    ../../docker/pongo-docker.sh shell rm -rf /kong-plugin/servroot
+    ../../docker/pongo-docker.sh shell sh -c 'find /kong-plugin/servroot -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true; find "$PONGO_PREFIX_HOST_MIRROR" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true'
   fi
 
 
