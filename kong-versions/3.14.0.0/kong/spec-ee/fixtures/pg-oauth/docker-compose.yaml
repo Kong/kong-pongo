@@ -1,0 +1,101 @@
+# PostgreSQL 18 with OAUTHBEARER support for Kong OAuth authentication testing
+#
+# This is a STANDALONE setup with its own Keycloak instance.
+# It does NOT share the main Keycloak used by other tests to avoid conflicts.
+#
+# Key points:
+#   - Uses port 28080 for Keycloak (not 18080 which is used by main Keycloak)
+#   - Has its own Docker network (pg-oauth-network)
+#   - Keycloak is configured with KC_HOSTNAME to ensure consistent issuer URLs
+#   - PostgreSQL can access Keycloak via Docker network (keycloak:28080)
+#   - Host accesses Keycloak via port mapping (localhost:28080)
+#
+# Issuer URL: http://keycloak:28080/realms/pg-oauth
+#
+# Usage:
+#   # Start the environment (Keycloak + PostgreSQL)
+#   docker compose -f spec-ee/fixtures/pg-oauth/docker-compose.yaml up -d --wait
+#
+#   # Stop and clean up
+#   docker compose -f spec-ee/fixtures/pg-oauth/docker-compose.yaml down -v
+#
+# For local testing, add to /etc/hosts: 127.0.0.1 keycloak
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3
+    command: start-dev --import-realm
+    container_name: pg-oauth-keycloak
+    volumes:
+      - ./pg-oauth.json:/opt/keycloak/data/import/pg-oauth.json
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: test
+      DB_VENDOR: h2
+      JAVA_OPTS_APPEND: -Dkeycloak.migration.strategy=OVERWRITE_EXISTING -Xms64m -Xmx128m
+      # Configure hostname to ensure consistent issuer URL
+      # Use port 28080 to avoid conflict with main Keycloak (18080)
+      KC_HOSTNAME: keycloak
+      KC_HOSTNAME_PORT: "28080"
+      KC_HOSTNAME_STRICT: "true"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_HTTP_PORT: "28080"
+    healthcheck:
+      interval: 5s
+      retries: 20
+      test: ["CMD", "timeout", "3s", "bash", "-c", ":> /dev/tcp/127.0.0.1/28080"]
+      timeout: 5s
+      start_period: 30s
+    ports:
+      - "28080:28080"
+    networks:
+      - pg-oauth-network
+    restart: on-failure
+
+  pg-oauth:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pg-oauth-postgres
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: kong_oauth_test
+      # OAuth configuration - use Docker service name for Keycloak
+      KEYCLOAK_HOST: keycloak
+      KEYCLOAK_PORT: 28080
+      REALM_NAME: pg-oauth
+      DB_USER: pguser
+      PGPORT: 5432
+    volumes:
+      - ./certs/server.crt:/var/lib/postgresql/server.crt:ro
+      - ./certs/server.key:/var/lib/postgresql/server.key
+      - ./certs/ca.crt:/var/lib/postgresql/ca.crt:ro
+    command: >
+      bash -c "chown postgres:postgres /var/lib/postgresql/server.key &&
+      chmod 0600 /var/lib/postgresql/server.key &&
+      docker-entrypoint.sh postgres
+      -c ssl=on
+      -c ssl_cert_file=/var/lib/postgresql/server.crt
+      -c ssl_key_file=/var/lib/postgresql/server.key
+      -c ssl_ca_file=/var/lib/postgresql/ca.crt
+      -c max_connections=5000"
+    healthcheck:
+      interval: 5s
+      retries: 15
+      test: ["CMD", "pg_isready", "-U", "postgres", "-p", "5432"]
+      timeout: 5s
+      start_period: 30s
+    ports:
+      - "25432:5432"
+    networks:
+      - pg-oauth-network
+    restart: on-failure
+
+networks:
+  pg-oauth-network:
+    driver: bridge
