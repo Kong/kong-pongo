@@ -1,0 +1,16 @@
+{
+  "name": "batches/cxy1rcrcg2rv20hwenan29gsnawknkoh6fz7",
+  "metadata": {
+    "@type": "type.googleapis.com/google.ai.generativelanguage.v1main.GenerateContentBatch",
+    "model": "models/gemini-2.5-flash",
+    "displayName": "my-batch-requests",
+    "createTime": "2025-10-30T03:08:38.469338427Z",
+    "updateTime": "2025-10-30T03:08:38.469338427Z",
+    "batchStats": {
+      "requestCount": "2",
+      "pendingRequestCount": "2"
+    },
+    "state": "BATCH_STATE_PENDING",
+    "name": "batches/cxy1rcrcg2rv20hwenan29gsnawknkoh6fz7"
+  }
+}
