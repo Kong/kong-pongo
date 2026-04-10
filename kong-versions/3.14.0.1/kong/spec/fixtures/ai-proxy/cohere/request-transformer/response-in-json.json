@@ -1,0 +1,19 @@
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "message": {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "{\n    \"persons\": [\n      {\n        \"name\": \"Kong A\",\n        \"age\": 62\n      },\n      {\n        \"name\": \"Kong B\",\n        \"age\": 84\n      }\n    ]\n  }\n"
+      }
+    ]
+  },
+  "finish_reason": "COMPLETE",
+  "usage": {
+    "tokens": {
+      "input_tokens": 81,
+      "output_tokens": 258
+    }
+  }
+}
