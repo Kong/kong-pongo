@@ -22,6 +22,30 @@
 
 ---
 
+## 2.26.0 released 14-Apr-2026
+
+* Feat: Kong Enterprise 3.14.0.1
+
+* Feat: Kong Enterprise 3.14.0.0
+
+* Feat: Kong Enterprise 3.13.0.3
+
+* Feat: Kong Enterprise 3.13.0.2
+
+* Feat: Kong Enterprise 3.12.0.4
+
+* Feat: Kong Enterprise 3.11.0.8
+
+* Feat: Kong Enterprise 3.10.0.10
+
+* Feat: Kong Enterprise 3.10.0.9
+
+* Feat: Kong Enterprise 3.10.0.8
+
+* Feat: Kong Enterprise 3.4.3.25
+
+* Feat: Kong Enterprise 3.4.3.23
+
 ## 2.25.0 released 24-Dec-2025
 
 * Feat: Kong Enterprise 3.13.0.0
