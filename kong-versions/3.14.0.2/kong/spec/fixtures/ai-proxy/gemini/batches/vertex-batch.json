@@ -1,0 +1,14 @@
+{
+  "model": "publishers/google/models/gemini-2.5-pro",
+  "inputConfig": {
+    "instancesFormat": "jsonl",
+    "gcsSource": {
+      "uris": ["gs://aigw-test/vertex_batch_file.jsonl"]
+    }
+  },
+  "outputConfig": {
+    "predictionsFormat": "jsonl",
+    "gcsDestination": { "outputUriPrefix": "gs://aigw-test/"}
+  },
+  "displayName": "vertex-batch"
+}

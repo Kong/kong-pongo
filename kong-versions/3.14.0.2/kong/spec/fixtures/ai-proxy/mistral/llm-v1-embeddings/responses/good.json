@@ -1,0 +1,20 @@
+{
+  "id": "cmpl-e5cc70bb28c444948073e77776eb30ef",
+  "object": "list",
+  "model": "mistral-embed",
+  "usage": {
+    "prompt_tokens": 16,
+    "total_tokens": 16
+  },
+  "data": [
+    {
+      "object": "embedding",
+      "embedding": [
+        0.1,
+        0.2,
+        0.3
+      ],
+      "index": 0
+    }
+  ]
+}
