@@ -1,5 +1,5 @@
 [![Unix Tests](https://img.shields.io/github/actions/workflow/status/Kong/kong-pongo/test.yml?branch=master&label=Unix%20tests&logo=linux)](https://github.com/Kong/kong-pongo/actions/workflows/test.yml)
-[![Docker Tests](https://img.shields.io/github/actions/workflow/status/Kong/kong-pongo/test.yml?branch=master&label=Docker%20tests&logo=docker)](https://github.com/Kong/kong-pongo/actions/workflows/docker.yml)
+[![Docker Tests](https://img.shields.io/github/actions/workflow/status/Kong/kong-pongo/docker.yml?branch=master&label=Docker%20tests&logo=docker)](https://github.com/Kong/kong-pongo/actions/workflows/docker.yml)
 [![Lint](https://github.com/Kong/kong-pongo/workflows/Lint/badge.svg)](https://github.com/Kong/kong-pongo/actions/workflows/lint.yml)
 [![SemVer](https://img.shields.io/github/v/tag/Kong/kong-pongo?color=brightgreen&label=SemVer&logo=semver&sort=semver)](CHANGELOG.md)
 
