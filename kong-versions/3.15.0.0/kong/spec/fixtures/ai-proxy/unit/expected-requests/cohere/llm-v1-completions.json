@@ -1,0 +1,14 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Explain why you can't divide by zero?"
+    }
+  ],
+  "model": "command",
+  "max_tokens": 512,
+  "temperature": 0.5,
+  "top_p": 0.75,
+  "top_k": 5,
+  "stream": false
+}
