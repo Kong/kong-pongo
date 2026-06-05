@@ -1,0 +1,142 @@
+openapi: "3.0.0"
+info:
+  title: Sample API
+  description: A Sample OpenAPI Spec
+  version: 1.0.0
+
+servers:
+  - url: "/v1"
+
+paths:
+  /user/{username}:
+    get:
+      summary: Get user by user name
+      description: ''
+      operationId: getUserByName
+      parameters:
+        - name: username
+          in: path
+          description: 'The name that needs to be fetched. Use user1 for testing. '
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+        '400':
+          description: Invalid username supplied
+        '404':
+          description: User not found
+  /user/{username}/report.{format}:
+    get:
+      parameters:
+        - name: username
+          in: path
+          description: 'The name that needs to be fetched. Use user1 for testing. '
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: format
+          required: true
+          description: The user to create.
+          schema:
+            type: string
+            enum:
+              - pdf
+              - txt
+              - word
+              - 世界
+      responses:
+        201:
+          description: Created
+  /user/{username}.pdf:
+    get:
+      parameters:
+        - name: username
+          in: path
+          description: 'The name that needs to be fetched. Use user1 for testing. '
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Created
+  /escape/{a}|.-+*^()[]%25${b}:
+    get:
+      parameters:
+      - name: a
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: b
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        201:
+          description: Created
+  /special/{param}/[brackets]:
+    get:
+      parameters:
+        - name: param
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Special characters test
+  /hyphen-param/{param-name}:
+    get:
+      parameters:
+        - name: param-name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Created
+  /org/{orgGid}/odata/$metadata:
+    get:
+      parameters:
+        - name: orgGid
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9\\-]{1,50}$"
+      responses:
+        200:
+          description: OData metadata
+  /api/v1/{resource}.{format}$end:
+    get:
+      parameters:
+        - name: resource
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: format
+          in: path  
+          required: true
+          schema:
+            type: string
+            enum: [json, xml]
+      responses:
+        200:
+          description: Resource data
+  /backslash/{param}\test:
+    get:
+      parameters:
+        - name: param
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Backslash test
