@@ -1,0 +1,194 @@
+server {
+  server_name gemini;
+  listen %s;
+
+  default_type 'application/json';
+
+  location = "/v1/chat/completions" {
+    content_by_lua_block {
+      local pl_file = require "pl.file"
+      local json = require("cjson.safe")
+
+      local token = ngx.req.get_headers()["authorization"]
+      if token == "Bearer gemini-key" then
+        ngx.req.read_body()
+        local body, err = ngx.req.get_body_data()
+        body, err = json.decode(body)
+        
+        ngx.status = 200
+        ngx.print(pl_file.read("spec/fixtures/ai-proxy/gemini/llm-v1-chat/responses/good.json"))
+      end
+    }
+  }
+
+  location = "/v1/chat/completions/gemini-2.0-flash" {
+    content_by_lua_block {
+      local pl_file = require "pl.file"
+      local json = require("cjson.safe")
+
+      local token = ngx.req.get_headers()["authorization"]
+      if token == "Bearer gemini-key" then
+        ngx.req.read_body()
+        local body, err = ngx.req.get_body_data()
+        body, err = json.decode(body)
+        
+        ngx.status = 200
+        ngx.print(pl_file.read("spec/fixtures/ai-proxy/gemini/llm-v1-chat/responses/good-gemini-2.0-flash.json"))
+      end
+    }
+  }
+  
+  location = "/v1/embeddings" {
+    content_by_lua_block {
+      local pl_file = require "pl.file"
+      local json = require("cjson.safe")
+
+      local token = ngx.req.get_headers()["authorization"]
+      if token == "Bearer gemini-key" then
+        ngx.req.read_body()
+        local body, err = ngx.req.get_body_data()
+        body, err = json.decode(body)
+        
+        ngx.status = 200
+        ngx.print(pl_file.read("spec/fixtures/ai-proxy/gemini/llm-v1-embeddings/responses/good.json"))
+      end
+    }
+  }
+
+  location = "/v1/chat/completions/query-auth" {
+    content_by_lua_block {
+      local pl_file = require "pl.file"
+      local json = require("cjson.safe")
+
+      -- Check for query parameter authentication
+      local args = ngx.req.get_uri_args()
+      if args.key == "gemini-query-key" then
+        ngx.req.read_body()
+        local body, err = ngx.req.get_body_data()
+        body, err = json.decode(body)
+
+        ngx.status = 200
+        ngx.print(pl_file.read("spec/fixtures/ai-proxy/gemini/llm-v1-chat/responses/good.json"))
+      else
+        ngx.status = 401
+        ngx.print('{"error": "Unauthorized"}')
+      end
+    }
+  }
+
+  location = "/v1/chat/completions/fail-model-armor" {
+    content_by_lua_block {
+      local pl_file = require "pl.file"
+
+      ngx.status = 200
+      ngx.print(pl_file.read("spec/fixtures/ai-proxy/gemini/llm-v1-chat/responses/fails-model-armor-floor.json"))
+    }
+  }
+
+  location ~ /v1beta/ {
+    content_by_lua_block {
+      local pl_file = require "pl.file"
+      local method = ngx.req.get_method()
+      local uri = ngx.var.uri
+
+      local path
+      local match = true
+      if method == "GET" then
+        if uri:match('/batches$') then
+          -- list
+          path = "spec/fixtures/ai-proxy/gemini/batches/list.json"
+
+        elseif uri:match('/batches/([%%w]+)$') then
+          -- get
+          path = "spec/fixtures/ai-proxy/gemini/batches/get.json"
+
+        else match = false
+        end
+
+      elseif method == "POST" then
+        if uri:match('/models/([%%w%%.%%-]+):batchGenerateContent$') then
+          -- create
+          path = "spec/fixtures/ai-proxy/gemini/batches/created.json"
+
+        elseif not uri:match('/batches/([%%w]+):cancel$') then
+          -- cancel
+          match = false
+        end
+
+      elseif method == "DELETE" then
+        if not uri:match('/batches/([%%w]+)$') then
+          -- DELETE
+          match = false
+        end
+      
+      else match = false
+      end
+
+      if match then
+        ngx.status = 200
+        if path then
+          ngx.print(pl_file.read(path))
+
+        else ngx.print("{}")
+        end
+
+      else
+        ngx.status = 404
+      end
+
+      return
+    }
+  }
+
+  location ~ /v1/ {
+    content_by_lua_block {
+      local pl_file = require "pl.file"
+      local cjson = require "cjson.safe"
+      local method = ngx.req.get_method()
+      local uri = ngx.var.uri
+
+      local batch_name = "projects/432057123508/locations/us-central1/batchPredictionJobs/2037446585876480"
+
+      local list_resp = cjson.encode({
+        { { name = batch_name, }, }
+      })
+
+      local create_or_get_resp = cjson.encode({ { name = batch_name, }, })
+
+      local delete_resp = cjson.encode({ { name = "operation" }, })
+
+      local method = ngx.req.get_method()
+      if uri:match("/v1/projects/[^/]+/locations/[^/]+/batchPredictionJobs$") then
+        -- list
+        if method == "GET" then
+          ngx.status = 200
+          ngx.print(list_resp)
+
+        -- create
+        elseif method == "POST" then
+          ngx.status = 200
+          ngx.print(create_or_get_resp)
+        end
+
+      elseif uri:match("/v1/projects/[^/]+/locations/[^/]+/batchPredictionJobs/[^/]+:cancel$") then
+        -- cancel
+        ngx.status = 200
+
+      elseif uri:match("/v1/projects/[^/]+/locations/[^/]+/batchPredictionJobs/[^/]+$") then
+        -- delete
+        if method == "DELETE" then
+          ngx.status = 200
+          ngx.print(delete_resp)
+
+        -- get
+        elseif method == "GET" then
+          ngx.status = 200
+          ngx.print(create_or_get_resp)
+        end
+
+      else
+        ngx.status = 400
+      end
+    }
+  }
+}
