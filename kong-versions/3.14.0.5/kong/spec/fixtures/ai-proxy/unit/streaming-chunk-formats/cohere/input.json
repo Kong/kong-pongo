@@ -1,3 +1,0 @@
-{"type": "content-delta", "delta": {"message": {"content": {"text": "Hello"}}}}
-{"type": "content-delta", "delta": {"message": {"content": {"text": "!"}}}}
-{"type": "message-end", "delta": {"usage": {"tokens": {"input_tokens": 69, "output_tokens": 9}}}}
