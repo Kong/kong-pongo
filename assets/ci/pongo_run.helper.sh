@@ -153,14 +153,6 @@ function run_version_test {
     exit 1
   fi
 
-  # lowest major.minor version we still test, per product
-  local MIN_VERSION
-  if [ "$PRODUCT" == "Kong Enterprise" ]; then
-    MIN_VERSION="3.4"
-  else
-    MIN_VERSION="3.9"
-  fi
-
   tinitialize "Pongo test suite" "${BASH_SOURCE[0]}"
 
   local VERSIONS
@@ -171,16 +163,6 @@ function run_version_test {
   pushd kong-plugin || exit 1
 
   for VERSION in $VERSIONS ; do
-    # versions are listed latest-first, so once we drop below MIN_VERSION we can stop
-    if [[ "$VERSION" =~ ^[0-9] ]]; then
-      local MAJOR_MINOR
-      MAJOR_MINOR=$(echo "$VERSION" | cut -d. -f1,2)
-      if [[ "$MAJOR_MINOR" != "$MIN_VERSION" ]] && \
-         [[ "$(printf '%s\n%s\n' "$MAJOR_MINOR" "$MIN_VERSION" | sort -V | head -n1)" == "$MAJOR_MINOR" ]]; then
-        break
-      fi
-    fi
-
     tchapter "$PRODUCT $VERSION"
     test_single_version "$VERSION"
   done
