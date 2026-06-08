@@ -1,0 +1,269 @@
+openapi: "3.0.0"
+info:
+  title: Sample API
+  description: A Sample OpenAPI Spec
+  version: 1.0.0
+
+servers:
+  - url: "/v1"
+
+paths:
+  /query/form:
+    get:
+      summary: simple style
+      description: ''
+      parameters:
+        - name: string_ref
+          in: query
+          required: false
+          style: form
+          explode: true
+          schema:
+            "$ref": "#/components/schemas/string_type"
+        - name: integer_ref
+          in: query
+          required: false
+          style: form
+          explode: true
+          schema:
+            "$ref": "#/components/schemas/integer_type"
+      responses:
+        '200':
+          description: successful operation
+  /query:
+    get:
+      summary: query parameter with array schema
+      description: ''
+      parameters:
+        - name: integer_array
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+      responses:
+        '200':
+          description: successful operation
+  /query2:
+    get:
+      summary: query parameter with object schema
+      description: ''
+      parameters:
+        - name: obj
+          in: query
+          required: true
+          schema:
+            type: object
+            properties:
+              required_integer:
+                type: integer
+              required_string:
+                type: string
+              boolean:
+                type: boolean
+            required:
+              - required_integer
+              - required_string
+      responses:
+        '200':
+          description: successful operation
+  /query/not-explode/array:
+    get:
+      summary: query parameter with array schema and not-explode
+      description: ''
+      parameters:
+        - name: integer_array
+          in: query
+          required: true
+          explode: false
+          schema:
+            type: array
+            items:
+              type: integer
+      responses:
+        '200':
+          description: successful operation
+  /query/not-explode/object:
+    get:
+      summary: query parameter with object schema and not-explode
+      description: ''
+      parameters:
+        - name: obj
+          in: query
+          required: true
+          explode: false
+          schema:
+            type: object
+            properties:
+              required_integer:
+                type: integer
+              required_string:
+                type: string
+              boolean:
+                type: boolean
+            required:
+              - required_integer
+              - required_string
+      responses:
+        '200':
+          description: successful operation
+  /query/deepObject:
+    get:
+      summary: query parameter with schema
+      description: ''
+      parameters:
+        - name: deepObject
+          in: query
+          required: true
+          schema:
+            type: object
+            properties:
+              required_integer:
+                type: integer
+              required_string:
+                type: string
+              boolean:
+                type: boolean
+            required:
+              - required_integer
+              - required_string
+          explode: true
+          style: deepObject
+      responses:
+        '200':
+          description: successful operation
+
+  /path/object/{simple_object}:
+    get:
+      summary: path parameter with object schema
+      description: ''
+      parameters:
+        - name: simple_object
+          in: path
+          required: true
+          schema:
+            type: object
+            properties:
+              required_integer:
+                type: integer
+              required_string:
+                type: string
+              boolean:
+                type: boolean
+            required:
+              - required_integer
+              - required_string
+      responses:
+        '200':
+          description: successful operation
+
+  /path/object/{simple_object}/explode:
+    get:
+      summary: path parameter with object schema
+      description: ''
+      parameters:
+        - name: simple_object
+          in: path
+          required: true
+          explode: true
+          schema:
+            type: object
+            properties:
+              required_integer:
+                type: integer
+              required_string:
+                type: string
+              boolean:
+                type: boolean
+            required:
+              - required_integer
+              - required_string
+      responses:
+        '200':
+          description: successful operation
+
+  /path/array/{array}:
+    get:
+      summary: path parameter with array schema
+      description: ''
+      parameters:
+        - name: array
+          in: path
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+      responses:
+        '200':
+          description: successful operation
+
+  /header:
+    get:
+      summary: path parameter with array schema
+      description: ''
+      parameters:
+      - in: header
+        name: integer_array
+        schema:
+          type: array
+          items:
+            type: integer
+      - in: header
+        name: obj
+        schema:
+          type: object
+          properties:
+            required_integer:
+              type: integer
+            required_string:
+              type: string
+            boolean:
+              type: boolean
+          required:
+            - required_integer
+            - required_string
+      responses:
+        '200':
+          description: successful operation
+
+  /header/explode:
+    get:
+      summary: path parameter with array schema
+      description: ''
+      parameters:
+        - in: header
+          name: integer_array
+          schema:
+            type: array
+            items:
+              type: integer
+          explode: true
+        - in: header
+          name: obj
+          schema:
+            type: object
+            properties:
+              required_integer:
+                type: integer
+              required_string:
+                type: string
+              boolean:
+                type: boolean
+            required:
+              - required_integer
+              - required_string
+          explode: true
+      responses:
+        '200':
+          description: successful operation
+
+components:
+  schemas:
+    string_type:
+      type: string
+      maxLength: 10
+    integer_type:
+      type: integer
+      minimum: 0
