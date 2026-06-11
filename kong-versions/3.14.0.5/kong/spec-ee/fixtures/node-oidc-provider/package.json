@@ -1,7 +1,0 @@
-{
-  "name": "oidc-provider",
-  "version": "1.0.0",
-  "dependencies": {
-    "oidc-provider": "^9.7.0"
-  }
-}
