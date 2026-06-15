@@ -1,0 +1,60 @@
+services:
+  db:
+    image: ${DB_IMAGE:-postgres}
+    environment:
+      POSTGRES_USER: conjur
+      POSTGRES_DB: conjur
+      POSTGRES_PASSWORD: conjur
+    healthcheck:
+      test:
+        - CMD
+        - pg_isready
+      timeout: 3s
+      interval: 30s
+      start_period: 30s
+      start_interval: 5s
+      retries: 10
+
+  server:
+    image: ${SERVER_IMAGE:-cyberark/conjur}
+    environment:
+      DATABASE_URL: "postgres://conjur:conjur@db:5432/conjur"
+      CONJUR_AUTHENTICATORS: authn
+
+      # re-generate with:
+      #   docker run <image> data-key generate
+      CONJUR_DATA_KEY: "xLOsjOQ0UyT7VeaD310Tg5MczRRo55MXCCA8YQb63tY="
+
+    volumes:
+      - .:/kong
+      - setup:/setup
+
+    ports:
+      - 8300:80
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    command: server
+
+    healthcheck:
+      test:
+        - CMD
+        - sh
+        - -c
+        - test -f /setup/healthy && test -s /setup/env
+      timeout: 10s
+      interval: 60s
+      start_period: 30s
+      start_interval: 3s
+      retries: 10
+
+    post_start:
+      - command: /kong/setup.sh /kong
+
+    pre_stop:
+      - command: rm -f /kong/env
+
+volumes:
+  setup:

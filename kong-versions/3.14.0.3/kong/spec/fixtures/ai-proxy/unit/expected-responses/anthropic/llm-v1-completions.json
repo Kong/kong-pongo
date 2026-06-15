@@ -1,0 +1,11 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "text": "You cannot divide by zero because it is not a valid operation in mathematics."
+    }
+  ],
+  "model": "claude-haiku-4-5-20251001",
+  "object": "text_completion"
+}
