@@ -1,0 +1,7 @@
+services:
+  app:
+    image: kong/ai-pii-service:v0.2.0-en
+    container_name: pii-service
+    ports:
+      - "3010:8080"
+    restart: unless-stopped
