@@ -1,6 +1,0 @@
-{
-  "id": "chatcmpl-choices-null-test",
-  "object": "chat.completion",
-  "model": "openai.chat.small:4o",
-  "choices": null
-}
