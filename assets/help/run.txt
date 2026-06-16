@@ -4,6 +4,9 @@ This will start a test run. If an environment is running it will use that, if
 not, it will automatically start the environment (and automatically build the
 Kong test images in the process).
 
+Before each run, Pongo clears `/kong-plugin/servroot` inside the shared runtime
+volume so logs, sockets, and temporary files do not accumulate across runs.
+
 Options (see 'pongo up' for details):
   --no-postgres      do not start postgres db
   --cassandra        do not start cassandra db
@@ -37,6 +40,9 @@ Environment variables:
 
   See variables at 'pongo build' for building the test-image (the Kong version
   to test against)
+
+  `KONG_TEST_DONT_CLEAN=true` still preserves the runtime prefix for the
+  current run so you can inspect its artifacts afterwards.
 
 
 Example usage:

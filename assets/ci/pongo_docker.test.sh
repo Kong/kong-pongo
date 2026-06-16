@@ -90,12 +90,9 @@ function run_test {
   fi
 
 
-  # cleanup working directory
-  tmessage "cleanup; clear working directory (servroot)"
-  if [ -d ./servroot ]; then
-    #rm -rf servroot                   doesn't work; priviledge issue
-    ../../docker/pongo-docker.sh shell rm -rf /kong-plugin/servroot
-  fi
+  # cleanup Kong runtime prefix inside the container volume
+  tmessage "cleanup; clear Kong runtime prefix (servroot)"
+  ../../docker/pongo-docker.sh shell find /kong-plugin/servroot -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
 
 
   ttest "count unique Pongo environments"
