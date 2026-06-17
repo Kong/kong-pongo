@@ -1,6 +1,6 @@
 services:
   kafka:
-    image: "bitnami/kafka:4.0.0"
+    image: "soldevelo/kafka:4.0.0"
     network_mode: "host"
     environment:
       KAFKA_CFG_NODE_ID: 0
