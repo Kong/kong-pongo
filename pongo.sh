@@ -100,6 +100,13 @@ function globals {
     export PONGO_PLATFORM="LINUX"
   fi
 
+  # macOS or WSL working on a drvfs mount doesn't support named pipes or Unix Domain Socket
+  if [ "$PONGO_PLATFORM" == "LINUX" ]; then
+    DOCKER_COMPOSE_FILES="$DOCKER_COMPOSE_FILES -f ${LOCAL_PATH}/assets/docker-compose-linux-extend.yml"
+  else
+    DOCKER_COMPOSE_FILES="$DOCKER_COMPOSE_FILES -f ${LOCAL_PATH}/assets/docker-compose-nonlinux-extend.yml"
+  fi
+
   # when running CI do we have the required secrets available? (used for EE only)
   # secrets are unavailable for PR's from outside the organization (untrusted)
   # can be set to "true" or "false", defaults to the Travis-CI setting
