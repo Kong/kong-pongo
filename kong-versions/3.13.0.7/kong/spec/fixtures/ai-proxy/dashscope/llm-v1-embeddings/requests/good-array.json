@@ -1,0 +1,11 @@
+{
+    "model": "text-embedding-v3",
+    "input": [
+        "风急天高猿啸哀",
+        "渚清沙白鸟飞回",
+        "无边落木萧萧下",
+        "不尽长江滚滚来"
+    ],
+    "dimensions": "1024",  
+    "encoding_format": "float"
+}

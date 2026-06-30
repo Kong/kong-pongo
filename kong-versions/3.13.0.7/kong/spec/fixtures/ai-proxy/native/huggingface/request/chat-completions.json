@@ -1,0 +1,1 @@
+ {"stream":false,"messages":[{"role":"system","content":"You are a helpful assistant."},{"role":"user","content":"What is deep learning?"}],"max_tokens":20,"model":"tgi"}
