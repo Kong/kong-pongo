@@ -22,6 +22,70 @@
 
 ---
 
+## 2.27.0 released 3-Jul-2026
+
+* Feat: Kong Enterprise 3.15.0.0
+
+* Feat: Kong Enterprise 3.14.0.8
+
+* Feat: Kong Enterprise 3.14.0.7
+
+* Feat: Kong Enterprise 3.14.0.6
+
+* Feat: Kong Enterprise 3.14.0.5
+
+* Feat: Kong Enterprise 3.14.0.4
+
+* Feat: Kong Enterprise 3.14.0.3
+
+* Feat: Kong Enterprise 3.14.0.2
+
+* Feat: Kong Enterprise 3.13.0.7
+
+* Feat: Kong Enterprise 3.13.0.6
+
+* Feat: Kong Enterprise 3.13.0.5
+
+* Feat: Kong Enterprise 3.13.0.4
+
+* Feat: Kong Enterprise 3.12.0.8
+
+* Feat: Kong Enterprise 3.12.0.7
+
+* Feat: Kong Enterprise 3.12.0.6
+
+* Feat: Kong Enterprise 3.12.0.5
+
+* Feat: Kong Enterprise 3.11.0.14
+
+* Feat: Kong Enterprise 3.11.0.13
+
+* Feat: Kong Enterprise 3.11.0.12
+
+* Feat: Kong Enterprise 3.11.0.11
+
+* Feat: Kong Enterprise 3.11.0.10
+
+* Feat: Kong Enterprise 3.11.0.9
+
+* Feat: Kong Enterprise 3.10.0.15
+
+* Feat: Kong Enterprise 3.10.0.14
+
+* Feat: Kong Enterprise 3.10.0.13
+
+* Feat: Kong Enterprise 3.10.0.12
+
+* Feat: Kong Enterprise 3.10.0.11
+
+* Feat: Kong Enterprise 3.4.3.28
+
+* Feat: Kong Enterprise 3.4.3.27
+
+* Feat: Kong Enterprise 3.4.3.26
+
+* Feat: Kong OSS 3.9.2
+
 ## 2.26.0 released 14-Apr-2026
 
 * Feat: Kong Enterprise 3.14.0.1
