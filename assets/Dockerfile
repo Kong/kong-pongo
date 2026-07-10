@@ -48,6 +48,15 @@ ARG PONGO_INSECURE
 # psmisc: provides `fuser`
 # net-tools: provides `netstat`
 
+RUN sed -i \
+    -e 's|http://archive.ubuntu.com/ubuntu|http://mirror.hetzner.com/ubuntu/packages|g' \
+    -e 's|http://security.ubuntu.com/ubuntu|http://mirror.hetzner.com/ubuntu/packages|g' \
+    /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || true
+RUN sed -i \
+    -e 's|http://archive.ubuntu.com/ubuntu|http://mirror.hetzner.com/ubuntu/packages|g' \
+    -e 's|http://security.ubuntu.com/ubuntu|http://mirror.hetzner.com/ubuntu/packages|g' \
+    /etc/apt/sources.list 2>/dev/null || true
+
 RUN apt update \
     && apt install -y zip make jq m4 curl build-essential wget git libssl-dev zlib1g-dev lsb-release psmisc net-tools unzip
 
