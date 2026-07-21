@@ -1,0 +1,65 @@
+Certificate Request:
+    Data:
+        Version: 1 (0x0)
+        Subject: CN=localhost
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:c3:f5:1b:d7:7d:66:3e:fb:68:6c:f9:91:0a:58:
+                    3a:24:78:67:23:22:7b:6b:a9:23:b1:be:cf:00:84:
+                    08:ab:06:8e:18:5b:06:ad:39:b0:3a:15:98:c0:52:
+                    f1:bb:e0:0a:a9:43:2b:69:b8:f9:ff:3c:ba:78:1b:
+                    44:d2:1d:00:98:27:b8:b5:34:bb:bd:0e:32:ce:2e:
+                    35:39:d1:de:12:32:dc:96:af:94:62:32:c9:6d:24:
+                    d7:4c:50:13:b5:87:5c:0c:dd:0d:c3:c3:fa:5f:f5:
+                    9b:ec:4a:1b:93:a1:73:5e:be:5d:b4:fa:ac:ea:16:
+                    4c:f2:b5:fd:bc:35:11:1c:a5:61:e0:4e:2a:8e:05:
+                    7d:55:91:21:72:7c:3a:a0:42:19:b5:5e:5a:e1:2f:
+                    48:f8:41:c2:c7:d9:8c:58:c7:47:03:a9:83:34:38:
+                    5e:1a:b1:48:55:c0:19:e4:bd:3b:66:93:a3:f8:f3:
+                    a9:44:94:e7:c2:90:37:cd:7c:1a:39:dd:91:b6:1e:
+                    c9:6a:45:66:cc:2e:db:b6:5c:d9:65:8f:c7:e5:9b:
+                    ad:2e:65:ac:d3:cd:99:fe:63:a0:68:3f:1c:02:61:
+                    5b:ca:7f:6d:62:28:52:d5:3c:dd:84:13:0b:d1:f5:
+                    3c:5f:b9:47:85:ba:55:16:73:de:2f:e7:64:bf:6d:
+                    36:cd
+                Exponent: 65537 (0x10001)
+        Attributes:
+            Requested Extensions:
+                X509v3 Subject Alternative Name: 
+                    DNS:localhost, DNS:postgres, DNS:kong_postgres_test, DNS:host.docker.internal, IP Address:127.0.0.1
+    Signature Algorithm: sha256WithRSAEncryption
+    Signature Value:
+        66:12:38:e9:b5:60:2d:7c:d1:b1:83:c6:ef:c0:f2:e2:51:48:
+        a7:0a:e2:26:15:c5:0f:c9:dc:7c:4b:13:54:b2:4c:d2:05:9d:
+        98:04:1f:97:ee:37:9e:39:a1:bb:33:ab:b6:28:48:db:e8:55:
+        f2:18:dd:82:41:bb:87:21:6b:6d:cb:39:bd:56:f2:f2:d0:34:
+        0d:6b:81:60:63:e7:29:f1:62:ce:14:a5:31:02:92:09:29:a8:
+        4b:ba:71:b0:2f:3b:43:e3:dd:d4:c7:ba:bf:0e:a0:04:89:43:
+        59:1a:ca:a7:d0:18:21:ec:ff:b0:f2:22:48:0e:6c:d4:e9:fd:
+        b4:07:82:4f:f7:92:11:ad:1b:bb:ff:c7:c4:d9:85:8e:29:30:
+        bf:90:ff:66:eb:49:2f:6a:64:ca:55:02:f6:14:bc:43:5d:b4:
+        d0:5e:3f:cc:07:ae:41:75:46:ff:16:bf:5c:ef:32:19:1c:d7:
+        3a:4d:8d:9b:b4:d6:a0:39:79:b1:90:3a:e7:80:66:10:76:95:
+        3b:04:e7:72:ef:ee:61:97:ef:4c:68:cd:7a:ea:f0:4d:2a:21:
+        d2:e0:9b:e1:9a:f0:b7:dc:11:2f:c6:f1:a9:bf:ce:4f:84:87:
+        aa:4d:df:db:c0:81:50:b9:ea:d4:d6:b2:fd:cb:30:e9:f6:da:
+        d0:a9:0d:bc
+-----BEGIN CERTIFICATE REQUEST-----
+MIICujCCAaICAQAwFDESMBAGA1UEAwwJbG9jYWxob3N0MIIBIjANBgkqhkiG9w0B
+AQEFAAOCAQ8AMIIBCgKCAQEAw/Ub131mPvtobPmRClg6JHhnIyJ7a6kjsb7PAIQI
+qwaOGFsGrTmwOhWYwFLxu+AKqUMrabj5/zy6eBtE0h0AmCe4tTS7vQ4yzi41OdHe
+EjLclq+UYjLJbSTXTFATtYdcDN0Nw8P6X/Wb7Eobk6FzXr5dtPqs6hZM8rX9vDUR
+HKVh4E4qjgV9VZEhcnw6oEIZtV5a4S9I+EHCx9mMWMdHA6mDNDheGrFIVcAZ5L07
+ZpOj+POpRJTnwpA3zXwaOd2Rth7JakVmzC7btlzZZY/H5ZutLmWs082Z/mOgaD8c
+AmFbyn9tYihS1TzdhBML0fU8X7lHhbpVFnPeL+dkv202zQIDAQABoGEwXwYJKoZI
+hvcNAQkOMVIwUDBOBgNVHREERzBFgglsb2NhbGhvc3SCCHBvc3RncmVzghJrb25n
+X3Bvc3RncmVzX3Rlc3SCFGhvc3QuZG9ja2VyLmludGVybmFshwR/AAABMA0GCSqG
+SIb3DQEBCwUAA4IBAQBmEjjptWAtfNGxg8bvwPLiUUinCuImFcUPydx8SxNUskzS
+BZ2YBB+X7jeeOaG7M6u2KEjb6FXyGN2CQbuHIWttyzm9VvLy0DQNa4FgY+cp8WLO
+FKUxApIJKahLunGwLztD493Ux7q/DqAEiUNZGsqn0Bgh7P+w8iJIDmzU6f20B4JP
+95IRrRu7/8fE2YWOKTC/kP9m60kvamTKVQL2FLxDXbTQXj/MB65BdUb/Fr9c7zIZ
+HNc6TY2btNagOXmxkDrngGYQdpU7BOdy7+5hl+9MaM166vBNKiHS4JvhmvC33BEv
+xvGpv85PhIeqTd/bwIFQuerU1rL9yzDp9trQqQ28
+-----END CERTIFICATE REQUEST-----
