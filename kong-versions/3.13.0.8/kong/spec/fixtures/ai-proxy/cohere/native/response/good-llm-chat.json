@@ -1,0 +1,29 @@
+{
+  "response_id": "6eb461f0-6cec-44cd-a367-c8945c3e0d26",
+  "text": "I'm sorry, I don't have enough information to answer your question. Could you please provide me with the name of the person you are referring to?",
+  "generation_id": "47a08d01-78c0-40b6-b348-38e09866bc8a",
+  "chat_history": [
+    {
+      "role": "USER",
+      "message": "What year was he born?"
+    },
+    {
+      "role": "CHATBOT",
+      "message": "I'm sorry, I don't have enough information to answer your question. Could you please provide me with the name of the person you are referring to?"
+    }
+  ],
+  "finish_reason": "COMPLETE",
+  "meta": {
+    "api_version": {
+      "version": "1"
+    },
+    "billed_units": {
+      "input_tokens": 9,
+      "output_tokens": 31
+    },
+    "tokens": {
+      "input_tokens": 1454,
+      "output_tokens": 33
+    }
+  }
+}
