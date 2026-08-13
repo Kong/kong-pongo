@@ -1,0 +1,171 @@
+{
+  "name": "batches/cxy1rcrcg2rv20hwenan29gsnawknkoh6fz7",
+  "metadata": {
+    "@type": "type.googleapis.com/google.ai.generativelanguage.v1main.GenerateContentBatch",
+    "model": "models/gemini-2.5-flash",
+    "displayName": "my-batch-requests",
+    "output": {
+      "inlinedResponses": {
+        "inlinedResponses": [
+          {
+            "response": {
+              "candidates": [
+                {
+                  "content": {
+                    "parts": [
+                      {
+                        "text": "Photosynthesis is the fundamental biochemical process by which **light energy is converted into chemical energy** by plants, algae, and some bacteria."
+                      }
+                    ],
+                    "role": "model"
+                  },
+                  "finishReason": "STOP",
+                  "index": 0
+                }
+              ],
+              "usageMetadata": {
+                "promptTokenCount": 6,
+                "candidatesTokenCount": 1480,
+                "totalTokenCount": 2596,
+                "promptTokensDetails": [
+                  {
+                    "modality": "TEXT",
+                    "tokenCount": 6
+                  }
+                ],
+                "thoughtsTokenCount": 1110
+              },
+              "modelVersion": "gemini-2.5-flash",
+              "responseId": "9NYCaZ64KcanqtsP9dy8gAk"
+            },
+            "metadata": {
+              "key": "request-1"
+            }
+          },
+          {
+            "response": {
+              "candidates": [
+                {
+                  "content": {
+                    "parts": [
+                      {
+                        "text": "Photosynthesis is the fundamental biochemical process by which **plants, algae, and some bacteria** convert light energy into chemical energy, primarily in the form of glucose (sugar). "
+                      }
+                    ],
+                    "role": "model"
+                  },
+                  "finishReason": "STOP",
+                  "index": 0
+                }
+              ],
+              "usageMetadata": {
+                "promptTokenCount": 6,
+                "candidatesTokenCount": 1364,
+                "totalTokenCount": 2570,
+                "promptTokensDetails": [
+                  {
+                    "modality": "TEXT",
+                    "tokenCount": 6
+                  }
+                ],
+                "thoughtsTokenCount": 1200
+              },
+              "modelVersion": "gemini-2.5-flash",
+              "responseId": "9dYCabPnM4Ghz7IP_cf56Ag"
+            },
+            "metadata": {
+              "key": "request-2"
+            }
+          }
+        ]
+      }
+    },
+    "createTime": "2025-10-30T03:08:38.469338427Z",
+    "endTime": "2025-10-30T03:09:42.067996698Z",
+    "updateTime": "2025-10-30T03:09:42.067996678Z",
+    "batchStats": {
+      "requestCount": "2",
+      "successfulRequestCount": "2"
+    },
+    "state": "BATCH_STATE_SUCCEEDED",
+    "name": "batches/cxy1rcrcg2rv20hwenan29gsnawknkoh6fz7"
+  },
+  "done": true,
+  "response": {
+    "@type": "type.googleapis.com/google.ai.generativelanguage.v1main.GenerateContentBatchOutput",
+    "inlinedResponses": {
+      "inlinedResponses": [
+        {
+          "response": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "Photosynthesis is the fundamental biochemical process by which **light energy is converted into chemical energy** by plants, algae, and some bacteria."
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 6,
+              "candidatesTokenCount": 1480,
+              "totalTokenCount": 2596,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 6
+                }
+              ],
+              "thoughtsTokenCount": 1110
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "responseId": "9NYCaZ64KcanqtsP9dy8gAk"
+          },
+          "metadata": {
+            "key": "request-1"
+          }
+        },
+        {
+          "response": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "Photosynthesis is the fundamental biochemical process by which **plants, algae, and some bacteria** convert light energy into chemical energy, primarily in the form of glucose (sugar)."
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 6,
+              "candidatesTokenCount": 1364,
+              "totalTokenCount": 2570,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 6
+                }
+              ],
+              "thoughtsTokenCount": 1200
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "responseId": "9dYCabPnM4Ghz7IP_cf56Ag"
+          },
+          "metadata": {
+            "key": "request-2"
+          }
+        }
+      ]
+    }
+  }
+}
