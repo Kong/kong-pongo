@@ -1,0 +1,3 @@
+{
+  "message": "The request signature we calculated does not match the signature you provided. Check your AWS Secret Access Key and signing method. Consult the service documentation for details."
+}
