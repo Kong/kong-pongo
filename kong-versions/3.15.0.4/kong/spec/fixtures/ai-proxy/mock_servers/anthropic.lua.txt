@@ -1,0 +1,732 @@
+server {
+    server_name anthropic;
+    listen %s;
+
+    default_type 'application/json';
+
+
+    location ~ ^/llm/v1/chat/good {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+        local json = require("cjson.safe")
+        local capture_path = "%s"
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          local body, err = ngx.req.get_body_data()
+          body, err = json.decode(body)
+
+          if err or (not body.messages) then
+            ngx.status = 400
+            ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/bad_request.json"))
+          else
+            local thinking = body.thinking or {}
+            local output_config = body.output_config or {}
+            if capture_path ~= "" then
+              pl_file.write(capture_path, json.encode({
+                thinking_type = thinking.type,
+                thinking_budget = thinking.budget_tokens,
+                output_effort = output_config.effort,
+                messages = body.messages,
+                stream = body.stream,
+              }))
+            end
+            if body.stream then
+              local event_chunks = {
+                'event: message_start\ndata: {"type":"message_start","message":{"id":"msg_reasoning","type":"message","role":"assistant","model":"claude-haiku-4-5-20251001","content":[],"stop_reason":null,"stop_sequence":null}}',
+                'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}',
+                'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"2"}}',
+                'event: content_block_stop\ndata: {"type":"content_block_stop","index":0}',
+                'event: message_delta\ndata: {"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null},"usage":{"output_tokens":1}}',
+                'event: message_stop\ndata: {"type":"message_stop"}',
+              }
+
+              ngx.status = 200
+              ngx.header["Content-Type"] = "text/event-stream"
+
+              for _, event in ipairs(event_chunks) do
+                ngx.print(event .. "\n\n")
+                ngx.flush(true)
+                ngx.sleep(0.01)
+              end
+            else
+              ngx.status = 200
+              local test_models = require "spec.helpers.ai.test_models"
+              ngx.print(test_models.read_fixture(
+                "spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/good.json"
+              ))
+            end
+          end
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    # regression coverage for Accept-Encoding normalization: echoes back an
+    # undecodable Content-Encoding: br body if the incoming request still
+    # advertises brotli support, simulating a CDN (e.g. Cloudflare) that would
+    # honor it. This must never be reached once Kong strips "br" before
+    # proxying upstream, since Kong's decoders only understand gzip.
+    location ~ ^/llm/v1/chat/encoding-check {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token ~= "anthropic-key" then
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+          return
+        end
+
+        local accept_encoding = ngx.req.get_headers()["accept-encoding"] or ""
+        -- surfaced back to the client so a failure here is self-diagnosing
+        -- (e.g. "X-Received-Accept-Encoding: gzip, deflate, br" instead of an
+        -- opaque decode error)
+        ngx.header["X-Received-Accept-Encoding"] = accept_encoding
+
+        if accept_encoding:find("br", 1, true) then
+          ngx.status = 200
+          ngx.header["Content-Encoding"] = "br"
+          -- not a real Brotli stream: any consumer that actually tried to
+          -- inflate this as Brotli or JSON would fail, which is the point
+          ngx.print("not-a-real-brotli-stream")
+        else
+          ngx.status = 200
+          local test_models = require "spec.helpers.ai.test_models"
+          ngx.print(test_models.read_fixture(
+            "spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/good.json"
+          ))
+        end
+      }
+    }
+
+    # custom upstream url in native mode
+    location ~ ^/custom/native/v1/messages {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+        local json = require("cjson.safe")
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          local body, err = ngx.req.get_body_data()
+          body, err = json.decode(body)
+
+          if err or (not body.messages) then
+            ngx.status = 400
+            ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/bad_request.json"))
+          else
+            ngx.status = 200
+            ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/native-good.json"))
+          end
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    # custom upstream url in native mode, cache-write-ttl + service-tier billing
+    location ~ ^/custom/native-ttl-tier/v1/messages {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+        local json = require("cjson.safe")
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          local body, err = ngx.req.get_body_data()
+          body, err = json.decode(body)
+
+          if err or (not body.messages) then
+            ngx.status = 400
+            ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/bad_request.json"))
+          else
+            ngx.status = 200
+            ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/native-good-ttl-tier.json"))
+          end
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    # native-mode endpoint
+    location = "/v1/messages" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+        local json = require("cjson.safe")
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          local body, err = ngx.req.get_body_data()
+          body, err = json.decode(body)
+
+          if err or (not body.messages) then
+            ngx.status = 400
+            ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/bad_request.json"))
+          else
+            ngx.status = 200
+            ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/native-good.json"))
+          end
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    location = "/llm/v1/chat/good_with_cache_stream" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          local event_chunks = {
+            'event: message_start\ndata: {"type":"message_start","message":{"id":"msg_cache01","type":"message","role":"assistant","model":"claude-haiku-4-5-20251001","content":[],"stop_reason":null,"stop_sequence":null,"usage":{"input_tokens":8,"cache_creation_input_tokens":5505,"cache_read_input_tokens":0,"output_tokens":1}}}',
+            'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}',
+            'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hi"}}',
+            'event: message_delta\ndata: {"type":"message_delta","delta":{"stop_reason":null,"stop_sequence":null},"usage":{"output_tokens":3}}',
+            'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"!"}}',
+            'event: content_block_stop\ndata: {"type":"content_block_stop","index":0}',
+            'event: message_delta\ndata: {"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null},"usage":{"output_tokens":4}}',
+            'event: message_stop\ndata: {"type":"message_stop"}',
+          }
+
+          ngx.status = 200
+          ngx.header["Content-Type"] = "text/event-stream"
+
+          for _, event in ipairs(event_chunks) do
+            ngx.print(event .. "\n\n")
+            ngx.flush(true)
+            ngx.sleep(0.01)
+          end
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    # native-mode streaming endpoint carrying cache tokens
+    location ~ ^/custom/native/stream/ {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          local event_chunks = {
+            'event: message_start\ndata: {"type":"message_start","message":{"id":"msg_cache01","type":"message","role":"assistant","model":"claude-haiku-4-5-20251001","content":[],"stop_reason":null,"stop_sequence":null,"usage":{"input_tokens":8,"cache_creation_input_tokens":5505,"cache_read_input_tokens":0,"output_tokens":0}}}',
+            'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}',
+            'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hi!"}}',
+            'event: content_block_stop\ndata: {"type":"content_block_stop","index":0}',
+            'event: message_delta\ndata: {"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null},"usage":{"output_tokens":4}}',
+            'event: message_stop\ndata: {"type":"message_stop"}',
+          }
+
+          ngx.status = 200
+          ngx.header["Content-Type"] = "text/event-stream"
+
+          for _, event in ipairs(event_chunks) do
+            ngx.print(event .. "\n\n")
+            ngx.flush(true)
+            ngx.sleep(0.01)
+          end
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    # Always answers with a gzip-encoded SSE stream, and echoes the
+    # Accept-Encoding it received. Used to verify Kong never asks this upstream
+    # for gzip on behalf of a client that can't inflate it, since the native
+    # Anthropic streaming path passes the upstream body through untouched.
+    location ~ ^/custom/native/stream-gzip/ {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+        local deflate_gzip = require("kong.tools.gzip").deflate_gzip
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token ~= "anthropic-key" then
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+          return
+        end
+
+        local event_chunks = {
+          'event: message_start\ndata: {"type":"message_start","message":{"id":"msg_gz01","type":"message","role":"assistant","model":"claude-haiku-4-5-20251001","content":[],"stop_reason":null,"stop_sequence":null,"usage":{"input_tokens":8,"output_tokens":0}}}',
+          'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}',
+          'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hi!"}}',
+          'event: content_block_stop\ndata: {"type":"content_block_stop","index":0}',
+          'event: message_delta\ndata: {"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null},"usage":{"output_tokens":4}}',
+          'event: message_stop\ndata: {"type":"message_stop"}',
+        }
+
+        local payload = table.concat(event_chunks, "\n\n") .. "\n\n"
+
+        local accept_encoding = ngx.req.get_headers()["accept-encoding"] or ""
+
+        ngx.status = 200
+        ngx.header["Content-Type"] = "text/event-stream"
+        -- echoed so a failure names the header Kong actually forwarded
+        ngx.header["X-Received-Accept-Encoding"] = accept_encoding ~= "" and accept_encoding or "(none)"
+
+        -- behave like a real upstream: only compress when asked to
+        if accept_encoding:find("gzip", 1, true) then
+          ngx.header["Content-Encoding"] = "gzip"
+          ngx.print(deflate_gzip(payload))
+        else
+          ngx.print(payload)
+        end
+      }
+    }
+
+    location ~ ^/custom/native/stream-read/ {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          local event_chunks = {
+            'event: message_start\ndata: {"type":"message_start","message":{"id":"msg_cache_read01","type":"message","role":"assistant","model":"claude-haiku-4-5-20251001","content":[],"stop_reason":null,"stop_sequence":null,"usage":{"input_tokens":8,"cache_creation_input_tokens":0,"cache_read_input_tokens":5505,"output_tokens":0}}}',
+            'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}',
+            'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hi!"}}',
+            'event: content_block_stop\ndata: {"type":"content_block_stop","index":0}',
+            'event: message_delta\ndata: {"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null},"usage":{"output_tokens":4}}',
+            'event: message_stop\ndata: {"type":"message_stop"}',
+          }
+
+          ngx.status = 200
+          ngx.header["Content-Type"] = "text/event-stream"
+
+          for _, event in ipairs(event_chunks) do
+            ngx.print(event .. "\n\n")
+            ngx.flush(true)
+            ngx.sleep(0.01)
+          end
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    location = "/llm/v1/chat/good_with_cache" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          ngx.status = 200
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/good_with_cache.json"))
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    location = "/llm/v1/chat/good_with_cache_read" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          ngx.status = 200
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/good_with_cache_read.json"))
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    location = "/llm/v1/chat/good_with_cache_read_stream" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          local event_chunks = {
+            'event: message_start\ndata: {"type":"message_start","message":{"id":"msg_cache_read01","type":"message","role":"assistant","model":"claude-haiku-4-5-20251001","content":[],"stop_reason":null,"stop_sequence":null,"usage":{"input_tokens":8,"cache_creation_input_tokens":0,"cache_read_input_tokens":5505,"output_tokens":0}}}',
+            'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}',
+            'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Hi!"}}',
+            'event: content_block_stop\ndata: {"type":"content_block_stop","index":0}',
+            'event: message_delta\ndata: {"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null},"usage":{"output_tokens":4}}',
+            'event: message_stop\ndata: {"type":"message_stop"}',
+          }
+          ngx.status = 200
+          ngx.header["Content-Type"] = "text/event-stream"
+          for _, event in ipairs(event_chunks) do
+            ngx.print(event .. "\n\n")
+            ngx.flush(true)
+            ngx.sleep(0.01)
+          end
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    location = "/llm/v1/chat/good_with_compaction" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          ngx.status = 200
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/good_with_compaction.json"))
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    # streaming compaction: event shapes captured from a live claude-sonnet-5 call with
+    # a >100k-token prompt and the compact-2026-01-12 beta. message_start.usage has no
+    # "iterations" key; the terminal message_delta.usage carries the authoritative totals.
+    location = "/llm/v1/chat/good_with_compaction_stream" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          local event_chunks = {
+            'event: message_start\ndata: {"type":"message_start","message":{"id":"msg_compact01","type":"message","role":"assistant","model":"claude-haiku-4-5-20251001","content":[],"stop_reason":null,"stop_sequence":null,"usage":{"input_tokens":108107,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":2}}}',
+            'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"compaction","content":null}}',
+            'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"compaction_delta","content":"Summary of the conversation so far..."}}',
+            'event: content_block_stop\ndata: {"type":"content_block_stop","index":0}',
+            'event: content_block_start\ndata: {"type":"content_block_start","index":1,"content_block":{"type":"text","text":""}}',
+            'event: content_block_delta\ndata: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"Hi!"}}',
+            'event: content_block_stop\ndata: {"type":"content_block_stop","index":1}',
+            'event: message_delta\ndata: {"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null},"usage":{"input_tokens":179,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":45,"iterations":[{"type":"compaction","input_tokens":108107,"output_tokens":100,"cache_creation_input_tokens":0,"cache_read_input_tokens":0},{"type":"message","input_tokens":179,"output_tokens":45,"cache_creation_input_tokens":0,"cache_read_input_tokens":0}]}}',
+            'event: message_stop\ndata: {"type":"message_stop"}',
+          }
+
+          ngx.status = 200
+          ngx.header["Content-Type"] = "text/event-stream"
+
+          for _, event in ipairs(event_chunks) do
+            ngx.print(event .. "\n\n")
+            ngx.flush(true)
+            ngx.sleep(0.01)
+          end
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    # streaming compaction combined with prompt caching. Unlike good_with_compaction_stream
+    # above (a verbatim live capture, where cache was 0 throughout), the cache figures here
+    # are synthetic -- exercising the case where message_delta.usage.iterations carries
+    # non-zero cache_creation_input_tokens/cache_read_input_tokens per iteration.
+    location = "/llm/v1/chat/good_with_compaction_cache_stream" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          local event_chunks = {
+            'event: message_start\ndata: {"type":"message_start","message":{"id":"msg_compact_cache01","type":"message","role":"assistant","model":"claude-haiku-4-5-20251001","content":[],"stop_reason":null,"stop_sequence":null,"usage":{"input_tokens":1000,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":2}}}',
+            'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"compaction","content":null}}',
+            'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"compaction_delta","content":"Summary of the conversation so far..."}}',
+            'event: content_block_stop\ndata: {"type":"content_block_stop","index":0}',
+            'event: content_block_start\ndata: {"type":"content_block_start","index":1,"content_block":{"type":"text","text":""}}',
+            'event: content_block_delta\ndata: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"Hi!"}}',
+            'event: content_block_stop\ndata: {"type":"content_block_stop","index":1}',
+            'event: message_delta\ndata: {"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null},"usage":{"input_tokens":50,"cache_creation_input_tokens":0,"cache_read_input_tokens":200,"output_tokens":10,"iterations":[{"type":"compaction","input_tokens":900,"output_tokens":80,"cache_creation_input_tokens":300,"cache_read_input_tokens":0},{"type":"message","input_tokens":50,"output_tokens":10,"cache_creation_input_tokens":0,"cache_read_input_tokens":200}]}}',
+            'event: message_stop\ndata: {"type":"message_stop"}',
+          }
+
+          ngx.status = 200
+          ngx.header["Content-Type"] = "text/event-stream"
+
+          for _, event in ipairs(event_chunks) do
+            ngx.print(event .. "\n\n")
+            ngx.flush(true)
+            ngx.sleep(0.01)
+          end
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    location = "/llm/v1/chat/ttl_tier" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          ngx.status = 200
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/good_with_ttl_tier.json"))
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    # streaming variant of ttl_tier: same usage numbers, split across
+    # message_start (input/cache) and message_delta (cumulative output)
+    location = "/llm/v1/chat/ttl_tier_stream" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          local event_chunks = {
+            'event: message_start\ndata: {"type":"message_start","message":{"id":"msg_ttltier01","type":"message","role":"assistant","model":"claude-haiku-4-5-20251001","content":[],"stop_reason":null,"stop_sequence":null,"usage":{"input_tokens":1000,"cache_creation_input_tokens":300,"cache_read_input_tokens":100,"cache_creation":{"ephemeral_5m_input_tokens":200,"ephemeral_1h_input_tokens":100},"service_tier":"priority","output_tokens":0}}}',
+            'event: content_block_start\ndata: {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}',
+            'event: content_block_delta\ndata: {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"Summary."}}',
+            'event: content_block_stop\ndata: {"type":"content_block_stop","index":0}',
+            'event: message_delta\ndata: {"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null},"usage":{"output_tokens":200}}',
+            'event: message_stop\ndata: {"type":"message_stop"}',
+          }
+
+          ngx.status = 200
+          ngx.header["Content-Type"] = "text/event-stream"
+
+          for _, event in ipairs(event_chunks) do
+            ngx.print(event .. "\n\n")
+            ngx.flush(true)
+            ngx.sleep(0.01)
+          end
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    location = "/llm/v1/chat/bad_upstream_response" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+        local json = require("cjson.safe")
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          local body, err = ngx.req.get_body_data()
+          body, err = json.decode(body)
+
+          if err or (not body.messages) then
+            ngx.status = 400
+            ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/bad_request.json"))
+          else
+            ngx.status = 200
+            ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/bad_upstream_response.json"))
+          end
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    location = "/llm/v1/chat/no_usage_upstream_response" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+        local json = require("cjson.safe")
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          local body, err = ngx.req.get_body_data()
+          body, err = json.decode(body)
+
+          if err or (not body.messages) then
+            ngx.status = 400
+            ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/bad_request.json"))
+          else
+            ngx.status = 200
+            ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/no_usage_response.json"))
+          end
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    location = "/llm/v1/chat/malformed_usage_upstream_response" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+        local json = require("cjson.safe")
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          local body, err = ngx.req.get_body_data()
+          body, err = json.decode(body)
+
+          if err or (not body.messages) then
+            ngx.status = 400
+            ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/bad_request.json"))
+          else
+            ngx.status = 200
+            ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/malformed_usage_response.json"))
+          end
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    location = "/llm/v1/chat/bad_request" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+
+        ngx.status = 400
+        ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/bad_request.json"))
+      }
+    }
+
+    location = "/llm/v1/chat/internal_server_error" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+
+        ngx.status = 500
+        ngx.header["content-type"] = "text/html"
+        ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/internal_server_error.html"))
+      }
+    }
+
+    location = "/llm/v1/chat/tool_choice" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+        local json = require("cjson.safe")
+
+        ngx.req.read_body()
+        local function assert_ok(ok, err)
+          if not ok then
+            ngx.status = 500
+            ngx.say(err)
+            ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+          end
+          return ok
+        end
+        local body = assert_ok(ngx.req.get_body_data())
+        body = assert_ok(json.decode(body))
+        local tool_choice = body.tool_choice
+        ngx.header["tool-choice"] = json.encode(tool_choice)
+        local test_models = require "spec.helpers.ai.test_models"
+        ngx.print(test_models.read_fixture(
+          "spec/fixtures/ai-proxy/anthropic/llm-v1-chat/responses/good.json"
+        ))
+      }
+    }
+
+    location = "/llm/v1/completions/good" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+        local json = require("cjson.safe")
+
+        local token = ngx.req.get_headers()["x-api-key"]
+        if token == "anthropic-key" then
+          ngx.req.read_body()
+          local body, err = ngx.req.get_body_data()
+          body, err = json.decode(body)
+
+          if err or (not body.prompt) then
+            ngx.status = 400
+            ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-completions/responses/bad_request.json"))
+          else
+            ngx.status = 200
+            local test_models = require "spec.helpers.ai.test_models"
+            ngx.print(test_models.read_fixture(
+              "spec/fixtures/ai-proxy/anthropic/llm-v1-completions/responses/good.json"
+            ))
+          end
+        else
+          ngx.status = 401
+          ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-completions/responses/unauthorized.json"))
+        end
+      }
+    }
+
+    location = "/llm/v1/completions/bad_request" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+
+        ngx.status = 400
+        ngx.print(pl_file.read("spec/fixtures/ai-proxy/anthropic/llm-v1-completions/responses/bad_request.json"))
+      }
+    }
+
+    location "/v1/messages/batches" {
+      content_by_lua_block {
+        local pl_file = require "pl.file"
+        local json = require("cjson.safe")
+        local method = ngx.req.get_method()
+        local uri = ngx.var.uri
+
+        ngx.status = 200
+        local path
+        if method == "GET" then
+          -- get batches job
+          if uri:match('/batches/([^/]+)$') then
+            -- get batches job returns the same with creation
+            path = "spec/fixtures/ai-proxy/anthropic/llm-v1-batches/created_good.json"
+
+          -- get results
+          elseif uri:match('/batches/([^/]+)/results$') then
+            path = "spec/fixtures/ai-proxy/anthropic/llm-v1-batches/get_results_good.jsonl"
+
+          -- list
+          elseif uri:match('/batches$') then
+            path = "spec/fixtures/ai-proxy/anthropic/llm-v1-batches/list_good.json"
+
+          else
+            ngx.status = 400
+          end
+
+        elseif method == "POST" then
+          -- create
+          if uri:match('/batches$') then
+            path = "spec/fixtures/ai-proxy/anthropic/llm-v1-batches/created_good.json"
+
+          elseif uri:match('/batches/([^/]+)/cancel$') then
+            -- cancel
+            path = "spec/fixtures/ai-proxy/anthropic/llm-v1-batches/cancel_good.json"
+
+          else ngx.status = 400
+          end
+
+        elseif method == "DELETE" then
+          -- delete
+          if uri:match('/batches/([^/]+)$') then
+            path = "spec/fixtures/ai-proxy/anthropic/llm-v1-batches/created_good.json"
+
+          else ngx.status = 400
+          end
+        end
+
+        if path then
+          ngx.print(pl_file.read(path))
+        end
+      }
+    }
+
+}
