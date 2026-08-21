@@ -100,6 +100,8 @@ function globals {
     export PONGO_PLATFORM="LINUX"
   fi
 
+  CONTAINER_BASH="${WINDOWS_SLASH}/bin/bash"
+
   # when running CI do we have the required secrets available? (used for EE only)
   # secrets are unavailable for PR's from outside the organization (untrusted)
   # can be set to "true" or "false", defaults to the Travis-CI setting
@@ -604,7 +606,7 @@ function get_version {
   else
     # regular Kong version, so extract the Kong version number
     local cmd=(
-      '/bin/bash' '-c' '/usr/local/openresty/luajit/bin/luajit -e "
+      "$CONTAINER_BASH" '-c' '/usr/local/openresty/luajit/bin/luajit -e "
         local command = [[kong version]]
         local version_output = io.popen(command):read()
 
@@ -613,8 +615,7 @@ function get_version {
 
         io.stdout:write(parsed_version)
       "')
-    # shellcheck disable=SC2145  # we want WINDOWS_SLASH to be added to the first element
-    VERSION=$(docker run --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "$WINDOWS_SLASH${cmd[@]}")
+    VERSION=$(docker run --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "${cmd[@]}")
     if [[ ! $? -eq 0 ]]; then
       err "failed to read version from Kong image: $KONG_IMAGE"
     fi
@@ -641,7 +642,16 @@ function compose {
   export ACTION
   export PROJECT_ID
   local prefix
-  if [ -t 1 ] ; then
+  local wants_tty=true
+  local arg
+  for arg in "$@"; do
+    if [[ "$arg" == "-T" ]] || [[ "$arg" == "--no-TTY" ]]; then
+      wants_tty=false
+      break
+    fi
+  done
+
+  if [ -t 1 ] && [[ "$wants_tty" == "true" ]] ; then
     # only use winpty prefix if we're outputting to terminal,
     # hence don't use when piping
     prefix=$WINPTY_PREFIX
@@ -649,6 +659,37 @@ function compose {
 
   # shellcheck disable=SC2086  # we need DOCKER_COMPOSE_FILES to be word-split here
   $prefix $COMPOSE_COMMAND -p "${PROJECT_NAME}" ${DOCKER_COMPOSE_FILES} "$@"
+}
+
+
+function kong_prefix_path {
+  local path=$1
+  path=${path#./}
+
+  if [[ "$path" == servroot/* ]]; then
+    echo "/kong-plugin/$path"
+    return
+  fi
+
+  echo "/kong-plugin/servroot/$path"
+}
+
+
+function clear_runtime_prefix {
+  [[ "$KONG_TEST_DONT_CLEAN" == "true" ]] && return 0
+  local vol_name="${PROJECT_NAME}_pongo-kong-runtime-prefix"
+  if ! docker volume inspect "$vol_name" > /dev/null 2>&1; then
+    return 0
+  fi
+  # Prefer removing the whole volume; pongo_entrypoint.sh recreates the tree on
+  # next start. If the volume is in use (e.g. a shell/tail container is still
+  # running), fall back to clearing its contents via a short-lived container.
+  if ! docker volume rm "$vol_name" > /dev/null 2>&1; then
+    docker run --rm -v "$vol_name:/kong-plugin/servroot" --entrypoint "$CONTAINER_BASH" \
+      "$KONG_TEST_IMAGE" \
+      -c 'find /kong-plugin/servroot -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null; true' \
+      || err "failed to clear Kong runtime prefix"
+  fi
 }
 
 
@@ -1222,23 +1263,52 @@ function main {
   tail)
     local tail_file="${EXTRA_ARGS[1]}"
     if [[ "$tail_file" == "" ]]; then
-      tail_file="./servroot/logs/error.log"
+      tail_file="/kong-plugin/servroot/logs/error.log"
     fi
 
-    if [[ ! -f $tail_file ]]; then
-      msg "waiting for tail file to appear: $tail_file"
-      local index=1
-      while [ $index -le 300 ]
-      do
-        if [[ -f $tail_file ]]; then
-          break
-        fi
-        ((index++))
-        sleep 1
-      done
+    get_version
+
+    docker inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
+    if [[ ! $? -eq 0 ]]; then
+      msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
+      build_image
     fi
 
-    tail -F "$tail_file"
+    if [[ "$tail_file" != /* ]]; then
+      tail_file=$(kong_prefix_path "$tail_file")
+    fi
+
+    # $1 receives tail_file at runtime; avoids embedding the path in the -c
+    # string, which would break quoting if the path contains quotes or newlines.
+    # shellcheck disable=SC2016
+    local follow_cmd='index=1; while [ $index -le 300 ]; do if [ -f "$1" ]; then exec tail -F "$1"; fi; index=$((index + 1)); sleep 1; done; echo "[pongo-ERROR] tail file did not appear within 5 minutes" >&2; exit 1'
+    local tail_container_name="${PROJECT_NAME}-tail-${BASHPID:-$$}"
+
+    cleanup_tail_container() {
+      docker rm -f "$tail_container_name" > /dev/null 2>&1 || true
+    }
+
+    trap 'cleanup_tail_container; trap - EXIT INT TERM; unset -f cleanup_tail_container; exit 130' INT TERM
+    trap 'cleanup_tail_container' EXIT
+
+    compose run -d -T --no-deps --name "$tail_container_name" --entrypoint "$CONTAINER_BASH" kong -c "$follow_cmd" -- "$tail_file" > /dev/null || {
+      trap - EXIT INT TERM
+      unset -f cleanup_tail_container
+      err "failed to start tail container"
+    }
+
+    docker logs -f "$tail_container_name"
+    # docker logs exits 0 regardless of the container's own exit code; use
+    # docker wait (returns immediately since the container has already exited)
+    # to get the real exit code.
+    local tail_exit_code
+    tail_exit_code=$(docker wait "$tail_container_name" 2>/dev/null || echo "1")
+
+    trap - EXIT INT TERM
+    cleanup_tail_container
+    unset -f cleanup_tail_container
+
+    return "$tail_exit_code"
     ;;
 
   run)
@@ -1250,6 +1320,8 @@ function main {
       msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
       build_image
     fi
+
+    clear_runtime_prefix
 
     # figure out where in the arguments list the file-list starts
     local files_start_index=1
@@ -1296,7 +1368,7 @@ function main {
       -e ftp_proxy \
       -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
       kong \
-      "$WINDOWS_SLASH/bin/bash" "-c" "bin/busted --helper=$WINDOWS_SLASH/pongo/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
+      "$CONTAINER_BASH" "-c" "bin/busted --helper=$WINDOWS_SLASH/pongo/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
     ;;
 
   shell)
@@ -1316,19 +1388,12 @@ function main {
       shellprompt="Kong-$KONG_VERSION"
     fi
 
-    local cleanup
-    if [ -d "./servroot" ]; then
-      cleanup=false
-    else
-      cleanup=true
-    fi
-
     local exec_cmd="${EXTRA_ARGS[*]}"
     local suppress_kong_version="true"
     local script_mount=""
     if [[ "$exec_cmd" == "" ]]; then
       # no args, so plain shell, use -l to login and run profile scripts
-      exec_cmd="$WINDOWS_SLASH/bin/bash -l"
+      exec_cmd="$CONTAINER_BASH -l"
       suppress_kong_version="false"
     elif [[ "${exec_cmd:0:1}" == "@" ]]; then
       # a script file as argument
@@ -1339,7 +1404,7 @@ function main {
         err "Not a valid script filename: $script"
       fi
       script_mount="-v $script:/kong/bin/shell_script.sh"
-      exec_cmd="$WINDOWS_SLASH/bin/bash /kong/bin/shell_script.sh"
+      exec_cmd="$CONTAINER_BASH /kong/bin/shell_script.sh"
     fi
 
     local history_mount=""
@@ -1373,10 +1438,6 @@ function main {
       kong $exec_cmd
 
     local result=$?
-
-    if [[ "$cleanup" == "true" ]]; then
-      rm -rf "./servroot"
-    fi
 
     exit $result
     ;;

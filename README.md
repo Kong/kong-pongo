@@ -44,7 +44,8 @@ Project actions:
   shell         get a shell directly on a kong container
 
   tail          starts a tail on the specified file. Default file is
-                ./servroot/logs/error.log, an alternate file can be specified
+                ./servroot/logs/error.log, an alternate file can be specified.
+                The tail runs inside the Kong container.
 
 Environment actions:
   build         build the Kong test image, add '--force' to rebuild images
@@ -513,7 +514,9 @@ environment then check [Dependency troubleshooting](#dependency-troubleshooting)
 ### Accessing the logs
 
 When running the tests, the Kong prefix (or working directory) will be set to
-`./servroot`.
+`/kong-plugin/servroot` inside the Kong container. On Docker Desktop hosts
+(macOS and Windows), Pongo keeps that runtime directory on a container volume
+instead of the host bind mount so Unix sockets work reliably.
 
 To track the error log (where any `print` or `ngx.log` statements will go) you
 can use the tail command
@@ -525,11 +528,13 @@ pongo tail
 The above would be identical to:
 
 ```shell
-tail -F ./servroot/logs/error.log
+pongo shell tail -F /kong-plugin/servroot/logs/error.log
 ```
 
-The above does not work in a CI environment. So how to get access to the logs in
-that case?
+The host-side `tail -F ./servroot/logs/error.log` pattern does not work on CI or
+on Docker Desktop setups that keep the runtime prefix inside a container
+volume. In those environments, use `pongo tail` or `pongo shell` to read the
+logs from inside the container.
 
 From the default `.travis.yml` (see [chapter on CI](#setting-up-ci)), change the
 basic lines to run the commands as follows, from;
@@ -543,11 +548,12 @@ to;
     script:
     - "../kong-pongo/pongo.sh lint"
     - "KONG_TEST_DONT_CLEAN=true ../kong-pongo/pongo.sh run"
-    - "cat servroot/logs/error.log"
+    - "../kong-pongo/pongo.sh shell cat /kong-plugin/servroot/logs/error.log"
 
 Setting the `KONG_TEST_DONT_CLEAN` variable will instruct Kong to not clean up
-the working directory in between tests. And the final `cat` command will output
-the log to the Travis console.
+the working directory in between tests. Pongo still clears the runtime prefix
+before a new `pongo run`, so the preserved files belong to the current run. And
+the final `cat` command will output the log to the Travis console.
 
 [Back to ToC](#table-of-contents)
 
