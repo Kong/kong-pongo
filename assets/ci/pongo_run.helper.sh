@@ -118,7 +118,7 @@ function test_single_version {
   # cleanup working directory
   if [ -d ./servroot ]; then
     #rm -rf servroot                   doesn't work; priviledge issue
-    KONG_VERSION=$VERSION pongo shell rm -rf /kong-plugin/servroot
+    KONG_VERSION=$VERSION pongo shell sh -c 'find /kong-plugin/servroot -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true; find "$PONGO_PREFIX_HOST_MIRROR" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true'
   fi
 
   ttest "pongo down"

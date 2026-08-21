@@ -64,6 +64,7 @@ fi
 
 # set working dir in mounted volume to be able to check the logs
 export KONG_PREFIX=/kong-plugin/servroot
+export PONGO_PREFIX_HOST_MIRROR=${PONGO_PREFIX_HOST_MIRROR:-/kong-prefix-host-mirror}
 
 # set debug logs; specifically for the 'shell' command, tests already have it
 export KONG_LOG_LEVEL=debug
@@ -128,6 +129,47 @@ if [ -d /kong-plugin ]; then
   unset MOUNT_UID
   unset MOUNT_GID
 fi
+
+sync_prefix_debug_artifacts() {
+  if [ ! -d "$PONGO_PREFIX_HOST_MIRROR" ] || [ ! -d "$KONG_PREFIX" ]; then
+    return
+  fi
+
+  mkdir -p "$PONGO_PREFIX_HOST_MIRROR" "$PONGO_PREFIX_HOST_MIRROR/logs"
+
+  find "$KONG_PREFIX" -maxdepth 1 -type f -exec cp -fp {} "$PONGO_PREFIX_HOST_MIRROR"/ \;
+
+  if [ -d "$KONG_PREFIX/logs" ]; then
+    find "$KONG_PREFIX/logs" -maxdepth 1 -type f -exec cp -fp {} "$PONGO_PREFIX_HOST_MIRROR/logs"/ \;
+  fi
+}
+
+start_prefix_debug_sync() {
+  if [ ! -d "$PONGO_PREFIX_HOST_MIRROR" ]; then
+    return
+  fi
+
+  mkdir -p "$PONGO_PREFIX_HOST_MIRROR"
+  find "$PONGO_PREFIX_HOST_MIRROR" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
+  mkdir -p "$PONGO_PREFIX_HOST_MIRROR/logs"
+
+  sync_prefix_debug_artifacts
+
+  while true; do
+    sync_prefix_debug_artifacts
+    sleep 1
+  done &
+}
+
+# Docker Desktop bind mounts on Windows and other non-Linux hosts cannot host
+# Unix sockets reliably. Run the full Kong prefix from container-local storage
+# and mirror logs/configs back to the host workspace for inspection.
+if [ -d /kong-plugin ]; then
+  mkdir -p "$KONG_PREFIX" "$KONG_PREFIX/logs" "$KONG_PREFIX/pids" "$KONG_PREFIX/sockets"
+  chown kong:kong "$KONG_PREFIX" "$KONG_PREFIX/logs" "$KONG_PREFIX/pids" "$KONG_PREFIX/sockets"
+fi
+
+start_prefix_debug_sync
 
 
 if [ ! "$SUPPRESS_KONG_VERSION" = "true" ]; then
