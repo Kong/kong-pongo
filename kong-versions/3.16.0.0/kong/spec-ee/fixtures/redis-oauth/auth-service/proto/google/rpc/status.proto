@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+// Vendored copy of google/rpc/status.proto (not bundled with @grpc/proto-loader).
+// google/protobuf/any.proto IS bundled with proto-loader, so it resolves automatically.
+package google.rpc;
+
+import "google/protobuf/any.proto";
+
+message Status {
+  int32 code = 1;
+  string message = 2;
+  repeated google.protobuf.Any details = 3;
+}

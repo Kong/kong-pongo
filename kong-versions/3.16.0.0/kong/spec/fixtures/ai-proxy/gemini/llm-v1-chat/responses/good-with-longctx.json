@@ -1,0 +1,21 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "Everything is okay."
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 250000,
+    "candidatesTokenCount": 1000,
+    "totalTokenCount": 251000
+  },
+  "modelVersion": "gemini-2.5-flash"
+}

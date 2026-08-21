@@ -1,0 +1,79 @@
+[
+  {
+    "serverContent": {
+      "turnComplete": true
+    },
+    "usageMetadata": {
+      "promptTokenCount": 165,
+      "responseTokenCount": 164,
+      "thoughtsTokenCount": 197,
+      "totalTokenCount": 526,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 147
+        }
+      ],
+      "responseTokensDetails": [
+        {
+          "modality": "AUDIO",
+          "tokenCount": 164
+        }
+      ]
+    }
+  },
+  {
+    "serverContent": {
+      "turnComplete": true
+    },
+    "usageMetadata": {
+      "promptTokenCount": 401,
+      "responseTokenCount": 177,
+      "thoughtsTokenCount": 75,
+      "totalTokenCount": 653,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 191
+        },
+        {
+          "modality": "AUDIO",
+          "tokenCount": 164
+        }
+      ],
+      "responseTokensDetails": [
+        {
+          "modality": "AUDIO",
+          "tokenCount": 177
+        }
+      ]
+    }
+  },
+  {
+    "serverContent": {
+      "turnComplete": true
+    },
+    "usageMetadata": {
+      "promptTokenCount": 647,
+      "responseTokenCount": 294,
+      "thoughtsTokenCount": 226,
+      "totalTokenCount": 1167,
+      "promptTokensDetails": [
+        {
+          "modality": "TEXT",
+          "tokenCount": 232
+        },
+        {
+          "modality": "AUDIO",
+          "tokenCount": 341
+        }
+      ],
+      "responseTokensDetails": [
+        {
+          "modality": "AUDIO",
+          "tokenCount": 294
+        }
+      ]
+    }
+  }
+]

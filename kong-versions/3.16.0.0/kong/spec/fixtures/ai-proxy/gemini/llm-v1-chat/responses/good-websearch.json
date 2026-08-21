@@ -1,0 +1,53 @@
+{
+    "candidates": [
+      {
+        "content": {
+          "role": "model",
+          "parts": [
+            {
+              "text": "The Eiffel Tower is in Paris. It was completed in 1889."
+            }
+          ]
+        },
+        "finishReason": "STOP",
+        "groundingMetadata": {
+          "groundingChunks": [
+            {
+              "web": {
+                "uri": "https://example.com/eiffel-tower",
+                "title": "Eiffel Tower - Wikipedia"
+              }
+            },
+            {
+              "web": {
+                "uri": "https://example.com/paris-landmarks",
+                "title": "Paris Landmarks"
+              }
+            }
+          ],
+          "groundingSupports": [
+            {
+              "segment": {
+                "startIndex": 0,
+                "endIndex": 27
+              },
+              "groundingChunkIndices": [0]
+            },
+            {
+              "segment": {
+                "startIndex": 29,
+                "endIndex": 56
+              },
+              "groundingChunkIndices": [1, 0]
+            }
+          ]
+        }
+      }
+    ],
+    "usageMetadata": {
+      "promptTokenCount": 5,
+      "candidatesTokenCount": 15,
+      "totalTokenCount": 20
+    },
+    "modelVersion": "gemini.chat.small"
+}

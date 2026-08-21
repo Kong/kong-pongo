@@ -1,0 +1,22 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "The sum of 1 + 1 is 2."
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 1024,
+    "candidatesTokenCount": 12,
+    "totalTokenCount": 1036,
+    "cachedContentTokenCount": 512
+  },
+  "modelVersion": "gemini-2.5-flash"
+}
