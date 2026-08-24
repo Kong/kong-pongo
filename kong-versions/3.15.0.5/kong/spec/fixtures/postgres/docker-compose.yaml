@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:13
+    container_name: kong_postgres_test
+    environment:
+      POSTGRES_USER: kong
+      POSTGRES_PASSWORD: kong
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/01-init-db.sql:ro
+      - ./certs/server.crt:/var/lib/postgresql/server.crt:ro
+      - ./certs/server.key:/var/lib/postgresql/server.key
+      - ./certs/ca.crt:/var/lib/postgresql/ca.crt:ro
+      - ./pg_hba.conf:/var/lib/postgresql/pg_hba.conf:ro
+    command: >
+      bash -c "chown postgres:postgres /var/lib/postgresql/server.key &&
+      chmod 0600 /var/lib/postgresql/server.key &&
+      docker-entrypoint.sh postgres
+      -c ssl=on
+      -c ssl_cert_file=/var/lib/postgresql/server.crt
+      -c ssl_key_file=/var/lib/postgresql/server.key
+      -c ssl_ca_file=/var/lib/postgresql/ca.crt
+      -c hba_file=/var/lib/postgresql/pg_hba.conf"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kong"]
+      interval: 5s
+      timeout: 5s
+      retries: 8
+volumes:
+  postgres_data:
