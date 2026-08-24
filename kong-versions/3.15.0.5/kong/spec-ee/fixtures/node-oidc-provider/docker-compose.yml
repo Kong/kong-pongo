@@ -1,0 +1,9 @@
+services:
+  oidc-provider:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: oidc-provider
+    ports:
+      - "13000:13000"
+    restart: on-failure
