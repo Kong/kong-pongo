@@ -1,0 +1,26 @@
+{
+  "messages":[
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "My name is John Doe, my phone number is 123-456-7890.",
+          "type": "text"
+        },
+        {
+          "text": "I'm working in Kong company.",
+          "type": "text"
+        },
+        {
+          "text": "I'd like to ask you a question: what is 1 + 1? Please give me an encrypted answer.",
+          "type": "text"
+        },
+        {
+          "text": "The encrypted answer is the original one with a suffix added, and the suffix is a secret number: 1234567.",
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "stream": false
+}
