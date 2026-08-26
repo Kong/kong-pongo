@@ -1,0 +1,29 @@
+{
+  "clientRequestToken":"dc4e94bd-c763-4f05-95d5-be0f9458b74f",
+  "endTime":null,
+  "inputDataConfig":{
+    "s3InputDataConfig":{
+      "s3BucketOwner":"267914366688",
+      "s3InputFormat":null,
+      "s3Uri":"s3://ag-496/req1"
+    }
+  },
+  "jobArn":"arn:aws:bedrock:us-east-1:267914366688:model-invocation-job/4qpxcaow7ya6",
+  "jobExpirationTime":"2025-10-21T14:00:01.083Z",
+  "jobName":"req-1020",
+  "lastModifiedTime":"2025-10-20T14:00:01.083Z",
+  "message":null,
+  "modelId":"arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-lite-v1:0",
+  "outputDataConfig":{
+    "s3OutputDataConfig":{
+      "s3BucketOwner":"267914366688",
+      "s3EncryptionKeyId":null,
+      "s3Uri":"s3://ag-496/"
+    }
+  },
+  "roleArn":"arn:aws:iam::267914366688:role/batch-inference",
+  "status":"Submitted",
+  "submitTime":"2025-10-20T14:00:01.083Z",
+  "timeoutDurationInHours":24,
+  "vpcConfig":null
+}
