@@ -1,0 +1,19 @@
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "message": {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "1 + 1 is 2."
+      }
+    ]
+  },
+  "finish_reason": "COMPLETE",
+  "usage": {
+    "tokens": {
+      "input_tokens": 10,
+      "output_tokens": 5
+    }
+  }
+}
