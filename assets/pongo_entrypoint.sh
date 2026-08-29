@@ -62,8 +62,7 @@ if [ -z "$KONG_DNS_RESOLVER" ]; then
   fi
 fi
 
-# set working dir in mounted volume to be able to check the logs
-export KONG_PREFIX=/kong-plugin/servroot
+export KONG_PREFIX=/kong-prefix
 
 # set debug logs; specifically for the 'shell' command, tests already have it
 export KONG_LOG_LEVEL=debug
@@ -106,14 +105,14 @@ fi
 
 # Modify the 'kong' user to match the ownership of the mounted plugin folder
 # Kong will not start because of permission errors if it cannot write to the
-# /kong-plugin/servroot folder (which resides on the mount).
+# /kong-prefix folder (which created by volume mount /kong-prefix/logs by root).
 # Since those permissions are controlled by the host, we update the 'kong' user
 # inside the container to match the UID and GID.
-if [ -d /kong-plugin ]; then
+if [ -d /kong-prefix ]; then
   KONG_UID=$(id -u kong)
   KONG_GID=$(id -g kong)
-  MOUNT_UID=$(stat -c "%u" /kong-plugin)
-  MOUNT_GID=$(stat -c "%g" /kong-plugin)
+  MOUNT_UID=$(stat -c "%u" /kong-prefix)
+  MOUNT_GID=$(stat -c "%g" /kong-prefix)
   if [ ! "$KONG_GID" = "$MOUNT_GID" ]; then
     # change KONG_GID to the ID of the folder owner group
     groupmod -g "$MOUNT_GID" --non-unique kong
