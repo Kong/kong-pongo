@@ -1,0 +1,45 @@
+# This is a custom nginx configuration template for Kong specs
+
+pid pids/nginx.pid; # mandatory even for custom config templates
+
+error_log ${{PROXY_ERROR_LOG}} ${{LOG_LEVEL}};
+
+env KONG_LICENSE_DATA;
+env KONG_LICENSE_PATH;
+
+# injected nginx_main_* directives
+> for _, el in ipairs(nginx_main_directives) do
+$(el.name) $(el.value);
+> end
+
+> if database == "off" then
+lmdb_environment_path ${{LMDB_ENVIRONMENT_PATH}};
+lmdb_map_size         ${{LMDB_MAP_SIZE}};
+lmdb_max_databases    3;
+
+> if lmdb_validation_tag then
+lmdb_validation_tag   $(lmdb_validation_tag);
+> end
+
+> end
+
+events {
+    # injected nginx_events_* directives
+> for _, el in ipairs(nginx_events_directives) do
+    $(el.name) $(el.value);
+> end
+}
+
+> if role == "control_plane" or #proxy_listeners > 0 or #admin_listeners > 0 or #status_listeners > 0 then
+http {
+  include 'nginx-kong.conf';
+  include '*http.test.conf';
+}
+> end
+
+> if #stream_listeners > 0 or cluster_ssl_tunnel then
+stream {
+  include 'nginx-kong-stream.conf';
+  include '*stream.test.conf';
+}
+> end

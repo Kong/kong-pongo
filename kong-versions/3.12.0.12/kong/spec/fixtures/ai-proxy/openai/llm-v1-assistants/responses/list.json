@@ -1,0 +1,40 @@
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "asst_g0hex57iG2WOJGdTw0Itmoet",
+      "object": "assistant",
+      "created_at": 1747735400,
+      "name": null,
+      "description": null,
+      "model": "gpt-4o-mini",
+      "instructions": null,
+      "tools": [],
+      "top_p": 1.0,
+      "temperature": 1.0,
+      "reasoning_effort": null,
+      "tool_resources": {},
+      "metadata": {},
+      "response_format": "auto"
+    },
+    {
+      "id": "asst_92Ey9kTJPHT6ztA4LZnxiIRE",
+      "object": "assistant",
+      "created_at": 1747735313,
+      "name": null,
+      "description": null,
+      "model": "gpt-4o-mini",
+      "instructions": null,
+      "tools": [],
+      "top_p": 1.0,
+      "temperature": 1.0,
+      "reasoning_effort": null,
+      "tool_resources": {},
+      "metadata": {},
+      "response_format": "auto"
+    }
+  ],
+  "first_id": "asst_g0hex57iG2WOJGdTw0Itmoet",
+  "last_id": "asst_92Ey9kTJPHT6ztA4LZnxiIRE",
+  "has_more": false
+}
