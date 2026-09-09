@@ -291,7 +291,7 @@ The available dependencies are:
 
 * **grpcbin** mock grpc backend
   - Enable it with `--grpcbin`
-  - The engine is [moul/grpcbin](https://github.com/moul/grpcbin)
+  - The engine is [kong/grpcbin](https://github.com/kong/grpcbin)
   - From within the environment it is available at:
       * `grpcbin:9000` grpc over http
       * `grpcbin:9001` grpc over http+tls
