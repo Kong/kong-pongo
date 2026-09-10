@@ -22,6 +22,11 @@
 
 ---
 
+## 2.28.1 released 10-Sep-2026
+
+* Fix: install grpcurl for the target build's architecture in Dockerfile.
+  [#824](https://github.com/Kong/kong-pongo/pull/824)
+
 ## 2.28.0 released 9-Sep-2026
 
 * Fix: use Kong's grpcbin.
