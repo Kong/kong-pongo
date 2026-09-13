@@ -22,6 +22,31 @@
 
 ---
 
+## 2.28.1 released 10-Sep-2026
+
+* Fix: install grpcurl for the target build's architecture in Dockerfile.
+  [#824](https://github.com/Kong/kong-pongo/pull/824)
+
+## 2.28.0 released 9-Sep-2026
+
+* Fix: use Kong's grpcbin.
+  [#822](https://github.com/Kong/kong-pongo/pull/822)
+
+* Feat: Kong Enterprise 3.10.0.17
+
+* Feat: Kong Enterprise 3.14.0.13
+
+* Feat: Kong Enterprise 3.13.0.9
+
+* Feat: Kong Enterprise 3.15.0.3
+
+* Feat: Kong Enterprise 3.12.0.10
+
+* Feat: Kong Enterprise 3.14.0.12
+
+* Fix: pin Kong/kong-license to a commit SHA instead of @master.
+  [#802](https://github.com/Kong/kong-pongo/pull/802)
+
 ## 2.27.0 released 3-Jul-2026
 
 * Feat: Kong Enterprise 3.15.0.0
