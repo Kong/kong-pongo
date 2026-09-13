@@ -18,7 +18,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v2.27.0
+                   |___/  v2.28.1
 
 Usage: pongo action [options...] [--] [action options...]
 
@@ -291,7 +291,7 @@ The available dependencies are:
 
 * **grpcbin** mock grpc backend
   - Enable it with `--grpcbin`
-  - The engine is [moul/grpcbin](https://github.com/moul/grpcbin)
+  - The engine is [kong/grpcbin](https://github.com/kong/grpcbin)
   - From within the environment it is available at:
       * `grpcbin:9000` grpc over http
       * `grpcbin:9001` grpc over http+tls

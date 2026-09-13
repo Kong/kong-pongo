@@ -99,7 +99,19 @@ EOF
 
 RUN /pongo/install-python.sh
 RUN pip3 install httpie || echo -e "\n\n\nFailed installing httpie, continuing without.\n\n\n"
-RUN curl -s -S -L https://github.com/fullstorydev/grpcurl/releases/download/v1.7.0/grpcurl_1.7.0_linux_x86_64.tar.gz | tar xz -C /kong/bin
+
+ARG GRPCURL_VERSION="1.8.5"
+RUN <<-EOF
+  case "$(uname -m)" in
+    x86_64|amd64)  grpcurl_machine="x86_64" ;;
+    aarch64|arm64) grpcurl_machine="arm64" ;;
+    *) echo "unsupported architecture for grpcurl: $(uname -m)" >&2; exit 1 ;;
+  esac
+
+  curl -s -S -L "https://github.com/fullstorydev/grpcurl/releases/download/v${GRPCURL_VERSION}/grpcurl_${GRPCURL_VERSION}_linux_${grpcurl_machine}.tar.gz" \
+    | tar xz -C /kong/bin grpcurl
+EOF
+
 RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
     && make dependencies $LUAROCKS_OPTS \

@@ -132,7 +132,7 @@ services:
           - ${SERVICE_NETWORK_NAME}-squid.${SERVICE_NETWORK_NAME}
 
   grpcbin:
-    image: ${GRPCBIN_IMAGE:-moul/grpcbin:latest}
+    image: ${GRPCBIN_IMAGE:-kong/grpcbin:latest}
     healthcheck:
       interval: 5s
       retries: 10
