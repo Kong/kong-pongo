@@ -1,0 +1,47 @@
+# OAuth-token-authenticated Redis via Envoy, for exercising the Redis v2
+# connector's `oauth` auth provider end-to-end.
+#
+#   Kong ──AUTH <token>──> redis-oauth-envoy ──gRPC──> redis-oauth-auth-service ──JWKS──> keycloak (demo realm)
+#                                 │
+#                                 └──AUTH <static password>──> redis-oauth-upstream
+#
+# No top-level `name`/`networks` here: this file is both included as a
+# fragment of scripts/dependency_services/docker-compose-test-services-all.yml
+# (local dev `start_services -a`, sharing that project's default network with
+# the `keycloak` service) and run standalone with its own project name in CI.
+# Either way, redis-oauth-auth-service reaches Keycloak via the docker host's
+# published port (see its `extra_hosts`), so both modes work identically.
+services:
+  redis-oauth-upstream:
+    image: ${REDIS_OAUTH_TEST_IMAGE:-redis:7.0.5}
+    command: ["redis-server", "--requirepass", "Upstr3am-Static-Pass!"]
+    ports:
+      - "127.0.0.1:16380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "Upstr3am-Static-Pass!", "--no-auth-warning", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  redis-oauth-auth-service:
+    build: ./auth-service
+    environment:
+      GRPC_PORT: "50051"
+      JWKS_URI: "http://host.docker.internal:18080/realms/demo/protocol/openid-connect/certs"
+      EXPECTED_ISSUER: "http://127.0.0.1:18080/realms/demo"
+      EXPECTED_AUDIENCE: "redis-oauth"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  redis-oauth-envoy:
+    image: envoyproxy/envoy:v1.39.0
+    command: ["-c", "/etc/envoy/envoy.yaml", "--log-level", "info"]
+    ports:
+      - "127.0.0.1:16381:6379"
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
+    depends_on:
+      redis-oauth-upstream:
+        condition: service_healthy
+      redis-oauth-auth-service:
+        condition: service_started
