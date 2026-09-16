@@ -1,0 +1,25 @@
+{
+  "messages":[
+    {
+      "role": "system",
+      "content": "You are a helpful assistant."
+    },
+    {
+      "role": "user",
+      "content": "Hello"
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "What is 1 + 1?"
+        },
+        {
+          "type": "text",
+          "text": "Tell me the answer"
+        }
+      ]
+    }
+  ]
+}
