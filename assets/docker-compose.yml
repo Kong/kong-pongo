@@ -2,6 +2,9 @@ networks:
   pongo-test-network:
     name: ${SERVICE_NETWORK_NAME}
 
+volumes:
+  pongo-kong-runtime-prefix:
+
 services:
   expose:
     image: pongo-expose
@@ -151,6 +154,7 @@ services:
     environment:
       - KONG_CASSANDRA_CONTACT_POINTS=${SERVICE_NETWORK_NAME}-cassandra.${SERVICE_NETWORK_NAME}
       - KONG_PG_HOST=${SERVICE_NETWORK_NAME}-postgres.${SERVICE_NETWORK_NAME}
+      - PONGO_PREFIX_HOST_MIRROR=/kong-prefix-host-mirror
       - PONGO_COMMAND=${ACTION}
       - PONGO_NETWORK=${SERVICE_NETWORK_NAME}
       - PONGO_ID=${PROJECT_ID}
@@ -172,3 +176,5 @@ services:
           - ${SERVICE_NETWORK_NAME}-kong.${SERVICE_NETWORK_NAME}
     volumes:
       - ${PONGO_WD}:/kong-plugin
+      - pongo-kong-runtime-prefix:/kong-plugin/servroot
+      - ${PONGO_WD}/servroot:/kong-prefix-host-mirror
