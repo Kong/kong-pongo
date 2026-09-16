@@ -1,0 +1,12 @@
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "What is 1 + 1?"
+        }
+      ]
+    }
+  ]
+}

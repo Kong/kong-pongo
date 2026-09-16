@@ -1,0 +1,22 @@
+{
+  "serverContent": {
+    "turnComplete": true
+  },
+  "usageMetadata": {
+    "promptTokenCount": 161,
+    "responseTokenCount": 811,
+    "totalTokenCount": 972,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 143
+      }
+    ],
+    "responseTokensDetails": [
+      {
+        "modality": "AUDIO",
+        "tokenCount": 811
+      }
+    ]
+  }
+}
