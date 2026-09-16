@@ -1,0 +1,25 @@
+{
+  "contents": [
+    {
+      "parts": [
+        {"text": "Hello"},
+        {"text": "world"}
+      ],
+      "role": "user"
+    },
+    {
+      "parts": [
+        {"text": "Kong"},
+        {"text": "Strong"}
+      ],
+      "role": "user"
+    },
+    {
+      "parts": [
+        {"text": "AI"},
+        {"text": "Gateway"}
+      ],
+      "role": "system"
+    }
+  ]
+}
