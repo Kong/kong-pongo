@@ -1,11 +1,14 @@
 Usage: pongo tail [logfile]
 
 Will start a tail on the specified file. The default file is
-'./servroot/logs/error.log'. If the file does not exist, it will wait for 5
+'./servroot/logs/error.log'. Relative paths are resolved against the Kong
+prefix inside the container. If the file does not exist, it will wait for 5
 minutes for the file to appear.
 
 When doing a test run this command can be used to tail the log file to check
-for any errors or debug information in a second terminal.
+for any errors or debug information in a second terminal. The tail runs inside
+the Kong container, so it also works on Docker Desktop hosts where the runtime
+prefix is not bind-mounted to the host filesystem.
 
 To reduce some of the Kong internal noise in the output see the 'grep'
 example below. This will make it easier to focus on your plugin debug info.

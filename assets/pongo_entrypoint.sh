@@ -62,7 +62,8 @@ if [ -z "$KONG_DNS_RESOLVER" ]; then
   fi
 fi
 
-# set working dir in mounted volume to be able to check the logs
+# keep Kong runtime state off the bind mount because Docker Desktop cannot
+# reliably host Unix sockets there on macOS and Windows.
 export KONG_PREFIX=/kong-plugin/servroot
 
 # set debug logs; specifically for the 'shell' command, tests already have it
@@ -104,11 +105,9 @@ if [ -z "$KONG_TEST_LUA_SSL_TRUSTED_CERTIFICATE" ]; then
 fi
 
 
-# Modify the 'kong' user to match the ownership of the mounted plugin folder
-# Kong will not start because of permission errors if it cannot write to the
-# /kong-plugin/servroot folder (which resides on the mount).
-# Since those permissions are controlled by the host, we update the 'kong' user
-# inside the container to match the UID and GID.
+# Modify the 'kong' user to match the ownership of the mounted plugin folder.
+# Some setup steps still touch files under /kong-plugin, so align the container
+# user with the bind mount owner.
 if [ -d /kong-plugin ]; then
   KONG_UID=$(id -u kong)
   KONG_GID=$(id -g kong)
@@ -127,6 +126,13 @@ if [ -d /kong-plugin ]; then
   unset KONG_GID
   unset MOUNT_UID
   unset MOUNT_GID
+fi
+
+# Ensure the runtime prefix exists on the container-local volume and remains
+# writable by the kong user.
+if [ -d /kong-plugin ]; then
+  mkdir -p "$KONG_PREFIX" "$KONG_PREFIX/logs" "$KONG_PREFIX/pids" "$KONG_PREFIX/sockets"
+  chown kong:kong "$KONG_PREFIX" "$KONG_PREFIX/logs" "$KONG_PREFIX/pids" "$KONG_PREFIX/sockets"
 fi
 
 

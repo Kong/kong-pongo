@@ -2,6 +2,9 @@ networks:
   pongo-test-network:
     name: ${SERVICE_NETWORK_NAME}
 
+volumes:
+  pongo-kong-runtime-prefix:
+
 services:
   expose:
     image: pongo-expose
@@ -172,3 +175,4 @@ services:
           - ${SERVICE_NETWORK_NAME}-kong.${SERVICE_NETWORK_NAME}
     volumes:
       - ${PONGO_WD}:/kong-plugin
+      - pongo-kong-runtime-prefix:/kong-plugin/servroot

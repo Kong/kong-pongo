@@ -115,11 +115,8 @@ function test_single_version {
     tfailure
   fi
 
-  # cleanup working directory
-  if [ -d ./servroot ]; then
-    #rm -rf servroot                   doesn't work; priviledge issue
-    KONG_VERSION=$VERSION pongo shell rm -rf /kong-plugin/servroot
-  fi
+  # cleanup Kong runtime prefix inside the container volume
+  KONG_VERSION=$VERSION pongo shell find /kong-plugin/servroot -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
 
   ttest "pongo down"
   KONG_VERSION=$VERSION pongo down

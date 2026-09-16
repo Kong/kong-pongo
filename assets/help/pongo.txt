@@ -22,7 +22,8 @@ Project actions:
   shell         get a shell or run a command directly on a kong container
 
   tail          starts a tail on the specified file. Default file is
-                ./servroot/logs/error.log, an alternate file can be specified
+                ./servroot/logs/error.log, an alternate file can be specified.
+                The tail runs inside the Kong container.
 
 Environment actions:
   build         build the Kong test image, add '--force' to rebuild images
