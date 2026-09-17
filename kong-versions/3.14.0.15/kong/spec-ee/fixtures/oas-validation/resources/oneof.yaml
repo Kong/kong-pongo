@@ -1,0 +1,120 @@
+openapi: 3.1.0
+
+paths:
+  /oneOf:
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/Cat"
+                - $ref: "#/components/schemas/Dog"
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Cat"
+                  - $ref: "#/components/schemas/Dog"
+    get:
+      parameters:
+        - name: foo
+          in: query
+          required: true
+          style: deepObject
+          explode: true
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/Cat"
+              - $ref: "#/components/schemas/Dog"
+  /anyOf:
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+                - $ref: "#/components/schemas/Cat"
+                - $ref: "#/components/schemas/Dog"
+    get:
+      parameters:
+        - name: foo
+          in: query
+          required: true
+          style: deepObject
+          explode: true
+          schema:
+            anyOf:
+              - $ref: "#/components/schemas/Cat"
+              - $ref: "#/components/schemas/Dog"
+  /allOf:
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/Cat"
+                - $ref: "#/components/schemas/Dog"
+    get:
+      parameters:
+        - name: foo
+          in: query
+          required: true
+          style: deepObject
+          explode: true
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/Cat"
+              - $ref: "#/components/schemas/Dog"
+  /not:
+    patch:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              # not a dog, and not a integer below 10
+              not:
+                anyOf:
+                  - $ref: "#/components/schemas/Dog"
+                  - type: integer
+                    maximum: 10
+    get:
+      parameters:
+        - name: foo
+          in: query
+          required: true
+          schema:
+            # not a string which length is between 2 and 10
+            not:
+              allOf:
+                - type: string
+                  minLength: 2
+                - type: string
+                  maxLength: 10
+
+components:
+  schemas:
+    Dog:
+      type: object
+      required:
+        - bark
+        - breed
+      properties:
+        bark:
+          type: boolean
+        breed:
+          type: string
+          enum: [Dingo, Husky, Retriever, Shepherd]
+    Cat:
+      type: object
+      required:
+        - hunts
+        - age
+      properties:
+        hunts:
+          type: boolean
+        age:
+          type: integer
