@@ -1,0 +1,14 @@
+[ req ]
+prompt = no
+distinguished_name = dn
+x509_extensions = v3_ca
+
+[ dn ]
+C  = US
+O  = Test Root CA
+CN = Test Root CA
+
+[ v3_ca ]
+basicConstraints = critical, CA:TRUE
+keyUsage = critical, keyCertSign, cRLSign
+subjectKeyIdentifier = hash
