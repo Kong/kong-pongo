@@ -1,0 +1,25 @@
+{
+  "results": [
+    {
+      "index": 3,
+      "relevance_score": 0.999071
+    },
+    {
+      "index": 4,
+      "relevance_score": 0.7867867
+    },
+    {
+      "index": 0,
+      "relevance_score": 0.32713068
+    }
+  ],
+  "id": "8bc745a3-7871-4597-822e-18c95d5df48c",
+  "meta": {
+    "api_version": {
+      "version": "1"
+    },
+    "billed_units": {
+      "search_units": 1
+    }
+  }
+}

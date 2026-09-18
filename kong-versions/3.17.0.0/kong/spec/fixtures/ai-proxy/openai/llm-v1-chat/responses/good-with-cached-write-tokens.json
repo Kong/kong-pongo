@@ -1,0 +1,33 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "The sum of 1 + 1 is 2.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1701947430,
+  "id": "chatcmpl-cache-write-test",
+  "model": "gpt-4o-mini",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 12,
+    "prompt_tokens": 2048,
+    "total_tokens": 2060,
+    "prompt_tokens_details": {
+      "cached_tokens": 512,
+      "cached_tokens_details": {
+        "text_tokens": 400,
+        "audio_tokens": 112
+      },
+      "cache_write_tokens": 1024,
+      "cache_write_tokens_details": {
+        "text_tokens": 800,
+        "audio_tokens": 224
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "contents": [
+    {
+      "parts": [
+        { "text": "My name is John Doe, my phone number is 123-456-7890." }
+      ]
+    },
+    {
+      "role": "model",
+      "parts": [
+        { "text": "Nice to meet you, John!" }
+      ]
+    },
+    {
+      "role": "user",
+      "parts": [
+        { "text": "I'd like to ask you a question: what is 1 + 1?" },
+        { "text": "Please give me an encrypted answer, adding the secret suffix 1234567." }
+      ]
+    }
+  ]
+}
