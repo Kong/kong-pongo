@@ -286,10 +286,16 @@ function detect_container_runtime {
   # aliases regardless).
   COMPOSE_RUN_ARGS="--use-aliases"
 
+  # Docker Compose accepts a bare "-e VAR" on "compose run" to pass a variable
+  # through from the environment. podman-compose requires an explicit value,
+  # and errors out on a bare name. See compose_env_args().
+  COMPOSE_ENV_REQUIRES_VALUE=false
+
   if [[ -n "${PONGO_COMPOSE_COMMAND:-}" ]]; then
     COMPOSE_COMMAND="$PONGO_COMPOSE_COMMAND"
     if [[ "$COMPOSE_COMMAND" == *"podman-compose"* ]]; then
       COMPOSE_RUN_ARGS=""
+      COMPOSE_ENV_REQUIRES_VALUE=true
     fi
     return 0
   fi
@@ -301,6 +307,7 @@ function detect_container_runtime {
     if podman-compose version > /dev/null 2>&1; then
       COMPOSE_COMMAND="podman-compose"
       COMPOSE_RUN_ARGS=""
+      COMPOSE_ENV_REQUIRES_VALUE=true
     elif podman compose version > /dev/null 2>&1; then
       COMPOSE_COMMAND="podman compose"
       # delegates to an unknown provider, so assume Docker Compose semantics
@@ -766,6 +773,30 @@ function get_version {
 
   GET_VERSION_RAN=true
   KONG_TEST_IMAGE=$IMAGE_BASE_NAME:$VERSION
+}
+
+
+# Builds the "-e" arguments for a "compose run" invocation into the global
+# COMPOSE_ENV_ARGS array. Takes either bare variable names, to be passed
+# through from the environment, or complete "NAME=value" pairs.
+#
+# Docker Compose understands a bare "-e NAME", podman-compose does not and
+# needs "-e NAME=value", so the value is looked up here when required. A
+# variable that is unset in the environment is left out entirely, which is
+# what Docker Compose does with a bare name too.
+function compose_env_args {
+  COMPOSE_ENV_ARGS=()
+  local entry
+  for entry in "$@"; do
+    if [[ "$entry" == *"="* ]]; then
+      # a complete pair, pass it on as-is
+      COMPOSE_ENV_ARGS+=( -e "$entry" )
+    elif [[ "$COMPOSE_ENV_REQUIRES_VALUE" != "true" ]]; then
+      COMPOSE_ENV_ARGS+=( -e "$entry" )
+    elif [[ -n ${!entry+x} ]]; then
+      COMPOSE_ENV_ARGS+=( -e "$entry=${!entry}" )
+    fi
+  done
 }
 
 
@@ -1441,16 +1472,19 @@ function main {
 
     do_prerun_script
 
+    compose_env_args \
+      KONG_LICENSE_DATA \
+      KONG_TEST_DONT_CLEAN \
+      KONG_TEST_FIPS \
+      http_proxy \
+      https_proxy \
+      no_proxy \
+      ftp_proxy \
+      PONGO_CLIENT_VERSION="$PONGO_VERSION"
+
     # shellcheck disable=SC2086 # COMPOSE_RUN_ARGS must be word-split
     compose run --rm $COMPOSE_RUN_ARGS \
-      -e KONG_LICENSE_DATA \
-      -e KONG_TEST_DONT_CLEAN \
-      -e KONG_TEST_FIPS \
-      -e http_proxy \
-      -e https_proxy \
-      -e no_proxy \
-      -e ftp_proxy \
-      -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
+      "${COMPOSE_ENV_ARGS[@]}" \
       kong \
       "$WINDOWS_SLASH/bin/bash" "-c" "bin/busted --helper=$WINDOWS_SLASH/pongo/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
     ;;
@@ -1508,22 +1542,25 @@ function main {
 
     do_prerun_script
 
+    compose_env_args \
+      KONG_LICENSE_DATA \
+      PONGO_CLIENT_VERSION="$PONGO_VERSION" \
+      http_proxy \
+      https_proxy \
+      no_proxy \
+      ftp_proxy \
+      KONG_LOG_LEVEL \
+      KONG_ANONYMOUS_REPORTS \
+      SUPPRESS_KONG_VERSION="$suppress_kong_version" \
+      KONG_PG_DATABASE="kong_tests" \
+      KONG_PLUGINS="$PLUGINS" \
+      KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS" \
+      PS1_KONG_VERSION="$shellprompt" \
+      PS1_REPO_NAME="$repository_name"
+
     # shellcheck disable=SC2086 # we explicitly want script_mount & exec_cmd to be splitted
     compose run --rm $COMPOSE_RUN_ARGS \
-      -e KONG_LICENSE_DATA \
-      -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
-      -e http_proxy \
-      -e https_proxy \
-      -e no_proxy \
-      -e ftp_proxy \
-      -e KONG_LOG_LEVEL \
-      -e KONG_ANONYMOUS_REPORTS \
-      -e SUPPRESS_KONG_VERSION="$suppress_kong_version" \
-      -e KONG_PG_DATABASE="kong_tests" \
-      -e KONG_PLUGINS="$PLUGINS" \
-      -e KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS" \
-      -e PS1_KONG_VERSION="$shellprompt" \
-      -e PS1_REPO_NAME="$repository_name" \
+      "${COMPOSE_ENV_ARGS[@]}" \
       $script_mount \
       $history_mount \
       kong $exec_cmd
@@ -1545,15 +1582,18 @@ function main {
       msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
       build_image
     fi
+    compose_env_args \
+      KONG_LICENSE_DATA \
+      PONGO_CLIENT_VERSION="$PONGO_VERSION" \
+      KONG_LOG_LEVEL \
+      KONG_ANONYMOUS_REPORTS \
+      KONG_PG_DATABASE="kong_tests" \
+      KONG_PLUGINS="$PLUGINS" \
+      KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS"
+
     compose run --rm \
       --workdir="$WINDOWS_SLASH/kong-plugin" \
-      -e KONG_LICENSE_DATA \
-      -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
-      -e KONG_LOG_LEVEL \
-      -e KONG_ANONYMOUS_REPORTS \
-      -e KONG_PG_DATABASE="kong_tests" \
-      -e KONG_PLUGINS="$PLUGINS" \
-      -e KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS" \
+      "${COMPOSE_ENV_ARGS[@]}" \
       kong luacheck .
     ;;
 
@@ -1565,19 +1605,22 @@ function main {
       msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
       build_image
     fi
+    compose_env_args \
+      KONG_LICENSE_DATA \
+      PONGO_CLIENT_VERSION="$PONGO_VERSION" \
+      http_proxy \
+      https_proxy \
+      no_proxy \
+      ftp_proxy \
+      KONG_LOG_LEVEL \
+      KONG_ANONYMOUS_REPORTS \
+      KONG_PG_DATABASE="kong_tests" \
+      KONG_PLUGINS="$PLUGINS" \
+      KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS"
+
     compose run --rm \
       --workdir="$WINDOWS_SLASH/kong-plugin" \
-      -e KONG_LICENSE_DATA \
-      -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
-      -e http_proxy \
-      -e https_proxy \
-      -e no_proxy \
-      -e ftp_proxy \
-      -e KONG_LOG_LEVEL \
-      -e KONG_ANONYMOUS_REPORTS \
-      -e KONG_PG_DATABASE="kong_tests" \
-      -e KONG_PLUGINS="$PLUGINS" \
-      -e KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS" \
+      "${COMPOSE_ENV_ARGS[@]}" \
       kong $WINDOWS_SLASH/pongo/pongo_pack.lua
     ;;
 
@@ -1641,12 +1684,15 @@ function main {
         msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
         build_image
       fi
+      compose_env_args \
+        KONG_LICENSE_DATA \
+        PONGO_CLIENT_VERSION="$PONGO_VERSION" \
+        KONG_PLUGINS="$PLUGINS" \
+        KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS"
+
       compose run --rm \
         --workdir="$WINDOWS_SLASH/kong/spec" \
-        -e KONG_LICENSE_DATA \
-        -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
-        -e KONG_PLUGINS="$PLUGINS" \
-        -e KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS" \
+        "${COMPOSE_ENV_ARGS[@]}" \
         kong ldoc --dir=$WINDOWS_SLASH/kong-plugin/$subd .
       if [[ ! $? -eq 0 ]]; then
         err "failed to render the Kong development docs"
