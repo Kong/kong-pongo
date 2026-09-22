@@ -23,7 +23,7 @@ COPY assets/parse_git_branch.sh      /pongo/parse_git_branch.sh
 COPY assets/pongo_logo.sh            /pongo/pongo_logo.sh
 COPY assets/workspace_update.lua     /pongo/workspace_update.lua
 COPY assets/pongo_profile.sh         /etc/profile.d/pongo_profile.sh
-COPY assets/install-python.sh assets/${PONGO_CUSTOM_CA_CERT}*    /pongo/
+COPY assets/install-python.sh assets/install-luarocks.sh assets/install-grpcurl.sh assets/${PONGO_CUSTOM_CA_CERT}*    /pongo/
 
 USER root
 # httpie and jq are genric utilities usable from the shell action.
@@ -71,45 +71,15 @@ RUN if [ -n "$PONGO_INSECURE" ] || [ "$PONGO_INSECURE" != "false" ]; then \
     fi
 
 ARG LUAROCKS_VERSION="3.12.1"
-RUN <<-EOF
-  build_version=$( luarocks --version | sed -nE '1s#/usr/local/bin/luarocks ([[:digit:].]+)$#\1#; s#\.##gp' )
-  luarocks_version=$( echo $LUAROCKS_VERSION | awk 'BEGIN { FS="." }; { printf("%d%d%d\n", $1,$2,$3) }' )
-
-  if [ "$build_version" -ge "$luarocks_version" ]; then
-    # meets the minimum requirement, skip the update
-    luarocks --version
-    exit 0
-  fi
-  echo "Update luarocks to version $LUAROCKS_VERSION"
-
-  build_dir="/luarocks-build"
-  mkdir -p $build_dir && cd $build_dir
-  curl -LO "https://luarocks.org/manifests/hisham/luarocks-${LUAROCKS_VERSION}-1.src.rock"
-  luarocks install "luarocks-${LUAROCKS_VERSION}-1.src.rock"
-  luarocks --version
-
-  mkdir -p /usr/local/kong/temp
-  chown -R kong /usr/local/kong/temp
-  luarocks config home "/usr/local/kong/temp"
-  # luarocks --tree /tmp/test install lua-cjson
-
-  cd / && rm -rf $build_dir
-EOF
+ENV LUAROCKS_VERSION=$LUAROCKS_VERSION
+RUN /pongo/install-luarocks.sh
 
 RUN /pongo/install-python.sh
 RUN pip3 install httpie || echo -e "\n\n\nFailed installing httpie, continuing without.\n\n\n"
 
 ARG GRPCURL_VERSION="1.8.5"
-RUN <<-EOF
-  case "$(uname -m)" in
-    x86_64|amd64)  grpcurl_machine="x86_64" ;;
-    aarch64|arm64) grpcurl_machine="arm64" ;;
-    *) echo "unsupported architecture for grpcurl: $(uname -m)" >&2; exit 1 ;;
-  esac
-
-  curl -s -S -L "https://github.com/fullstorydev/grpcurl/releases/download/v${GRPCURL_VERSION}/grpcurl_${GRPCURL_VERSION}_linux_${grpcurl_machine}.tar.gz" \
-    | tar xz -C /kong/bin grpcurl
-EOF
+ENV GRPCURL_VERSION=$GRPCURL_VERSION
+RUN /pongo/install-grpcurl.sh
 
 RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \
