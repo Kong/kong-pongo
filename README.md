@@ -103,6 +103,7 @@ Example usage:
  - [Configuration](#configuration)
  - [Do a test run](#do-a-test-run)
  - [Pongo on Windows](#pongo-on-windows)
+ - [Pongo with Podman](#pongo-with-podman)
  - [Test dependencies](#test-dependencies)
     - Postgres (Kong datastore)
     - Cassandra (Kong datastore)
@@ -126,7 +127,8 @@ Example usage:
 ## Requirements
 
 Tools Pongo needs to run:
-* `docker-compose` (and hence `docker`)
+* a container runtime; either `docker` with `docker compose`/`docker-compose`, or
+  `podman` with `podman-compose` (see [Pongo with Podman](#pongo-with-podman))
 * `curl`
 * `realpath`, for older MacOS versions you need the [`coreutils`](https://www.gnu.org/software/coreutils/coreutils.html)
   to be installed. This is easiest via the [Homebrew package manager](https://brew.sh/) by doing:
@@ -179,6 +181,14 @@ Several environment variables are available for configuration:
   will configure curl and git (during the build) to switch off ssl verification.
   Please ensure you understand the security consequences when using this option!
   See also `pongo build --help`.
+* `PONGO_CONTAINER_RUNTIME` selects the container runtime; either `docker` or
+  `podman`. When unset, Pongo auto-detects it and prefers Docker if both are
+  installed.
+* `PONGO_COMPOSE_COMMAND` overrides the compose command Pongo detected, for
+  example `PONGO_COMPOSE_COMMAND="podman-compose"`.
+* `PONGO_VOLUME_OPTS` sets the options appended to the bind-mounts, for example
+  `":z"` to have SELinux relabel them. Defaults to `":z"` on Podman, and to
+  empty on Docker. Set it to an empty string to opt out.
 
 For Kong-internal use there are some additional variables:
 
@@ -268,6 +278,58 @@ To give this a try using the template plugin;
       cd /mnt/c/users/tieske/code/kong-plugin
       pongo run
 
+
+[Back to ToC](#table-of-contents)
+
+## Pongo with Podman
+
+Pongo can use [Podman](https://podman.io/) instead of Docker, including in
+rootless mode. This is intended for environments where a rootful Docker daemon
+or Docker Desktop is not permitted.
+
+Requirements:
+
+* Podman 4.4 or newer
+* `podman-compose` (or `podman compose` with a provider installed)
+* `aardvark-dns`, so the test dependencies can resolve each other by name on
+  the Pongo network. This is a separate package on most distributions, and
+  without it the dependencies will start but fail to connect to each other.
+
+On Debian/Ubuntu:
+
+```shell
+sudo apt install podman podman-compose aardvark-dns
+```
+
+On RHEL/Fedora:
+
+```shell
+sudo dnf install podman podman-compose aardvark-dns
+```
+
+Pongo auto-detects the runtime and prefers Docker when both are installed, so
+on a machine with both, select Podman explicitly:
+
+```shell
+export PONGO_CONTAINER_RUNTIME=podman
+pongo run
+```
+
+Notes and limitations:
+
+* **Rootless file ownership.** Pongo bind-mounts your plugin directory and Kong
+  writes its `servroot` into it. In rootless mode the host user running Podman
+  is mapped to UID 0 inside the container, which the Pongo entrypoint accounts
+  for. This does require the plugin directory to be owned by the user running
+  Podman; a directory owned by another user shows up as `nobody` inside the
+  container and Kong will not be able to write to it.
+* **SELinux.** On SELinux enabled hosts the bind-mounts need to be relabelled,
+  which is why Pongo appends `:z` to them by default on Podman. Override this
+  with `PONGO_VOLUME_OPTS` if that does not suit your setup.
+* **macOS** is untested with Podman; `podman machine` runs a VM, which changes
+  both the bind-mount and the host-gateway semantics.
+* **[Running Pongo in Docker](#running-pongo-in-docker)** (Pongo itself inside
+  a container) is Docker only for now; it mounts the Docker socket.
 
 [Back to ToC](#table-of-contents)
 

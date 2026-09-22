@@ -54,3 +54,37 @@ jobs:
 
       run: |
        assets/ci/run.sh --suite "Pongo test suite" $TEST_SCRIPT
+
+  podman:
+    name: Tests (rootless Podman)
+    runs-on: ubuntu-24.04
+    env:
+      PONGO_CONTAINER_RUNTIME: podman
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v3
+
+    - name: Install
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y figlet podman podman-compose aardvark-dns
+        make install
+        echo "~/.local/bin/" >> $GITHUB_PATH
+
+    - name: Report the Podman setup
+      run: |
+        podman version
+        podman-compose version
+        podman info --format '{{.Host.NetworkBackend}}'
+        podman info --format '{{.Host.NetworkBackendInfo.DNS.Path}}'
+        id
+
+    - name: Pongo test suite (Podman smoke test, CE only)
+      env:
+        DOCKER_USERNAME: ${{ secrets.GHA_DOCKERHUB_PULL_USER }}
+        DOCKER_PASSWORD: ${{ secrets.GHA_KONG_ORG_DOCKERHUB_PUBLIC_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GHA_KONG_BOT_READ_TOKEN }}
+
+      run: |
+       assets/ci/run.sh --suite "Pongo test suite (Podman)" assets/ci/pongo_podman.test.sh

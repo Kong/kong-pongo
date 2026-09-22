@@ -22,6 +22,19 @@
 
 ---
 
+## unreleased
+
+ * Feat: added support for Podman and podman-compose as an alternative container
+   runtime, including rootless mode. Use `PONGO_CONTAINER_RUNTIME=podman` to
+   select it explicitly, see the [README](README.md#pongo-with-podman).
+ * Fix: the "is the test environment running" check no longer greps the human
+   readable `compose ps` output, which differs between platforms and compose
+   implementations.
+ * Fix: `docker compose` is now detected with `docker compose version` instead
+   of a bare `docker compose`, which exits non-zero on Compose v2.
+
+---
+
 ## 2.28.1 released 10-Sep-2026
 
 * Fix: install grpcurl for the target build's architecture in Dockerfile.
