@@ -32,6 +32,7 @@
    implementations.
  * Fix: `docker compose` is now detected with `docker compose version` instead
    of a bare `docker compose`, which exits non-zero on Compose v2.
+   [#831](https://github.com/Kong/kong-pongo/pull/831)
 
 ---
 
