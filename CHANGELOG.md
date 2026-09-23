@@ -40,6 +40,10 @@
    build. The condition tested `-n "$PONGO_INSECURE" || "$PONGO_INSECURE" !=
    "false"`, whose branches cover every value, so curl and git were configured
    insecure during each image build regardless of the setting.
+ * Fix: images built with Podman keep their health check. Podman defaults to
+   the OCI image format, which has no field for one, so buildah dropped the
+   `HEALTHCHECK` inherited from the Kong base image. Pongo now builds in the
+   Docker format on Podman.
    [#831](https://github.com/Kong/kong-pongo/pull/831)
 
 ---

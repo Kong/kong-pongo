@@ -48,8 +48,15 @@ function globals {
   fi
   export PONGO_VOLUME_OPTS
 
+  # Podman defaults to the OCI image format, which has no field for a health
+  # check, so buildah drops any HEALTHCHECK - including the one inherited from
+  # the Kong base image - and warns while doing so. Build in the Docker format
+  # instead, so an image Pongo builds behaves the same on both runtimes.
+  IMAGE_BUILD_FORMAT=""
+
   if [[ "$CONTAINER_RUNTIME" == "podman" ]]; then
     IMAGE_FILTER_PREFIX="*"
+    IMAGE_BUILD_FORMAT="--format docker"
   fi
 
   # the path where the plugin source is located, as seen from Pongo (this script)
@@ -1051,8 +1058,9 @@ function build_image {
   fi
 
   msg "starting build of image '$KONG_TEST_IMAGE'"
-  # shellcheck disable=SC2086 # DOCKER_BUILD_EXTRA_ARGS can contain multiple arguments so we must not quote it
+  # shellcheck disable=SC2086 # DOCKER_BUILD_EXTRA_ARGS and IMAGE_BUILD_FORMAT can contain multiple arguments so we must not quote them
   $WINPTY_PREFIX $CONTAINER_CMD build \
+    ${IMAGE_BUILD_FORMAT} \
     -f "$DOCKER_FILE" \
     --build-arg PONGO_VERSION="$PONGO_VERSION" \
     --build-arg http_proxy="$http_proxy" \
