@@ -36,6 +36,10 @@
    `disable:` value. podman-compose reads any non-empty string as true, so the
    default `"false"` disabled every health check and left Pongo with nothing to
    wait for. `HEALTH_TIMEOUT=0` now applies an overlay compose file instead.
+ * Fix: `PONGO_INSECURE` no longer switches TLS verification off on every
+   build. The condition tested `-n "$PONGO_INSECURE" || "$PONGO_INSECURE" !=
+   "false"`, whose branches cover every value, so curl and git were configured
+   insecure during each image build regardless of the setting.
    [#831](https://github.com/Kong/kong-pongo/pull/831)
 
 ---

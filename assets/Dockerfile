@@ -23,7 +23,7 @@ COPY assets/parse_git_branch.sh      /pongo/parse_git_branch.sh
 COPY assets/pongo_logo.sh            /pongo/pongo_logo.sh
 COPY assets/workspace_update.lua     /pongo/workspace_update.lua
 COPY assets/pongo_profile.sh         /etc/profile.d/pongo_profile.sh
-COPY assets/install-python.sh assets/install-luarocks.sh assets/install-grpcurl.sh assets/${PONGO_CUSTOM_CA_CERT}*    /pongo/
+COPY assets/install-python.sh assets/install-luarocks.sh assets/install-grpcurl.sh assets/configure-ssl-verification.sh assets/${PONGO_CUSTOM_CA_CERT}*    /pongo/
 
 USER root
 # httpie and jq are genric utilities usable from the shell action.
@@ -64,11 +64,7 @@ RUN if [ -f /pongo/$PONGO_CUSTOM_CA_CERT ] ; then \
 ENV PONGO_CUSTOM_CA_CERT="/pongo/${PONGO_CUSTOM_CA_CERT:-NOT_FOUND}"
 
 # insecure connections can be useful if the certs for any intermediate proxy are unavailable
-RUN if [ -n "$PONGO_INSECURE" ] || [ "$PONGO_INSECURE" != "false" ]; then \
-        echo "Configuring curl and git to switch off ssl-verification"; \
-        echo '--insecure' >> ~/.curlrc; \
-        git config --global http.sslVerify false; \
-    fi
+RUN /pongo/configure-ssl-verification.sh
 
 ARG LUAROCKS_VERSION="3.12.1"
 # The custom CA (added to the system trust store above) and the proxy ARGs are
