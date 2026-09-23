@@ -41,7 +41,6 @@ services:
       - -e
       - /ready
       timeout: 10s
-      disable: ${SERVICE_DISABLE_HEALTHCHECK:-false}
     restart: on-failure
     stop_signal: SIGKILL
     networks:
@@ -62,7 +61,6 @@ services:
       - --dbname=kong_tests
       - --username=kong
       timeout: 10s
-      disable: ${SERVICE_DISABLE_HEALTHCHECK:-false}
     restart: on-failure
     stop_signal: SIGKILL
     networks:
@@ -80,7 +78,6 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10
-      disable: ${SERVICE_DISABLE_HEALTHCHECK:-false}
     restart: on-failure
     stop_signal: SIGKILL
     networks:
@@ -105,7 +102,6 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10
-      disable: ${SERVICE_DISABLE_HEALTHCHECK:-false}
     restart: on-failure
     stop_signal: SIGKILL
     networks:
@@ -123,7 +119,6 @@ services:
       retries: 10
       test: ["CMD", "kill", "-0", "1"]
       timeout: 10s
-      disable: ${SERVICE_DISABLE_HEALTHCHECK:-false}
     restart: on-failure
     stop_signal: SIGKILL
     networks:
@@ -138,7 +133,6 @@ services:
       retries: 10
       test: ["CMD", "kill", "-0", "1"]
       timeout: 10s
-      disable: ${SERVICE_DISABLE_HEALTHCHECK:-false}
     restart: on-failure
     stop_signal: SIGKILL
     networks:
@@ -163,7 +157,6 @@ services:
       - health
       - --prefix=/kong-plugin/servroot/
       timeout: 10s
-      disable: ${SERVICE_DISABLE_HEALTHCHECK:-false}
     extra_hosts:
     - "host.docker.internal:host-gateway"
     # Podman's native name for the same thing; also added on Docker so that

@@ -9,8 +9,11 @@
 
 set -e
 
+# the version is passed in by the Dockerfile rather than inherited from the
+# build environment, so the script is explicit about its inputs
+LUAROCKS_VERSION="${1:?LUAROCKS_VERSION must be given as the first argument}"
+
 build_version=$( luarocks --version | sed -nE '1s#/usr/local/bin/luarocks ([[:digit:].]+)$#\1#; s#\.##gp' )
-# shellcheck disable=SC2153  # LUAROCKS_VERSION is set by the Dockerfile
 luarocks_version=$( echo "$LUAROCKS_VERSION" | awk 'BEGIN { FS="." }; { printf("%d%d%d\n", $1,$2,$3) }' )
 
 if [ "$build_version" -ge "$luarocks_version" ]; then

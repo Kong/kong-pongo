@@ -8,6 +8,10 @@
 
 set -e
 
+# the version is passed in by the Dockerfile rather than inherited from the
+# build environment, so the script is explicit about its inputs
+GRPCURL_VERSION="${1:?GRPCURL_VERSION must be given as the first argument}"
+
 case "$(uname -m)" in
   x86_64|amd64)  grpcurl_machine="x86_64" ;;
   aarch64|arm64) grpcurl_machine="arm64" ;;

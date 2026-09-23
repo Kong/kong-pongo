@@ -32,6 +32,10 @@
    implementations.
  * Fix: `docker compose` is now detected with `docker compose version` instead
    of a bare `docker compose`, which exits non-zero on Compose v2.
+ * Fix: the service health checks are no longer switched off by an interpolated
+   `disable:` value. podman-compose reads any non-empty string as true, so the
+   default `"false"` disabled every health check and left Pongo with nothing to
+   wait for. `HEALTH_TIMEOUT=0` now applies an overlay compose file instead.
    [#831](https://github.com/Kong/kong-pongo/pull/831)
 
 ---

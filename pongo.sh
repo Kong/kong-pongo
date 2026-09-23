@@ -172,6 +172,9 @@ function globals {
   fi
   if [[ $HEALTH_TIMEOUT -eq 0 ]]; then
     export SERVICE_DISABLE_HEALTHCHECK=true
+    # overlay that switches the health checks off; see that file for why this
+    # is an overlay instead of an interpolated 'disable:' value
+    DOCKER_COMPOSE_FILES="$DOCKER_COMPOSE_FILES -f ${LOCAL_PATH}/assets/healthcheck-disable.yml"
   fi
 
   # Dependency image defaults
@@ -841,9 +844,13 @@ function healthy {
   # whereas Podman returns an empty struct. Hence an empty status means "no
   # health check" for both runtimes.
   local state
-  state=$($CONTAINER_CMD inspect \
+  if ! state=$($CONTAINER_CMD inspect \
     --format='{{if .State.Health}}{{.State.Health.Status}}{{end}}' \
-    "$iid" 2> /dev/null)
+    "$iid" 2> /dev/null); then
+    # the container could not be inspected; it is gone, or the runtime is
+    # unreachable. Either way it is not healthy.
+    return 1
+  fi
 
   if [ "$state" == "" ] || [ "$state" == "<no value>" ]; then
     msg "No health check available for '$name', assuming healthy"
@@ -863,7 +870,10 @@ function cid {
   if [[ "$CONTAINER_RUNTIME" == "podman" ]]; then
     # podman-compose does not reliably filter 'ps -q' by service name, so go
     # by the compose labels instead (which podman-compose does set).
-    id=$($CONTAINER_CMD ps -aq \
+    # Only running containers: Podman keeps the last health status on a
+    # stopped container, so including those would make 'healthy' report a
+    # stopped dependency as up, and nothing would restart it.
+    id=$($CONTAINER_CMD ps -q \
       --filter "label=com.docker.compose.project=${PROJECT_NAME}" \
       --filter "label=com.docker.compose.service=$1" 2> /dev/null | head -n 1)
     if [[ -n "$id" ]]; then

@@ -71,15 +71,15 @@ RUN if [ -n "$PONGO_INSECURE" ] || [ "$PONGO_INSECURE" != "false" ]; then \
     fi
 
 ARG LUAROCKS_VERSION="3.12.1"
-ENV LUAROCKS_VERSION=$LUAROCKS_VERSION
-RUN /pongo/install-luarocks.sh
+# The custom CA (added to the system trust store above) and the proxy ARGs are
+# in effect for this layer, so the downloads inside the script use them.
+RUN /pongo/install-luarocks.sh "$LUAROCKS_VERSION"
 
 RUN /pongo/install-python.sh
 RUN pip3 install httpie || echo -e "\n\n\nFailed installing httpie, continuing without.\n\n\n"
 
 ARG GRPCURL_VERSION="1.8.5"
-ENV GRPCURL_VERSION=$GRPCURL_VERSION
-RUN /pongo/install-grpcurl.sh
+RUN /pongo/install-grpcurl.sh "$GRPCURL_VERSION"
 
 RUN cd /kong \
     && git config --global url.https://github.com/.insteadOf git://github.com/ \

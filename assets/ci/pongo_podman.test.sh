@@ -21,9 +21,9 @@ function run_test {
   if [[ "$(id -u)" != "0" ]]; then
     tsuccess
   else
-    # not a failure; rootful Podman is supported too, but rootless is what we
-    # actually want covered
-    tsuccess "running as root, so this is not covering the rootless path"
+    # Rootful Podman is supported too, but this suite exists to cover the
+    # rootless path. Passing here would let that coverage silently disappear.
+    tfailure "running as root, so the rootless path is not being covered"
   fi
 
   # clone and enter the template plugin

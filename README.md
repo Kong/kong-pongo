@@ -432,7 +432,12 @@ When unable to leverage container health checks, they can be disabled setting th
 This will set the variable `SERVICE_DISABLE_HEALTHCHECK=true`, which can be used to disable the service health checks for
 the Pongo services in the docker composer files.
 
-For example:
+Pongo's own services are switched off through an overlay compose file, and
+`healthy()` in `pongo.sh` stops waiting on health regardless of the runtime.
+
+If you disable the health check of a **custom local dependency** in your own
+`.pongo/*.yml`, use a literal boolean rather than an interpolated value:
+
 ```
     healthcheck:
       test:
@@ -440,8 +445,14 @@ For example:
       - pg_isready
       - --dbname=kong_tests
       - --username=kong
-      disable: ${SERVICE_DISABLE_HEALTHCHECK:-false}
+      disable: true
 ```
+
+Do **not** write `disable: ${SERVICE_DISABLE_HEALTHCHECK:-false}`. Interpolation
+always produces a string, and podman-compose treats any non-empty string as
+true, so the string `"false"` switches the health check off permanently -
+leaving Pongo with nothing to wait for. Docker Compose rejects an empty value,
+so there is no interpolated form that is correct on both runtimes.
 To wait for the environment and run the tests one could run
 ```
 export HEALTH_TIMEOUT=0
