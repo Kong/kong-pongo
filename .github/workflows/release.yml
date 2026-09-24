@@ -1,0 +1,151 @@
+name: Release
+
+# Cuts a release: tags the current commit and publishes a GitHub release with
+# generated notes, which is the manual "tag as x.y.z, push the tag, in Github
+# UI create a release from the tag" part of the checklist in CHANGELOG.md.
+#
+# Run it from the Actions tab against master, after the "chore(release):
+# release x.y.z" PR has merged.
+#
+# A release that fails part way can be run again with 'recreate' ticked; the
+# tag and release left behind by the failed attempt are deleted first.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, without a "v" (e.g. 2.29.0). Must already be committed to pongo.sh, the README logo and the changelog.'
+        required: true
+        type: string
+      recreate:
+        description: 'Delete the existing tag and release for this version first. Only for retrying a failed release - it removes a published release.'
+        required: false
+        default: false
+        type: boolean
+
+# the release is created with the default token
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release ${{ inputs.version }}
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+      with:
+        # full history and tags, so the generated notes have something to
+        # compare against and so existing tags can be detected
+        fetch-depth: 0
+
+    - name: Check the version is committed everywhere
+      env:
+        VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+
+        if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "::error::'$VERSION' is not an x.y.z version"
+          exit 1
+        fi
+
+        if [[ "$GITHUB_REF_NAME" != "master" ]]; then
+          echo "::error::releases are cut from master, but this ran against '$GITHUB_REF_NAME'"
+          exit 1
+        fi
+
+        # the dots are literal, not "any character"
+        escaped=${VERSION//./\\.}
+        failed=false
+
+        if ! grep -q "^  PONGO_VERSION=$escaped\$" pongo.sh; then
+          echo "::error file=pongo.sh::PONGO_VERSION is not $VERSION (found: $(grep -m1 '^  PONGO_VERSION=' pongo.sh || echo none))"
+          failed=true
+        fi
+
+        if ! grep -q "v$escaped\$" README.md; then
+          echo "::error file=README.md::the version in the logo is not v$VERSION"
+          failed=true
+        fi
+
+        if ! grep -q "^## $escaped released " CHANGELOG.md; then
+          echo "::error file=CHANGELOG.md::no '## $VERSION released <date>' heading; an 'unreleased' heading means the release commit is missing"
+          failed=true
+        fi
+
+        if [[ "$failed" == "true" ]]; then
+          echo "::error::run the 'chore(release): release $VERSION' PR first, then re-run this workflow"
+          exit 1
+        fi
+
+        echo "version $VERSION is committed in pongo.sh, README.md and CHANGELOG.md"
+
+    - name: Remove the tag and release from a failed attempt
+      env:
+        GH_TOKEN: ${{ github.token }}
+        VERSION: ${{ inputs.version }}
+        RECREATE: ${{ inputs.recreate }}
+      run: |
+        set -euo pipefail
+
+        # plain '&&' assignments would trip 'set -e' when the check fails
+        tag_exists=false
+        release_exists=false
+        if git rev-parse -q --verify "refs/tags/$VERSION" > /dev/null; then
+          tag_exists=true
+        fi
+        if gh release view "$VERSION" > /dev/null 2>&1; then
+          release_exists=true
+        fi
+
+        if [[ "$tag_exists" == "false" ]] && [[ "$release_exists" == "false" ]]; then
+          echo "nothing to clean up"
+          exit 0
+        fi
+
+        if [[ "$RECREATE" != "true" ]]; then
+          echo "::error::tag exists: $tag_exists, release exists: $release_exists."
+          echo "::error::$VERSION has been released already. If a previous attempt failed and you want to replace it, re-run this workflow with 'recreate' ticked. Note that this deletes the existing release."
+          exit 1
+        fi
+
+        if [[ "$release_exists" == "true" ]]; then
+          echo "deleting the existing release $VERSION"
+          # --cleanup-tag takes the tag with it
+          gh release delete "$VERSION" --yes --cleanup-tag
+        fi
+
+        # a tag with no release behind it, or one --cleanup-tag left behind
+        if git ls-remote --exit-code --tags origin "refs/tags/$VERSION" > /dev/null 2>&1; then
+          echo "deleting the existing tag $VERSION"
+          git push origin --delete "refs/tags/$VERSION"
+        fi
+
+    - name: Create the release
+      env:
+        GH_TOKEN: ${{ github.token }}
+        VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+
+        # 'gh release create' creates the tag at --target, so the tag and the
+        # release are made together and 'recreate' can undo both as a pair
+        gh release create "$VERSION" \
+          --target "$GITHUB_SHA" \
+          --title "Release $VERSION" \
+          --generate-notes
+
+        url=$(gh release view "$VERSION" --json url --jq .url)
+        echo "released $VERSION: $url"
+        {
+          echo "### Released \`$VERSION\`"
+          echo
+          echo "- commit: \`$GITHUB_SHA\`"
+          echo "- release: $url"
+        } >> "$GITHUB_STEP_SUMMARY"

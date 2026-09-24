@@ -14,8 +14,15 @@
     * mark the PR as "draft"
     * example where/how to make the change: https://github.com/Kong/kong-ee/pull/11257. Copy the to-do list from the PR description!
     * make sure it passes, adjust if required
- * merge the Pongo release branch, tag as `x.y.z`, and push the tag
- * in Github UI create a release from the tag
+ * merge the Pongo release branch
+ * run the ["Release" workflow](../../actions/workflows/release.yml) from the
+   Actions tab, against `master`, with the version as input. It tags the
+   commit and publishes the release with generated notes.
+    * it refuses to run if the version is not already committed to `pongo.sh`,
+      the README logo and the changelog, so merge the release PR first
+    * if it fails part way, run it again with "recreate" ticked; that deletes
+      the tag and release the failed attempt left behind before making them
+      again
  * update Kong-Enterprise PR (created in the first step)
     * Change the Pongo version to use to the newly released version of Pongo
     * remove "draft" status.
