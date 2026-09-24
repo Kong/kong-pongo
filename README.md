@@ -18,7 +18,7 @@ check [this blogpost on the Kong website](https://konghq.com/blog/custom-lua-plu
   | | | (_) | | | | (_| | (_) |
   \_|  \___/|_| |_|\__, |\___/
                     __/ |
-                   |___/  v2.28.1
+                   |___/  v2.29.0
 
 Usage: pongo action [options...] [--] [action options...]
 
