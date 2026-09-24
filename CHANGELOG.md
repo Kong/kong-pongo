@@ -32,7 +32,7 @@
 
 ---
 
-## 2.29.0 released 24-Sep-2026
+## 2.29.0 released 25-Sep-2026
 
  * Feat: added support for Podman and podman-compose as an alternative container
    runtime, including rootless mode. Use `PONGO_CONTAINER_RUNTIME=podman` to
@@ -55,6 +55,13 @@
    `HEALTHCHECK` inherited from the Kong base image. Pongo now builds in the
    Docker format on Podman.
    [#831](https://github.com/Kong/kong-pongo/pull/831)
+ * Chore: releases are cut by a "Release" workflow instead of by hand. It
+   refuses to tag a version that is not committed to `pongo.sh`, the README
+   logo and this changelog; it can tag a specific commit rather than the head
+   of the branch it runs from; and it can replace the tag and release a failed
+   attempt left behind.
+   [#833](https://github.com/Kong/kong-pongo/pull/833)
+   [#834](https://github.com/Kong/kong-pongo/pull/834)
 
 ---
 
