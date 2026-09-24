@@ -17,6 +17,11 @@ on:
         description: 'Version to release, without a "v" (e.g. 2.29.0). Must already be committed to pongo.sh, the README logo and the changelog.'
         required: true
         type: string
+      commit:
+        description: 'Commit to tag. Defaults to the head of the branch this runs against. Use it when a later commit has already landed on master, so the tag still lands on the release commit.'
+        required: false
+        default: ''
+        type: string
       recreate:
         description: 'Delete the existing tag and release for this version first. Only for retrying a failed release - it removes a published release.'
         required: false
@@ -44,9 +49,11 @@ jobs:
         # compare against and so existing tags can be detected
         fetch-depth: 0
 
-    - name: Check the version is committed everywhere
+    - name: Resolve and check the commit to tag
+      id: target
       env:
         VERSION: ${{ inputs.version }}
+        COMMIT: ${{ inputs.commit }}
       run: |
         set -euo pipefail
 
@@ -55,27 +62,45 @@ jobs:
           exit 1
         fi
 
-        if [[ "$GITHUB_REF_NAME" != "master" ]]; then
-          echo "::error::releases are cut from master, but this ran against '$GITHUB_REF_NAME'"
+        # default to whatever ref this run was started against
+        target=${COMMIT:-$GITHUB_SHA}
+
+        if ! sha=$(git rev-parse -q --verify "$target^{commit}"); then
+          echo "::error::'$target' is not a commit in this repository"
           exit 1
         fi
 
-        # the dots are literal, not "any character"
+        # releases are cut from master, whichever ref the run started from
+        git fetch --no-tags --quiet origin master
+        if ! git merge-base --is-ancestor "$sha" FETCH_HEAD; then
+          echo "::error::$sha is not on master"
+          exit 1
+        fi
+
+        # read the files at the commit being tagged rather than from the
+        # checked out tree, so the check follows the tag and not the ref.
+        # Captured first rather than piped into grep: 'grep -q' exits on the
+        # first match, which SIGPIPEs 'git show', and pipefail then aborts.
+        pongo_sh=$(git show "$sha:pongo.sh")
+        readme=$(git show "$sha:README.md")
+        changelog=$(git show "$sha:CHANGELOG.md")
+
         escaped=${VERSION//./\\.}
         failed=false
 
-        if ! grep -q "^  PONGO_VERSION=$escaped\$" pongo.sh; then
-          echo "::error file=pongo.sh::PONGO_VERSION is not $VERSION (found: $(grep -m1 '^  PONGO_VERSION=' pongo.sh || echo none))"
+        if ! grep -q "^  PONGO_VERSION=$escaped\$" <<< "$pongo_sh"; then
+          found=$(grep -m1 '^  PONGO_VERSION=' <<< "$pongo_sh" || echo none)
+          echo "::error::PONGO_VERSION in pongo.sh is not $VERSION at $sha (found: $found)"
           failed=true
         fi
 
-        if ! grep -q "v$escaped\$" README.md; then
-          echo "::error file=README.md::the version in the logo is not v$VERSION"
+        if ! grep -q "v$escaped\$" <<< "$readme"; then
+          echo "::error::the version in the README logo is not v$VERSION at $sha"
           failed=true
         fi
 
-        if ! grep -q "^## $escaped released " CHANGELOG.md; then
-          echo "::error file=CHANGELOG.md::no '## $VERSION released <date>' heading; an 'unreleased' heading means the release commit is missing"
+        if ! grep -q "^## $escaped released " <<< "$changelog"; then
+          echo "::error::no '## $VERSION released <date>' heading in CHANGELOG.md at $sha; an 'unreleased' heading means the release commit is missing"
           failed=true
         fi
 
@@ -84,7 +109,8 @@ jobs:
           exit 1
         fi
 
-        echo "version $VERSION is committed in pongo.sh, README.md and CHANGELOG.md"
+        echo "sha=$sha" >> "$GITHUB_OUTPUT"
+        echo "will tag $sha ($(git log -1 --format=%s "$sha"))"
 
     - name: Remove the tag and release from a failed attempt
       env:
@@ -131,13 +157,14 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
         VERSION: ${{ inputs.version }}
+        TARGET_SHA: ${{ steps.target.outputs.sha }}
       run: |
         set -euo pipefail
 
         # 'gh release create' creates the tag at --target, so the tag and the
         # release are made together and 'recreate' can undo both as a pair
         gh release create "$VERSION" \
-          --target "$GITHUB_SHA" \
+          --target "$TARGET_SHA" \
           --title "Release $VERSION" \
           --generate-notes
 
@@ -146,6 +173,6 @@ jobs:
         {
           echo "### Released \`$VERSION\`"
           echo
-          echo "- commit: \`$GITHUB_SHA\`"
+          echo "- commit: \`$TARGET_SHA\`"
           echo "- release: $url"
         } >> "$GITHUB_STEP_SUMMARY"
