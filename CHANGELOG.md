@@ -22,7 +22,7 @@
 
 ---
 
-## unreleased
+## 2.29.0 released 24-Sep-2026
 
  * Feat: added support for Podman and podman-compose as an alternative container
    runtime, including rootless mode. Use `PONGO_CONTAINER_RUNTIME=podman` to
