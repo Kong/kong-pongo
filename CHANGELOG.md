@@ -22,6 +22,32 @@
 
 ---
 
+## unreleased
+
+ * Feat: added support for Podman and podman-compose as an alternative container
+   runtime, including rootless mode. Use `PONGO_CONTAINER_RUNTIME=podman` to
+   select it explicitly, see the [README](README.md#pongo-with-podman).
+ * Fix: the "is the test environment running" check no longer greps the human
+   readable `compose ps` output, which differs between platforms and compose
+   implementations.
+ * Fix: `docker compose` is now detected with `docker compose version` instead
+   of a bare `docker compose`, which exits non-zero on Compose v2.
+ * Fix: the service health checks are no longer switched off by an interpolated
+   `disable:` value. podman-compose reads any non-empty string as true, so the
+   default `"false"` disabled every health check and left Pongo with nothing to
+   wait for. `HEALTH_TIMEOUT=0` now applies an overlay compose file instead.
+ * Fix: `PONGO_INSECURE` no longer switches TLS verification off on every
+   build. The condition tested `-n "$PONGO_INSECURE" || "$PONGO_INSECURE" !=
+   "false"`, whose branches cover every value, so curl and git were configured
+   insecure during each image build regardless of the setting.
+ * Fix: images built with Podman keep their health check. Podman defaults to
+   the OCI image format, which has no field for one, so buildah dropped the
+   `HEALTHCHECK` inherited from the Kong base image. Pongo now builds in the
+   Docker format on Podman.
+   [#831](https://github.com/Kong/kong-pongo/pull/831)
+
+---
+
 ## 2.28.1 released 10-Sep-2026
 
 * Fix: install grpcurl for the target build's architecture in Dockerfile.

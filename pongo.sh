@@ -30,6 +30,35 @@ function globals {
 
   DOCKER_BUILD_EXTRA_ARGS="${DOCKER_BUILD_EXTRA_ARGS:-}"
 
+  # Podman stores locally built images under the "localhost/" prefix, so the
+  # "reference" filter needs a leading wildcard to match them.
+  IMAGE_FILTER_PREFIX=""
+
+  # Extra options appended to the bind-mount of the plugin directory. On
+  # SELinux enabled hosts (RHEL, Fedora, CentOS) the mount needs to be
+  # relabelled, or the container cannot access it at all. ":z" is a no-op on
+  # hosts without SELinux.
+  # Set it to an empty string explicitly to opt out of the relabelling.
+  if [[ -z ${PONGO_VOLUME_OPTS+x} ]]; then
+    if [[ "$CONTAINER_RUNTIME" == "podman" ]]; then
+      PONGO_VOLUME_OPTS=":z"
+    else
+      PONGO_VOLUME_OPTS=""
+    fi
+  fi
+  export PONGO_VOLUME_OPTS
+
+  # Podman defaults to the OCI image format, which has no field for a health
+  # check, so buildah drops any HEALTHCHECK - including the one inherited from
+  # the Kong base image - and warns while doing so. Build in the Docker format
+  # instead, so an image Pongo builds behaves the same on both runtimes.
+  IMAGE_BUILD_FORMAT=""
+
+  if [[ "$CONTAINER_RUNTIME" == "podman" ]]; then
+    IMAGE_FILTER_PREFIX="*"
+    IMAGE_BUILD_FORMAT="--format docker"
+  fi
+
   # the path where the plugin source is located, as seen from Pongo (this script)
   KONG_TEST_PLUGIN_PATH=$(realpath .)
 
@@ -48,7 +77,7 @@ function globals {
       warn "sure '/pongo_wd' doesn't exist."
     else
       #msg "Pongo container: $PONGO_CONTAINER_ID"
-      HOST_PATH=$(docker inspect "$PONGO_CONTAINER_ID" | grep ":/pongo_wd.*\"" | sed -e 's/^[ \t]*//' | sed s/\"//g | grep -o "^[^:]*")
+      HOST_PATH=$($CONTAINER_CMD inspect "$PONGO_CONTAINER_ID" | grep ":/pongo_wd.*\"" | sed -e 's/^[ \t]*//' | sed s/\"//g | grep -o "^[^:]*")
       #msg "Host working directory: $HOST_PATH"
     fi
     if [[ "$HOST_PATH" == "" ]]; then
@@ -130,6 +159,16 @@ function globals {
   # development CE images, these are public, no credentials needed
   DEVELOPMENT_CE_TAG="kong/kong:master-ubuntu"
 
+  if [[ "$CONTAINER_RUNTIME" == "podman" ]]; then
+    # Podman requires fully qualified image names, it does not silently assume
+    # Docker Hub the way the Docker CLI does.
+    KONG_EE_TAG_PREFIX="docker.io/$KONG_EE_TAG_PREFIX"
+    KONG_OSS_TAG_PREFIX="docker.io/$KONG_OSS_TAG_PREFIX"
+    KONG_OSS_UNOFFICIAL_TAG_PREFIX="docker.io/$KONG_OSS_UNOFFICIAL_TAG_PREFIX"
+    DEVELOPMENT_EE_TAG="docker.io/$DEVELOPMENT_EE_TAG"
+    DEVELOPMENT_CE_TAG="docker.io/$DEVELOPMENT_CE_TAG"
+  fi
+
 
   # dependency health checks
   if [[ -z $HEALTH_TIMEOUT ]]; then
@@ -140,6 +179,9 @@ function globals {
   fi
   if [[ $HEALTH_TIMEOUT -eq 0 ]]; then
     export SERVICE_DISABLE_HEALTHCHECK=true
+    # overlay that switches the health checks off; see that file for why this
+    # is an overlay instead of an interpolated 'disable:' value
+    DOCKER_COMPOSE_FILES="$DOCKER_COMPOSE_FILES -f ${LOCAL_PATH}/assets/healthcheck-disable.yml"
   fi
 
   # Dependency image defaults
@@ -205,27 +247,138 @@ function globals {
 }
 
 
-function check_tools {
-  local missing=false
+# Detects the container runtime (Docker or Podman) and its compose
+# implementation. Sets the following globals:
+# - CONTAINER_RUNTIME : "docker" or "podman"
+# - CONTAINER_CMD     : the CLI command to use for container operations
+# - COMPOSE_COMMAND   : the compose command to use (can contain spaces)
+# - COMPOSE_RUN_ARGS  : extra args for "compose run" supported by this compose
+# Honours $PONGO_CONTAINER_RUNTIME ("docker" or "podman") if set, and
+# $PONGO_COMPOSE_COMMAND to override the detected compose command.
+function detect_container_runtime {
+  local requested=${PONGO_CONTAINER_RUNTIME:-}
 
-  docker -v > /dev/null 2>&1
-  if [[ ! $? -eq 0 ]]; then
-    >&2 echo "'docker' command not found, please install Docker, and make it available in the path."
-    missing=true
+  if [[ "$requested" == "" ]]; then
+    # auto-detect; Docker takes precedence for backward compatibility
+    if docker -v > /dev/null 2>&1; then
+      requested="docker"
+    elif podman -v > /dev/null 2>&1; then
+      requested="podman"
+    else
+      >&2 echo "neither 'docker' nor 'podman' was found, please install one of them, and make it available in the path."
+      >&2 echo "you can force the runtime to use by setting the 'PONGO_CONTAINER_RUNTIME' environment variable."
+      return 1
+    fi
   fi
 
-  docker compose > /dev/null 2>&1
-  if [[ ! $? -eq 0 ]]; then
-    docker-compose -v > /dev/null 2>&1
-    if [[ ! $? -eq 0 ]]; then
-      >&2 echo "'docker-compose' and 'docker compose' commands not found, please upgrade docker or install docker-compose and make it available in the path."
-      missing=true
+  case "$requested" in
+    docker)
+      CONTAINER_RUNTIME="docker"
+      CONTAINER_CMD="docker"
+      ;;
+    podman)
+      CONTAINER_RUNTIME="podman"
+      CONTAINER_CMD="podman"
+      ;;
+    *)
+      >&2 echo "invalid value for 'PONGO_CONTAINER_RUNTIME': '$requested', must be 'docker' or 'podman'."
+      return 1
+      ;;
+  esac
+
+  if ! $CONTAINER_CMD -v > /dev/null 2>&1; then
+    >&2 echo "'$CONTAINER_CMD' command not found, please install it, and make it available in the path."
+    return 1
+  fi
+
+  # "compose run --use-aliases" is a Docker Compose feature, podman-compose
+  # does not implement the flag (its ephemeral containers get the network
+  # aliases regardless).
+  COMPOSE_RUN_ARGS="--use-aliases"
+
+  # Docker Compose accepts a bare "-e VAR" on "compose run" to pass a variable
+  # through from the environment. podman-compose requires an explicit value,
+  # and errors out on a bare name. See compose_env_args().
+  COMPOSE_ENV_REQUIRES_VALUE=false
+
+  if [[ -n "${PONGO_COMPOSE_COMMAND:-}" ]]; then
+    COMPOSE_COMMAND="$PONGO_COMPOSE_COMMAND"
+    if [[ "$COMPOSE_COMMAND" == *"podman-compose"* ]]; then
+      COMPOSE_RUN_ARGS=""
+      COMPOSE_ENV_REQUIRES_VALUE=true
     fi
+    return 0
+  fi
+
+  if [[ "$CONTAINER_RUNTIME" == "podman" ]]; then
+    # "podman compose" is a thin wrapper that delegates to an external
+    # provider, prefer podman-compose since that is what is available in the
+    # locked down environments Podman is typically used in.
+    if podman-compose version > /dev/null 2>&1; then
+      COMPOSE_COMMAND="podman-compose"
+      COMPOSE_RUN_ARGS=""
+      COMPOSE_ENV_REQUIRES_VALUE=true
+    elif podman compose version > /dev/null 2>&1; then
+      COMPOSE_COMMAND="podman compose"
+      # delegates to an unknown provider, so assume Docker Compose semantics
+    else
+      >&2 echo "'podman-compose' and 'podman compose' commands not found, please install podman-compose and make it available in the path."
+      return 1
+    fi
+    return 0
+  fi
+
+  if docker compose version > /dev/null 2>&1; then
+    # newer version; compose is a subcommand of docker
+    COMPOSE_COMMAND="docker compose"
+  elif docker-compose -v > /dev/null 2>&1; then
     # old deprecated way; using docker-compose as a separate command
     COMPOSE_COMMAND="docker-compose"
   else
-    # newer version; compose is a subcommand of docker
-    COMPOSE_COMMAND="docker compose"
+    >&2 echo "'docker-compose' and 'docker compose' commands not found, please upgrade docker or install docker-compose and make it available in the path."
+    return 1
+  fi
+}
+
+
+# Podman specific sanity checks. These are warnings only; they point at the
+# most common causes of a broken rootless setup instead of failing later on
+# with an unrelated error.
+function check_podman_setup {
+  local version
+  version=$($CONTAINER_CMD version --format '{{.Client.Version}}' 2>/dev/null)
+  if [[ "$version" != "" ]]; then
+    local major=${version%%.*}
+    local minor=${version#*.}; minor=${minor%%.*}
+    if [[ "$major" -lt 4 ]] || { [[ "$major" -eq 4 ]] && [[ "$minor" -lt 4 ]]; }; then
+      >&2 echo -e "\033[0;33m[pongo-WARN] Podman $version detected, Pongo requires Podman 4.4 or newer\033[0m"
+    fi
+  fi
+
+  # Service discovery between the dependency containers relies on DNS on a
+  # user defined network. With the netavark backend that requires aardvark-dns
+  # to be installed, which is a separate package on some distributions.
+  local backend
+  backend=$($CONTAINER_CMD info --format '{{.Host.NetworkBackend}}' 2>/dev/null)
+  if [[ "$backend" == "netavark" ]]; then
+    local dns_path
+    dns_path=$($CONTAINER_CMD info --format '{{.Host.NetworkBackendInfo.DNS.Path}}' 2>/dev/null)
+    if [[ "$dns_path" == "" ]]; then
+      >&2 echo -e "\033[0;33m[pongo-WARN] 'aardvark-dns' was not found in the Podman network backend info.\033[0m"
+      >&2 echo -e "\033[0;33m[pongo-WARN] Without it the test dependencies cannot resolve each other by name.\033[0m"
+      >&2 echo -e "\033[0;33m[pongo-WARN] Install the 'aardvark-dns' package to fix this.\033[0m"
+    fi
+  fi
+}
+
+
+function check_tools {
+  local missing=false
+
+  detect_container_runtime || missing=true
+
+  if [[ "$CONTAINER_RUNTIME" == "podman" ]]; then
+    check_podman_setup
   fi
 
   realpath . > /dev/null 2>&1
@@ -490,18 +643,18 @@ function docker_login {
     return 0
   fi
 
-  echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  echo "$DOCKER_PASSWORD" | $CONTAINER_CMD login -u "$DOCKER_USERNAME" --password-stdin
   if [[ ! $? -eq 0 ]]; then
-    docker logout
+    $CONTAINER_CMD logout
     err "Docker login failed. Make sure to provide the proper credentials in the \$DOCKER_USERNAME
 and \$DOCKER_PASSWORD environment variables."
   fi
 }
 
 function docker_login_ee {
-  echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  echo "$DOCKER_PASSWORD" | $CONTAINER_CMD login -u "$DOCKER_USERNAME" --password-stdin
   if [[ ! $? -eq 0 ]]; then
-    docker logout
+    $CONTAINER_CMD logout
     err "Failed to log into the private Kong Enterprise docker repo. Make sure to provide the
 proper credentials in the \$DOCKER_USERNAME and \$DOCKER_PASSWORD environment variables."
   fi
@@ -519,7 +672,7 @@ function get_image {
     if [[ "$KONG_VERSION" == "$DEVELOPMENT_CE" ]]; then
       # pull the Opensource development image
       image=$DEVELOPMENT_CE_TAG
-      docker pull "$image"
+      $CONTAINER_CMD pull "$image"
       if [[ ! $? -eq 0 ]]; then
         err "failed to pull the Kong CE development image $image"
       fi
@@ -527,7 +680,7 @@ function get_image {
     else
       # pull the Enterprise development image
       image=$DEVELOPMENT_EE_TAG
-      docker pull "$image"
+      $CONTAINER_CMD pull "$image"
       if [[ ! $? -eq 0 ]]; then
         err "failed to pull: $image"
       fi
@@ -541,9 +694,9 @@ function get_image {
       image=$KONG_OSS_TAG_PREFIX$KONG_VERSION$KONG_OSS_TAG_POSTFIX
     fi
 
-    docker inspect --type=image "$image" &> /dev/null
+    $CONTAINER_CMD inspect --type=image "$image" &> /dev/null
     if [[ ! $? -eq 0 ]]; then
-      docker pull "$image"
+      $CONTAINER_CMD pull "$image"
       if [[ ! $? -eq 0 ]]; then
         # failed to pull CE image, so try the fallback
         # NOTE: new releases take a while (days) to become available in the
@@ -552,7 +705,7 @@ function get_image {
         # prevent any CI from failing in the mean time.
         msg "failed to pull: $image from the official repo, retrying unofficial..."
         image=$KONG_OSS_UNOFFICIAL_TAG_PREFIX$KONG_VERSION$KONG_OSS_UNOFFICIAL_TAG_POSTFIX
-        docker pull "$image"
+        $CONTAINER_CMD pull "$image"
         if [[ ! $? -eq 0 ]]; then
           err "failed to pull: $image"
         fi
@@ -587,7 +740,7 @@ function get_version {
 
   if is_commit_based "$KONG_VERSION"; then
     # it's a development; get the commit-id from the image
-    VERSION=$(docker inspect \
+    VERSION=$($CONTAINER_CMD inspect \
        --format "{{ index .Config.Labels \"org.opencontainers.image.revision\"}}" \
        "$KONG_IMAGE")
     if [[ ! $? -eq 0 ]]; then
@@ -614,7 +767,7 @@ function get_version {
         io.stdout:write(parsed_version)
       "')
     # shellcheck disable=SC2145  # we want WINDOWS_SLASH to be added to the first element
-    VERSION=$(docker run --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "$WINDOWS_SLASH${cmd[@]}")
+    VERSION=$($CONTAINER_CMD run --rm -e KONG_LICENSE_DATA "$KONG_IMAGE" "$WINDOWS_SLASH${cmd[@]}")
     if [[ ! $? -eq 0 ]]; then
       err "failed to read version from Kong image: $KONG_IMAGE"
     fi
@@ -630,6 +783,30 @@ function get_version {
 
   GET_VERSION_RAN=true
   KONG_TEST_IMAGE=$IMAGE_BASE_NAME:$VERSION
+}
+
+
+# Builds the "-e" arguments for a "compose run" invocation into the global
+# COMPOSE_ENV_ARGS array. Takes either bare variable names, to be passed
+# through from the environment, or complete "NAME=value" pairs.
+#
+# Docker Compose understands a bare "-e NAME", podman-compose does not and
+# needs "-e NAME=value", so the value is looked up here when required. A
+# variable that is unset in the environment is left out entirely, which is
+# what Docker Compose does with a bare name too.
+function compose_env_args {
+  COMPOSE_ENV_ARGS=()
+  local entry
+  for entry in "$@"; do
+    if [[ "$entry" == *"="* ]]; then
+      # a complete pair, pass it on as-is
+      COMPOSE_ENV_ARGS+=( -e "$entry" )
+    elif [[ "$COMPOSE_ENV_REQUIRES_VALUE" != "true" ]]; then
+      COMPOSE_ENV_ARGS+=( -e "$entry" )
+    elif [[ -n ${!entry+x} ]]; then
+      COMPOSE_ENV_ARGS+=( -e "$entry=${!entry}" )
+    fi
+  done
 }
 
 
@@ -670,16 +847,22 @@ function healthy {
     return 0
   fi
 
-  local health
-  health=$(docker inspect --format='{{json .State.Health}}' "$iid")
+  # Docker leaves ".State.Health" nil when the container has no health check,
+  # whereas Podman returns an empty struct. Hence an empty status means "no
+  # health check" for both runtimes.
+  local state
+  if ! state=$($CONTAINER_CMD inspect \
+    --format='{{if .State.Health}}{{.State.Health.Status}}{{end}}' \
+    "$iid" 2> /dev/null); then
+    # the container could not be inspected; it is gone, or the runtime is
+    # unreachable. Either way it is not healthy.
+    return 1
+  fi
 
-  if [ "$health" == "null" ]; then
+  if [ "$state" == "" ] || [ "$state" == "<no value>" ]; then
     msg "No health check available for '$name', assuming healthy"
     return 0
   fi
-
-  local state
-  state=$(docker inspect --format='{{.State.Health.Status}}' "$iid")
 
   if [ "$state" == "healthy" ]; then
     return 0
@@ -688,9 +871,24 @@ function healthy {
 }
 
 
-# takes a container name and returns its id
+# takes a service name and returns its container id
 function cid {
-  compose ps -q "$1" 2> /dev/null
+  local id
+  if [[ "$CONTAINER_RUNTIME" == "podman" ]]; then
+    # podman-compose does not reliably filter 'ps -q' by service name, so go
+    # by the compose labels instead (which podman-compose does set).
+    # Only running containers: Podman keeps the last health status on a
+    # stopped container, so including those would make 'healthy' report a
+    # stopped dependency as up, and nothing would restart it.
+    id=$($CONTAINER_CMD ps -q \
+      --filter "label=com.docker.compose.project=${PROJECT_NAME}" \
+      --filter "label=com.docker.compose.service=$1" 2> /dev/null | head -n 1)
+    if [[ -n "$id" ]]; then
+      echo "$id"
+      return 0
+    fi
+  fi
+  compose ps -q "$1" 2> /dev/null | head -n 1
 }
 
 
@@ -737,14 +935,22 @@ function compose_up {
 
 
 function ensure_available {
-  if [ -z "$WINDOWS_SLASH" ]; then
-    # unix check
-    compose ps | grep "Up (health" &> /dev/null
-  else
-    # Windows check
-    compose ps | grep "running (health" &> /dev/null
+  # Do not grep the human readable 'compose ps' output here; its wording
+  # differs between platforms and between compose implementations. Inspect the
+  # containers directly instead.
+  local running=true
+  local dependency
+  if [[ ${#KONG_DEPS_START[@]} -eq 0 ]]; then
+    running=false
   fi
-  if [[ ! $? -eq 0 ]]; then
+  for dependency in "${KONG_DEPS_START[@]}"; do
+    if ! healthy "$(cid "$dependency")" "$dependency" &> /dev/null; then
+      running=false
+      break
+    fi
+  done;
+
+  if [[ "$running" == "false" ]]; then
     msg "auto-starting the test environment, use the 'pongo down' action to stop it"
     compose_up || err "failed to start the test environment"
   fi
@@ -820,7 +1026,7 @@ function build_image {
     validate_version "$VERSION"
   fi
 
-  docker inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
+  $CONTAINER_CMD inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
   if [[ $? -eq 0 ]]; then
     msg "image '$KONG_TEST_IMAGE' already exists"
     if [ "$FORCE_BUILD" = false ] ; then
@@ -852,8 +1058,9 @@ function build_image {
   fi
 
   msg "starting build of image '$KONG_TEST_IMAGE'"
-  # shellcheck disable=SC2086 # DOCKER_BUILD_EXTRA_ARGS can contain multiple arguments so we must not quote it
-  $WINPTY_PREFIX docker build \
+  # shellcheck disable=SC2086 # DOCKER_BUILD_EXTRA_ARGS and IMAGE_BUILD_FORMAT can contain multiple arguments so we must not quote them
+  $WINPTY_PREFIX $CONTAINER_CMD build \
+    ${IMAGE_BUILD_FORMAT} \
     -f "$DOCKER_FILE" \
     --build-arg PONGO_VERSION="$PONGO_VERSION" \
     --build-arg http_proxy="$http_proxy" \
@@ -929,7 +1136,7 @@ function pongo_down {
     PROJECT_NAME=${PROJECT_NAME_PREFIX}${PROJECT_ID}
     SERVICE_NETWORK_NAME=${SERVICE_NETWORK_PREFIX}${PROJECT_ID}
     compose down --remove-orphans --volumes
-  done < <(docker network ls --filter 'name='$SERVICE_NETWORK_PREFIX --format '{{.Name}}')
+  done < <($CONTAINER_CMD network ls --filter 'name='$SERVICE_NETWORK_PREFIX --format '{{.Name}}')
 
   PROJECT_ID=$p_id
   PROJECT_NAME=$p_name
@@ -940,20 +1147,17 @@ function pongo_down {
 function pongo_clean {
   pongo_down --all
 
-  docker images --filter=reference="${IMAGE_BASE_PREFIX}*:*" --format "found: {{.ID}}" | grep found
-  if [[ $? -eq 0 ]]; then
-    # shellcheck disable=SC2046  # we want the image ids to be word-splitted
-    docker rmi $(docker images --filter=reference="${IMAGE_BASE_PREFIX}*:*" --format "{{.ID}}")
-  fi
+  local reference
+  for reference in "${IMAGE_FILTER_PREFIX}${IMAGE_BASE_PREFIX}*:*" "${IMAGE_FILTER_PREFIX}pongo-expose:*"; do
+    $CONTAINER_CMD images --filter=reference="$reference" --format "found: {{.ID}}" | grep found
+    if [[ $? -eq 0 ]]; then
+      # shellcheck disable=SC2046  # we want the image ids to be word-splitted
+      $CONTAINER_CMD rmi $($CONTAINER_CMD images --filter=reference="$reference" --format "{{.ID}}")
+    fi
+  done;
 
-  docker images --filter=reference="pongo-expose:*" --format "found: {{.ID}}" | grep found
-  if [[ $? -eq 0 ]]; then
-    # shellcheck disable=SC2046  # we want the image ids to be word-splitted
-    docker rmi $(docker images --filter=reference="pongo-expose:*" --format "{{.ID}}")
-  fi
-
-  # prune to prevent rebuilding to happen from the docker build cache
-  docker builder prune -f
+  # prune to prevent rebuilding to happen from the build cache
+  $CONTAINER_CMD builder prune -f || warn "failed to prune the build cache"
 
   if [ -d "$LOCAL_PATH/kong" ]; then
     rm -rf "$LOCAL_PATH/kong"
@@ -1009,7 +1213,7 @@ function pongo_status {
       networks)
         echo Pongo networks:
         echo ===============
-        docker network ls | grep "${project}"
+        $CONTAINER_CMD network ls | grep "${project}"
         ;;
 
       dependencies)
@@ -1028,13 +1232,13 @@ function pongo_status {
       containers)
         echo Pongo containers:
         echo =================
-        docker ps | grep "${project}"
+        $CONTAINER_CMD ps | grep "${project}"
         ;;
 
       images)
         echo Pongo cached images:
         echo ====================
-        docker images --filter=reference="${IMAGE_BASE_PREFIX}*:*"
+        $CONTAINER_CMD images --filter=reference="${IMAGE_FILTER_PREFIX}${IMAGE_BASE_PREFIX}*:*"
         ;;
 
       versions)
@@ -1245,7 +1449,7 @@ function main {
     ensure_available
     get_version
 
-    docker inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
+    $CONTAINER_CMD inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
     if [[ ! $? -eq 0 ]]; then
       msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
       build_image
@@ -1286,15 +1490,19 @@ function main {
 
     do_prerun_script
 
-    compose run --rm --use-aliases \
-      -e KONG_LICENSE_DATA \
-      -e KONG_TEST_DONT_CLEAN \
-      -e KONG_TEST_FIPS \
-      -e http_proxy \
-      -e https_proxy \
-      -e no_proxy \
-      -e ftp_proxy \
-      -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
+    compose_env_args \
+      KONG_LICENSE_DATA \
+      KONG_TEST_DONT_CLEAN \
+      KONG_TEST_FIPS \
+      http_proxy \
+      https_proxy \
+      no_proxy \
+      ftp_proxy \
+      PONGO_CLIENT_VERSION="$PONGO_VERSION"
+
+    # shellcheck disable=SC2086 # COMPOSE_RUN_ARGS must be word-split
+    compose run --rm $COMPOSE_RUN_ARGS \
+      "${COMPOSE_ENV_ARGS[@]}" \
       kong \
       "$WINDOWS_SLASH/bin/bash" "-c" "bin/busted --helper=$WINDOWS_SLASH/pongo/busted_helper.lua ${busted_params[*]} ${busted_files[*]}"
     ;;
@@ -1302,7 +1510,7 @@ function main {
   shell)
     get_plugin_names
     get_version
-    docker inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
+    $CONTAINER_CMD inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
     if [[ ! $? -eq 0 ]]; then
       msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
       build_image
@@ -1352,22 +1560,25 @@ function main {
 
     do_prerun_script
 
+    compose_env_args \
+      KONG_LICENSE_DATA \
+      PONGO_CLIENT_VERSION="$PONGO_VERSION" \
+      http_proxy \
+      https_proxy \
+      no_proxy \
+      ftp_proxy \
+      KONG_LOG_LEVEL \
+      KONG_ANONYMOUS_REPORTS \
+      SUPPRESS_KONG_VERSION="$suppress_kong_version" \
+      KONG_PG_DATABASE="kong_tests" \
+      KONG_PLUGINS="$PLUGINS" \
+      KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS" \
+      PS1_KONG_VERSION="$shellprompt" \
+      PS1_REPO_NAME="$repository_name"
+
     # shellcheck disable=SC2086 # we explicitly want script_mount & exec_cmd to be splitted
-    compose run --rm --use-aliases \
-      -e KONG_LICENSE_DATA \
-      -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
-      -e http_proxy \
-      -e https_proxy \
-      -e no_proxy \
-      -e ftp_proxy \
-      -e KONG_LOG_LEVEL \
-      -e KONG_ANONYMOUS_REPORTS \
-      -e SUPPRESS_KONG_VERSION="$suppress_kong_version" \
-      -e KONG_PG_DATABASE="kong_tests" \
-      -e KONG_PLUGINS="$PLUGINS" \
-      -e KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS" \
-      -e PS1_KONG_VERSION="$shellprompt" \
-      -e PS1_REPO_NAME="$repository_name" \
+    compose run --rm $COMPOSE_RUN_ARGS \
+      "${COMPOSE_ENV_ARGS[@]}" \
       $script_mount \
       $history_mount \
       kong $exec_cmd
@@ -1384,44 +1595,50 @@ function main {
   lint)
     get_plugin_names
     get_version
-    docker inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
+    $CONTAINER_CMD inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
     if [[ ! $? -eq 0 ]]; then
       msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
       build_image
     fi
+    compose_env_args \
+      KONG_LICENSE_DATA \
+      PONGO_CLIENT_VERSION="$PONGO_VERSION" \
+      KONG_LOG_LEVEL \
+      KONG_ANONYMOUS_REPORTS \
+      KONG_PG_DATABASE="kong_tests" \
+      KONG_PLUGINS="$PLUGINS" \
+      KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS"
+
     compose run --rm \
       --workdir="$WINDOWS_SLASH/kong-plugin" \
-      -e KONG_LICENSE_DATA \
-      -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
-      -e KONG_LOG_LEVEL \
-      -e KONG_ANONYMOUS_REPORTS \
-      -e KONG_PG_DATABASE="kong_tests" \
-      -e KONG_PLUGINS="$PLUGINS" \
-      -e KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS" \
+      "${COMPOSE_ENV_ARGS[@]}" \
       kong luacheck .
     ;;
 
   pack)
     get_plugin_names
     get_version
-    docker inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
+    $CONTAINER_CMD inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
     if [[ ! $? -eq 0 ]]; then
       msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
       build_image
     fi
+    compose_env_args \
+      KONG_LICENSE_DATA \
+      PONGO_CLIENT_VERSION="$PONGO_VERSION" \
+      http_proxy \
+      https_proxy \
+      no_proxy \
+      ftp_proxy \
+      KONG_LOG_LEVEL \
+      KONG_ANONYMOUS_REPORTS \
+      KONG_PG_DATABASE="kong_tests" \
+      KONG_PLUGINS="$PLUGINS" \
+      KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS"
+
     compose run --rm \
       --workdir="$WINDOWS_SLASH/kong-plugin" \
-      -e KONG_LICENSE_DATA \
-      -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
-      -e http_proxy \
-      -e https_proxy \
-      -e no_proxy \
-      -e ftp_proxy \
-      -e KONG_LOG_LEVEL \
-      -e KONG_ANONYMOUS_REPORTS \
-      -e KONG_PG_DATABASE="kong_tests" \
-      -e KONG_PLUGINS="$PLUGINS" \
-      -e KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS" \
+      "${COMPOSE_ENV_ARGS[@]}" \
       kong $WINDOWS_SLASH/pongo/pongo_pack.lua
     ;;
 
@@ -1480,17 +1697,20 @@ function main {
       # temp dev-docs dir does not exist, go render the docs
       get_plugin_names
       get_version
-      docker inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
+      $CONTAINER_CMD inspect --type=image "$KONG_TEST_IMAGE" &> /dev/null
       if [[ ! $? -eq 0 ]]; then
         msg "image '$KONG_TEST_IMAGE' not found, auto-building it"
         build_image
       fi
+      compose_env_args \
+        KONG_LICENSE_DATA \
+        PONGO_CLIENT_VERSION="$PONGO_VERSION" \
+        KONG_PLUGINS="$PLUGINS" \
+        KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS"
+
       compose run --rm \
         --workdir="$WINDOWS_SLASH/kong/spec" \
-        -e KONG_LICENSE_DATA \
-        -e PONGO_CLIENT_VERSION="$PONGO_VERSION" \
-        -e KONG_PLUGINS="$PLUGINS" \
-        -e KONG_CUSTOM_PLUGINS="$CUSTOM_PLUGINS" \
+        "${COMPOSE_ENV_ARGS[@]}" \
         kong ldoc --dir=$WINDOWS_SLASH/kong-plugin/$subd .
       if [[ ! $? -eq 0 ]]; then
         err "failed to render the Kong development docs"

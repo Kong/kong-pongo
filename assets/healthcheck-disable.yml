@@ -1,0 +1,34 @@
+# Overlay that turns the service health checks off. Added to the compose file
+# list by Pongo when $SERVICE_DISABLE_HEALTHCHECK is "true" (which is what
+# HEALTH_TIMEOUT=0 sets).
+#
+# This is an overlay rather than a `disable: ${SERVICE_DISABLE_HEALTHCHECK}`
+# in the main compose file because interpolation always yields a *string*, and
+# podman-compose treats any non-empty string as true -- so the string "false"
+# silently switched every health check off, leaving Pongo with nothing to wait
+# for. Docker Compose in turn rejects an empty value ("invalid boolean"), so
+# there is no interpolated value that behaves correctly on both. A literal
+# boolean in an overlay does.
+
+services:
+  expose:
+    healthcheck:
+      disable: true
+  postgres:
+    healthcheck:
+      disable: true
+  cassandra:
+    healthcheck:
+      disable: true
+  redis:
+    healthcheck:
+      disable: true
+  squid:
+    healthcheck:
+      disable: true
+  grpcbin:
+    healthcheck:
+      disable: true
+  kong:
+    healthcheck:
+      disable: true
