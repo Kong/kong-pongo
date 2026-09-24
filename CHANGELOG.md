@@ -20,6 +20,9 @@
    commit and publishes the release with generated notes.
     * it refuses to run if the version is not already committed to `pongo.sh`,
       the README logo and the changelog, so merge the release PR first
+    * run it right after merging the release PR, so the tag lands on the
+      release commit. If something else has already landed on `master`, pass
+      that commit in the "commit" input instead of tagging the branch head
     * if it fails part way, run it again with "recreate" ticked; that deletes
       the tag and release the failed attempt left behind before making them
       again
