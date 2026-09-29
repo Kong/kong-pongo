@@ -1,0 +1,19 @@
+{
+    "stream": false,
+    "chatHistory": [
+      {
+        "role": "USER",
+        "message": "Who discovered gravity?"
+      },
+      {
+        "role": "CHATBOT",
+        "message": "The man who is widely credited with discovering gravity is Sir Isaac Newton"
+      }
+    ],
+    "message": "What year was he born?",
+    "connectors": [
+      {
+        "id": "web-search"
+      }
+    ]
+  }
