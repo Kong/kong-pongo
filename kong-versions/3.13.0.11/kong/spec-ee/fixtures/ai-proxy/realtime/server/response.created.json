@@ -1,0 +1,22 @@
+{
+  "type": "response.created",
+  "response": {
+    "id": "resp_BbVAOwoTs6mmYCUSvOOvj",
+    "metadata": null,
+    "modalities": [
+      "text",
+      "audio"
+    ],
+    "usage": null,
+    "object": "realtime.response",
+    "conversation_id": "conv_BbVALkIFNO3KzTVTD68vj",
+    "max_output_tokens": "inf",
+    "status": "in_progress",
+    "output_audio_format": "pcm16",
+    "output": {},
+    "voice": "alloy",
+    "status_details": null,
+    "temperature": 0.8
+  },
+  "event_id": "event_BbVAOcPB0b2NMATcmrEvb"
+}
