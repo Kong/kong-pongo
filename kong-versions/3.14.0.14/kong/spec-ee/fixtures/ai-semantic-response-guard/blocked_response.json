@@ -1,0 +1,16 @@
+{
+  "id": "chatcmpl-9qW0ywXUbvaagpTMri594xe8uvjce",
+  "object": "chat.completion",
+  "created": 1722303148,
+  "model": "openai.chat.medium:4o:dated",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Good dogs are faithful companions."
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

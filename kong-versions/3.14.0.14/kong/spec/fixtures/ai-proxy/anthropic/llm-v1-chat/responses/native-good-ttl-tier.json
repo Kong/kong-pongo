@@ -1,0 +1,25 @@
+{
+  "id": "msg_ttltier01",
+  "content": [
+    {
+      "text": "Summary of the document.",
+      "type": "text"
+    }
+  ],
+  "model": "claude-sonnet-4-5-20250929",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "type": "message",
+  "usage": {
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 100,
+      "ephemeral_5m_input_tokens": 200
+    },
+    "cache_creation_input_tokens": 300,
+    "cache_read_input_tokens": 100,
+    "input_tokens": 1000,
+    "output_tokens": 200,
+    "service_tier": "priority"
+  }
+}

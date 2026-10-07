@@ -1,0 +1,6 @@
+[
+  "[",
+  "{\"candidates\":[{\"content\":{\"role\":\"model\",\"parts\":[{\"text\":\"Everything is okay.\"}]},\"finishReason\":\"NULL\",\"index\":0}],\"createTime\":\"2025-08-03T15:42:18.396462Z\",\"responseId\":\"logprob-stream-001\"},",
+  "{\"candidates\":[{\"content\":{\"role\":\"model\",\"parts\":[{\"text\":\"blue\"}]},\"finishReason\":\"STOP\",\"index\":0,\"logprobsResult\":{\"chosenCandidates\":[{\"token\":\"blue\",\"tokenId\":9259,\"logProbability\":-0.013348851691592823}],\"topCandidates\":[{\"candidates\":[{\"token\":\"blue\",\"tokenId\":9259,\"logProbability\":-0.013348851691592823},{\"token\":\"azure\",\"tokenId\":9260,\"logProbability\":-4.2}]}]}}],\"usageMetadata\":{\"promptTokenCount\":2,\"candidatesTokenCount\":11,\"totalTokenCount\":13},\"createTime\":\"2025-08-03T15:42:18.396462Z\",\"responseId\":\"logprob-stream-001\"}",
+  "]"
+]
