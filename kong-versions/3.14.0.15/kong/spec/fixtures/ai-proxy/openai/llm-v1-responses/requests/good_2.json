@@ -1,0 +1,13 @@
+{
+  "model": "gpt-5.4",
+  "input": [
+    {
+      "content": "Tell me a three sentence bedtime story about a unicorn.",
+      "role": "user"
+    },
+    {
+      "content": "You're good at telling story",
+      "role": "system"
+    }
+  ]
+}

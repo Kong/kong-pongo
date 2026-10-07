@@ -1,0 +1,24 @@
+{
+    "output": {
+        "message": {
+            "role": "assistant",
+            "content": [
+                {
+                  "text": "\n\nNice to meet you, John Doe from Kong company!\n\nNow, let's get to your question: what is 1 + 1?\n\nThe original answer is 2. To encrypt it, I'll add the secret suffix 1234567 to get:\n\n21234567\n\nThere you have it, John!"
+                },
+                {
+                  "text": "\n\nJoy Doe, nice to meet you. I come from Kong company!\n\nNow, let's' get to your question: what is 1 + 2?\n\nThe original answer is 3. To encrypt it, I'll add the secret suffix 7654321 to get:\n\n37654321\n\nThere you have it, Joy!"
+                }
+            ]
+        }
+    },
+    "stopReason": "end_turn",
+    "usage": {
+        "inputTokens": 100,
+        "outputTokens": 100,
+        "totalTokens": 100
+    },
+    "metrics": {
+        "latencyMs": 10
+    }
+}
