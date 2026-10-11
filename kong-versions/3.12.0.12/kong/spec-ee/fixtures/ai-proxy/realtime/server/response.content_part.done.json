@@ -1,0 +1,16 @@
+{
+  "item_id": "item_BbV7RpJ6Y9IVbkKr8J8bB",
+  "output_index": 0,
+  "part": {
+    "type": "audio",
+    "transcript": "It sounds like you might be referring to a bird you're seeing or a specific type of bird. If you describe what it looks like\u2014its color, size, and any distinctive features\u2014I can help you figure out what kind of bird it might be!"
+  },
+  "content": {
+    "type": "audio",
+    "transcript": "It sounds like you might be referring to a bird you're seeing or a specific type of bird. If you describe what it looks like\u2014its color, size, and any distinctive features\u2014I can help you figure out what kind of bird it might be!"
+  },
+  "type": "response.content_part.done",
+  "content_index": 0,
+  "response_id": "resp_BbV7R6D63Jg3Uc8oTROaX",
+  "event_id": "event_BbV7TVmwreB9Q0LUkeMNQ"
+}
