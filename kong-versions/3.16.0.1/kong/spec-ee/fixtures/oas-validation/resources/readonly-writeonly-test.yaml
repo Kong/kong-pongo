@@ -1,0 +1,583 @@
+openapi: 3.1.0
+info:
+  title: Complete ReadOnly/WriteOnly Test API
+  version: 1.0.0
+  description: Comprehensive API for testing readOnly and writeOnly properties in simple and complex schemas
+servers:
+  - url: http://localhost:12345
+    description: Test server
+paths:
+  /anchored-item:
+    post:
+      summary: >-
+        Regression: requestBody and response share the identical schema node
+        (YAML anchor, not a $ref) so the request-direction and
+        response-direction validators must not be conflated in the cache.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: &AnchoredItemSchema
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: Auto-generated ID (write side exempts this from required)
+                  readOnly: true
+                secret:
+                  type: string
+                  description: Write-only value; must never appear in the response
+                  writeOnly: true
+                name:
+                  type: string
+              required:
+                - id
+                - secret
+                - name
+      responses:
+        "201":
+          description: Created successfully
+          content:
+            application/json:
+              schema: *AnchoredItemSchema
+  /profile:
+    post:
+      summary: Create user profile with password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfile"
+      responses:
+        "201":
+          description: Profile created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+    put:
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfile"
+      responses:
+        "201":
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+    patch:
+      summary: Partially update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfile"
+      responses:
+        "201":
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+    get:
+      summary: Get user profile (password should not be returned)
+      responses:
+        "200":
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+  /profile-with-password:
+    get:
+      summary: Get user profile (this endpoint incorrectly returns writeOnly password)
+      responses:
+        "200":
+          description: Profile retrieved with password (should fail validation)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+  /profile-with-extra:
+    get:
+      summary: Get user profile with extra field (should pass validation)
+      responses:
+        "200":
+          description: Profile retrieved with extra field (should pass)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: Username for the profile
+                  email:
+                    type: string
+                    format: email
+                    description: User email address
+                  profile_id:
+                    type: string
+                    description: Auto-generated profile ID
+                    readOnly: true
+                  created_at:
+                    type: string
+                    format: date-time
+                    description: Profile creation timestamp
+                    readOnly: true
+                  metadata:
+                    $ref: "#/components/schemas/MetadataInfo"
+                required:
+                  - username
+                  - email
+                  - profile_id
+  /profile-missing-readonly:
+    get:
+      summary: Get user profile missing required readOnly field (should fail validation)
+      responses:
+        "200":
+          description: Profile retrieved without required readOnly field (should fail)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+  /complex-allof:
+    post:
+      summary: Test allOf schemas with readOnly/writeOnly
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComplexAllOf"
+      responses:
+        "201":
+          description: Created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplexAllOf"
+    get:
+      summary: Get complex allOf data
+      responses:
+        "200":
+          description: Retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplexAllOf"
+  /team-profile:
+    post:
+      summary: Test readOnly/writeOnly properties nested inside an array
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamProfile"
+      responses:
+        "201":
+          description: Created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamProfile"
+  /workspace:
+    post:
+      summary: Test readOnly properties nested under keys containing JSON Pointer special characters (/ and ~)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Workspace"
+      responses:
+        "201":
+          description: Created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+  /strict-account:
+    post:
+      summary: Test additionalProperties combined with readOnly/writeOnly
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StrictAccount"
+      responses:
+        "201":
+          description: Created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrictAccount"
+    get:
+      summary: Get strict account (no writeOnly leak, no extra property)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrictAccount"
+  /strict-account-with-token:
+    get:
+      summary: Get strict account that incorrectly leaks the writeOnly token
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrictAccount"
+  /strict-account-with-extra:
+    get:
+      summary: Get strict account with a truly unknown property (not readOnly/writeOnly)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrictAccount"
+  /documents:
+    post:
+      summary: Test readOnly/writeOnly on whole array properties and on array-of-array-of-object items
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Document"
+      responses:
+        "201":
+          description: Created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+    get:
+      summary: Get document (secret_keys array must not leak, tags array is required)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+  /documents-with-secret-keys:
+    get:
+      summary: Get document that incorrectly leaks the whole writeOnly secret_keys array
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+  /documents-with-nested-leak:
+    get:
+      summary: Get document that leaks a writeOnly field nested two levels deep in an array of arrays
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+  /accounts:
+    post:
+      summary: Test structured_errors composed with readOnly/writeOnly required-property skip
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Account"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+  /leaky-account:
+    get:
+      summary: Test structured_errors composed with writeOnly response leak reporting
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+
+components:
+  schemas:
+    UserProfile:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Username for the profile
+        email:
+          type: string
+          format: email
+          description: User email address
+        password:
+          type: string
+          description: User password (write-only)
+          writeOnly: true
+        profile_id:
+          type: string
+          description: Auto-generated profile ID
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          description: Profile creation timestamp
+          readOnly: true
+      required:
+        - username
+        - email
+        - password
+        - profile_id
+      example:
+        username: johndoe
+        email: john@example.com
+        password: secret123
+        profile_id: "12345"
+        created_at: "2024-01-01T00:00:00Z"
+
+    ComplexAllOf:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              description: Unique identifier
+              readOnly: true
+            name:
+              type: string
+              description: Name field
+        - type: object
+          properties:
+            email:
+              type: string
+              format: email
+              description: Email field
+            created_at:
+              type: string
+              format: date-time
+              readOnly: true
+            metadata:
+              type: object
+              properties:
+                internal_id:
+                  type: string
+                  readOnly: true
+                secret_token:
+                  type: string
+                  writeOnly: true
+      required:
+        - name
+        - email
+      example:
+        id: "user-123"
+        name: "John Doe"
+        email: "john@example.com"
+        created_at: "2024-01-01T00:00:00Z"
+        metadata:
+          internal_id: "internal-456"
+          secret_token: "token-789"
+
+    MetadataInfo:
+      type: object
+      properties:
+        internal_id:
+          type: string
+          readOnly: true
+        secret_token:
+          type: string
+          writeOnly: true
+      required:
+        - internal_id
+
+    TeamMember:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Auto-generated member ID
+          readOnly: true
+        name:
+          type: string
+        secret:
+          type: string
+          writeOnly: true
+      required:
+        - id
+        - name
+        - secret
+
+    TeamProfile:
+      type: object
+      properties:
+        team_name:
+          type: string
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/TeamMember"
+      required:
+        - team_name
+        - members
+
+    Workspace:
+      type: object
+      properties:
+        team_name:
+          type: string
+        "client/secret":
+          type: string
+          description: Auto-generated; the property name itself contains '/'
+          readOnly: true
+        "audit~log":
+          type: string
+          description: Auto-generated; the property name itself contains '~'
+          readOnly: true
+        "settings/advanced":
+          type: object
+          properties:
+            token:
+              type: string
+              description: Auto-generated token
+              readOnly: true
+            label:
+              type: string
+          required:
+            - token
+            - label
+        "cache~store":
+          type: object
+          properties:
+            revision:
+              type: string
+              description: Auto-generated revision
+              readOnly: true
+            label:
+              type: string
+          required:
+            - revision
+            - label
+      required:
+        - team_name
+        - client/secret
+        - audit~log
+        - settings/advanced
+        - cache~store
+
+    Account:
+      type: object
+      properties:
+        username:
+          type: string
+        token:
+          type: string
+          description: Auto-generated token (write-only)
+          writeOnly: true
+        id:
+          type: string
+          description: Auto-generated account ID
+          readOnly: true
+      required:
+        - username
+        - id
+
+    DocumentEntry:
+      type: object
+      properties:
+        entry_id:
+          type: string
+          description: Auto-generated entry ID
+          readOnly: true
+        value:
+          type: string
+        entry_key:
+          type: string
+          description: Write-only entry key
+          writeOnly: true
+      required:
+        - entry_id
+        - value
+        - entry_key
+
+    DocumentSection:
+      type: object
+      properties:
+        title:
+          type: string
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/DocumentEntry"
+      required:
+        - title
+        - entries
+
+    Document:
+      type: object
+      properties:
+        doc_id:
+          type: string
+          readOnly: true
+        tags:
+          type: array
+          description: Server-assigned tags; the whole array is readOnly
+          items:
+            type: string
+          readOnly: true
+        secret_keys:
+          type: array
+          description: Write-only list of secret keys; the whole array is writeOnly
+          items:
+            type: string
+          writeOnly: true
+        sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/DocumentSection"
+      required:
+        - doc_id
+        - tags
+        - secret_keys
+        - sections
+
+    StrictAccount:
+      type: object
+      additionalProperties: false
+      properties:
+        username:
+          type: string
+        token:
+          type: string
+          description: Auto-generated token (write-only)
+          writeOnly: true
+        id:
+          type: string
+          description: Auto-generated account ID
+          readOnly: true
+      required:
+        - username
+        - token
+        - id

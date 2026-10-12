@@ -1,0 +1,15 @@
+{
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful assistant."
+    },
+    {
+      "role": "user",
+      "content": "What is 1 + 1?"
+    }
+  ],
+  "stream": true,
+  "logprobs": true,
+  "top_logprobs": 2
+}
