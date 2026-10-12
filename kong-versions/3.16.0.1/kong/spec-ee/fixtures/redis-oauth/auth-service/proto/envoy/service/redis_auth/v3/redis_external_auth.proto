@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+// Minimal, wire-compatible re-declaration of Envoy's Redis external-auth service.
+// Field numbers, package, service name and method name match Envoy's
+// api/envoy/service/redis_auth/v3/redis_external_auth.proto exactly, so Envoy's
+// gRPC client can talk to this service. The verbose udpa/validate annotations
+// from the upstream proto are intentionally omitted (they don't affect the wire
+// format) to avoid pulling in Envoy's annotation proto tree.
+package envoy.service.redis_auth.v3;
+
+import "google/protobuf/timestamp.proto";
+import "google/rpc/status.proto";
+
+// Envoy calls this service every time a downstream client sends an AUTH command.
+service RedisProxyExternalAuth {
+  rpc Authenticate(RedisProxyExternalAuthRequest) returns (RedisProxyExternalAuthResponse) {}
+}
+
+message RedisProxyExternalAuthRequest {
+  // Username from `AUTH <user> <pass>` (Redis 6 ACL style). Empty for `AUTH <pass>`.
+  string username = 1;
+
+  // Password sent with the AUTH command. In our setup this carries the OAuth2
+  // (Keycloak) access token (a JWT).
+  string password = 2;
+}
+
+message RedisProxyExternalAuthResponse {
+  // status.code == 0 (OK)            -> authorized
+  // status.code == 7 (PERMISSION_DENIED) or 16 (UNAUTHENTICATED) -> rejected
+  // any other code                   -> error
+  google.rpc.Status status = 1;
+
+  // When external_auth_provider.enable_auth_expiration is true, Envoy blocks
+  // further commands after this time until a new successful AUTH arrives.
+  google.protobuf.Timestamp expiration = 2;
+
+  // Optional message returned to the client on rejection.
+  string message = 3;
+}
