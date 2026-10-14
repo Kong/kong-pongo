@@ -1,0 +1,19 @@
+[ req ]
+prompt = no
+distinguished_name = dn
+req_extensions = req_ext
+
+[ dn ]
+C  = US
+O  = Test
+CN = localhost
+
+[ req_ext ]
+subjectAltName = @alt
+
+[ alt ]
+DNS.1 = localhost
+IP.1  = 127.0.0.1
+# Docker hostnames for backward compatibility
+DNS.2 = keycloak
+DNS.3 = kong

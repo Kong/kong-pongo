@@ -1,0 +1,8 @@
+{
+  "model": "anthropic.chat.small",
+  "prompt": "Human: Explain why you can't divide by zero?\n\nAssistant:",
+  "max_tokens_to_sample": 512,
+  "temperature": 0.5,
+  "top_p": 1,
+  "stream": false
+}
