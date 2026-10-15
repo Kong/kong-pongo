@@ -1,0 +1,74 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            0b:b7:82:d2:80:fe:df:15:dc:78:c1:99:4f:26:fd:cc:23:94:b0:62
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN=PostgreSQL-CA
+        Validity
+            Not Before: Jan 15 19:07:01 2026 GMT
+            Not After : Jan 15 19:07:01 2027 GMT
+        Subject: CN=localhost
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:c3:f5:1b:d7:7d:66:3e:fb:68:6c:f9:91:0a:58:
+                    3a:24:78:67:23:22:7b:6b:a9:23:b1:be:cf:00:84:
+                    08:ab:06:8e:18:5b:06:ad:39:b0:3a:15:98:c0:52:
+                    f1:bb:e0:0a:a9:43:2b:69:b8:f9:ff:3c:ba:78:1b:
+                    44:d2:1d:00:98:27:b8:b5:34:bb:bd:0e:32:ce:2e:
+                    35:39:d1:de:12:32:dc:96:af:94:62:32:c9:6d:24:
+                    d7:4c:50:13:b5:87:5c:0c:dd:0d:c3:c3:fa:5f:f5:
+                    9b:ec:4a:1b:93:a1:73:5e:be:5d:b4:fa:ac:ea:16:
+                    4c:f2:b5:fd:bc:35:11:1c:a5:61:e0:4e:2a:8e:05:
+                    7d:55:91:21:72:7c:3a:a0:42:19:b5:5e:5a:e1:2f:
+                    48:f8:41:c2:c7:d9:8c:58:c7:47:03:a9:83:34:38:
+                    5e:1a:b1:48:55:c0:19:e4:bd:3b:66:93:a3:f8:f3:
+                    a9:44:94:e7:c2:90:37:cd:7c:1a:39:dd:91:b6:1e:
+                    c9:6a:45:66:cc:2e:db:b6:5c:d9:65:8f:c7:e5:9b:
+                    ad:2e:65:ac:d3:cd:99:fe:63:a0:68:3f:1c:02:61:
+                    5b:ca:7f:6d:62:28:52:d5:3c:dd:84:13:0b:d1:f5:
+                    3c:5f:b9:47:85:ba:55:16:73:de:2f:e7:64:bf:6d:
+                    36:cd
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Subject Key Identifier: 
+                4F:23:DB:51:33:7B:93:93:41:9E:41:07:1A:E4:BE:03:0B:56:8D:29
+            X509v3 Authority Key Identifier: 
+                33:F2:FF:8A:21:C3:2B:38:44:A9:94:E9:C2:3E:9C:7B:22:31:2C:8C
+    Signature Algorithm: sha256WithRSAEncryption
+    Signature Value:
+        4e:c9:37:7b:45:43:9a:3b:b7:3c:ac:53:11:5d:d9:96:4d:da:
+        9b:2b:82:b4:61:79:a5:86:9c:93:05:9a:f7:40:d7:04:22:89:
+        ac:c5:7d:48:ac:ce:9a:74:c6:f5:46:a7:cc:d8:9d:a9:8c:60:
+        c3:32:06:f0:1e:d4:cd:95:65:93:4a:46:d6:5e:b3:88:2d:03:
+        ea:b8:8b:8a:62:56:6b:60:e0:3c:55:ed:f2:d4:32:12:40:d2:
+        c2:3f:27:0a:84:f2:00:f5:30:a7:91:a7:9d:6c:4f:44:ed:be:
+        27:3c:89:00:11:a6:ad:a0:56:20:cb:4a:7c:06:2f:41:7b:19:
+        c3:71:7f:4f:3a:e5:c8:0b:69:f8:83:90:89:4b:86:98:ac:31:
+        c8:b2:35:07:ac:e8:12:23:28:71:24:3e:af:a5:14:a8:2f:12:
+        7a:02:f8:12:69:1c:06:7f:7f:5a:53:7e:6f:03:22:a0:2b:0c:
+        e6:06:88:fb:b6:26:c1:23:9d:ed:5e:54:ba:6b:e2:37:6c:ee:
+        81:41:d2:e7:1d:42:fc:5f:1f:de:e9:d1:ac:b1:55:b4:14:86:
+        05:0f:f9:ad:a1:4c:a9:46:1d:27:d9:69:9c:57:e4:27:69:dc:
+        93:b3:21:24:02:cb:c9:d8:ea:73:58:8c:7f:b4:07:12:53:f7:
+        99:40:1e:19
+-----BEGIN CERTIFICATE-----
+MIIC/DCCAeSgAwIBAgIUC7eC0oD+3xXceMGZTyb9zCOUsGIwDQYJKoZIhvcNAQEL
+BQAwGDEWMBQGA1UEAwwNUG9zdGdyZVNRTC1DQTAeFw0yNjAxMTUxOTA3MDFaFw0y
+NzAxMTUxOTA3MDFaMBQxEjAQBgNVBAMMCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcN
+AQEBBQADggEPADCCAQoCggEBAMP1G9d9Zj77aGz5kQpYOiR4ZyMie2upI7G+zwCE
+CKsGjhhbBq05sDoVmMBS8bvgCqlDK2m4+f88ungbRNIdAJgnuLU0u70OMs4uNTnR
+3hIy3JavlGIyyW0k10xQE7WHXAzdDcPD+l/1m+xKG5Ohc16+XbT6rOoWTPK1/bw1
+ERylYeBOKo4FfVWRIXJ8OqBCGbVeWuEvSPhBwsfZjFjHRwOpgzQ4XhqxSFXAGeS9
+O2aTo/jzqUSU58KQN818GjndkbYeyWpFZswu27Zc2WWPx+WbrS5lrNPNmf5joGg/
+HAJhW8p/bWIoUtU83YQTC9H1PF+5R4W6VRZz3i/nZL9tNs0CAwEAAaNCMEAwHQYD
+VR0OBBYEFE8j21Eze5OTQZ5BBxrkvgMLVo0pMB8GA1UdIwQYMBaAFDPy/4ohwys4
+RKmU6cI+nHsiMSyMMA0GCSqGSIb3DQEBCwUAA4IBAQBOyTd7RUOaO7c8rFMRXdmW
+TdqbK4K0YXmlhpyTBZr3QNcEIomsxX1IrM6adMb1RqfM2J2pjGDDMgbwHtTNlWWT
+SkbWXrOILQPquIuKYlZrYOA8Ve3y1DISQNLCPycKhPIA9TCnkaedbE9E7b4nPIkA
+EaatoFYgy0p8Bi9BexnDcX9POuXIC2n4g5CJS4aYrDHIsjUHrOgSIyhxJD6vpRSo
+LxJ6AvgSaRwGf39aU35vAyKgKwzmBoj7tibBI53tXlS6a+I3bO6BQdLnHUL8Xx/e
+6dGssVW0FIYFD/mtoUypRh0n2WmcV+QnadyTsyEkAsvJ2OpzWIx/tAcSU/eZQB4Z
+-----END CERTIFICATE-----
