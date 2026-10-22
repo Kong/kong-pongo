@@ -1,0 +1,19 @@
+{
+  "id": "6eb461f0-6cec-44cd-a367-c8945c3e0d26",
+  "message": {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "I'm sorry, I don't have enough information to answer your question. Could you please provide me with the name of the person you are referring to?"
+      }
+    ]
+  },
+  "finish_reason": "COMPLETE",
+  "usage": {
+    "tokens": {
+      "input_tokens": 9,
+      "output_tokens": 31
+    }
+  }
+}
