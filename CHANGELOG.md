@@ -32,6 +32,13 @@
 
 ---
 
+## 2.30.0 released 22-Oct-2026
+
+* Fix: make health checks work without kill for grpcbin.
+  [#840](https://github.com/Kong/kong-pongo/pull/840)
+* Fix: support app installation tokens.
+  [#839](https://github.com/Kong/kong-pongo/pull/839)
+
 ## 2.29.0 released 25-Sep-2026
 
  * Feat: added support for Podman and podman-compose as an alternative container
