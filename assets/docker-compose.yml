@@ -131,7 +131,10 @@ services:
     healthcheck:
       interval: 5s
       retries: 10
-      test: ["CMD", "kill", "-0", "1"]
+      # The image is distroless: grpcbin is its only executable, and it has no
+      # health check mode. "grpcbin -h" exits 0, and "docker exec" works only
+      # in a running container, so this checks that the container runs.
+      test: ["CMD", "/bin/grpcbin", "-h"]
       timeout: 10s
     restart: on-failure
     stop_signal: SIGKILL
