@@ -1,0 +1,16 @@
+{
+  "name": "redis-oauth-external-auth-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "gRPC service implementing Envoy redis_proxy external_auth_provider: validates downstream OAuth2/JWT access tokens against Kong's test Keycloak (the 'demo' realm).",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.12.5",
+    "@grpc/proto-loader": "^0.7.13",
+    "jose": "^5.9.6"
+  }
+}

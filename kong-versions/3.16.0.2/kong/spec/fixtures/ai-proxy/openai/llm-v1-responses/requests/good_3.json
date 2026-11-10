@@ -1,0 +1,31 @@
+{
+  "model": "gpt-5.4",
+  "input": [
+    {
+      "content": [
+        {
+          "text": "Hello",
+          "type": "input_text"
+        },
+        {
+          "text": "Tell me a three sentence bedtime story about a unicorn.",
+          "type": "input_text"
+        }
+      ],
+      "role": "user"
+    },
+    {
+      "content": [
+        {
+          "text": "You're a good fictionist.",
+          "type": "input_text"
+        },
+        {
+          "text": "You're good at telling story.",
+          "type": "input_text"
+        }
+      ],
+      "role": "system"
+    }
+  ]
+}
