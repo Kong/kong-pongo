@@ -1,0 +1,25 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "2",
+        "reasoning_content": "I add 1 and 1.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1701947430,
+  "id": "chatcmpl-xai-reasoning",
+  "model": "grok-4.3",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 20,
+    "prompt_tokens": 25,
+    "total_tokens": 60,
+    "completion_tokens_details": {
+      "reasoning_tokens": 15
+    }
+  }
+}

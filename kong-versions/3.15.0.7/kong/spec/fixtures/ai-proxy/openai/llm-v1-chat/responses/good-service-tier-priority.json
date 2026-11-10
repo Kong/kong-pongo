@@ -1,0 +1,22 @@
+{
+  "choices": [
+      {
+          "finish_reason": "stop",
+          "index": 0,
+          "message": {
+              "content": "ok",
+              "role": "assistant"
+          }
+      }
+  ],
+  "created": 1701947430,
+  "id": "chatcmpl-service-tier-priority-test",
+  "model": "gpt-4o-mini",
+  "object": "chat.completion",
+  "service_tier": "priority",
+  "usage": {
+      "completion_tokens": 200,
+      "prompt_tokens": 1000,
+      "total_tokens": 1200
+  }
+}
