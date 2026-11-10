@@ -1,0 +1,12 @@
+[
+  {
+    "event": "response.created",
+    "id": "42",
+    "data": "{\"type\":\"response.created\"}"
+  },
+  {
+    "event": "response.done",
+    "id": "42",
+    "data": "{\"type\":\"response.done\"}"
+  }
+]

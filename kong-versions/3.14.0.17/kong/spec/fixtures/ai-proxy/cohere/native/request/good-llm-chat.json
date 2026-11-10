@@ -1,0 +1,18 @@
+{
+    "model": "command-r",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Who discovered gravity?"
+      },
+      {
+        "role": "assistant",
+        "content": "The man who is widely credited with discovering gravity is Sir Isaac Newton"
+      },
+      {
+        "role": "user",
+        "content": "What year was he born?"
+      }
+    ],
+    "stream": false
+}
