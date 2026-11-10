@@ -1,0 +1,16 @@
+{
+  "model": "qwen-plus",
+  "messages": [
+    {
+			"role": "system",
+			"content": "You are a helpful assistant."
+		},
+    {
+      "role": "user",
+      "content": [
+        { "type": "image_url","image_url": {"url": "https://dashscope.oss-cn-beijing.aliyuncs.com/images/dog_and_girl.jpeg"}},
+        { "type": "text","text": "这是什么"}
+      ]
+    }
+  ]
+}

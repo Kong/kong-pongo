@@ -1,0 +1,413 @@
+openapi: 3.0.1
+info:
+  title: OpenAPI 3.0 API
+  description: This is a simple API
+  contact:
+    email: example@example.com
+  version: 1.0.0
+
+servers:
+  - url: "/v1"
+
+paths:
+  /inventory:
+    summary: inventory API
+    description: >
+        One line
+        Two line
+    get:
+      summary: searches inventory
+      description: |
+        By passing in the appropriate options, you can search for
+        available inventory in the system
+      operationId: searchInventory
+      parameters:
+        - name: searchString
+          in: query
+          description: pass an optional search string for looking up inventory
+          schema:
+            type: string
+      responses:
+        200:
+          description: bad input parameter
+          content:
+            text/html:
+              examples:
+                example_first:
+                  value: <html>first</html>
+                example_second:
+                  value: <html>second</html>
+              example: <html><body><p>Hello, world!</p></body></html>
+            application/xml:
+              examples:
+                1:
+                  value: <id>1</id>
+                2:
+                  value: <id>2</id>
+                three:
+                  value: <id>three</id>
+            application/json:
+              example:
+                id: d290f1ee-6c54-4b01-90e6-d701748f0851
+                name: test
+                release_date: 2016-08-29T09:12:33.001Z
+                manufacturer:
+                  name: ACME Corporation
+                  home_page: https://www.acme-corp.com
+                  phone: 408-867-5309
+        400:
+          description: bad input parameter
+          content:
+            text/plain:
+              example: Hello, world!
+            text/html:
+              example: <html><body><p>Hello, world!</p></body></html>
+            application/xml:
+              example: <users><user>Alice</user><user>Bob</user></users>
+    post:
+      summary: adds an inventory item
+      description: Adds an item to the system
+      operationId: addInventory
+      requestBody:
+        description: Inventory item to add
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryItem'
+        required: false
+      responses:
+        201:
+          description: item created
+          content: {}
+        400:
+          description: invalid input, object invalid
+          content: {}
+        409:
+          description: an existing item already exists
+          content: {}
+      x-codegen-request-body-name: inventoryItem
+  /inventory.v2:
+    get:
+      summary: searches inventory
+      operationId: searchInventoryV2
+      responses:
+        200:
+          description: bad input parameter
+          content:
+            application/json:
+              example:
+                id: d290f1ee-6c54-4b01-90e6-d701748f0851
+
+
+  /inventory_empty_responses:
+    get:
+      responses: {}
+
+  /inventory_without_content:
+    get:
+      responses:
+        '200':
+          description: success
+
+  /inventory_empty_content:
+    get:
+      responses:
+        '200':
+          description: success
+          content: {}
+
+  /inventory_empty_content_examples:
+    get:
+      responses:
+        '200':
+          description: success
+          content:
+            application/json:
+              examples: {}
+
+  /ref/inventory_ref_schema:
+    get:
+      responses:
+        '200':
+          description: 'success'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetInventoryItemResponse'
+
+  /ref/inventory_ref_response:
+    get:
+      responses:
+        '400':
+          $ref: '#/components/responses/InvalidRequestResponse'
+
+  /ping-with-one-default-response:
+    get:
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              example:
+                msg: pong
+
+  /ping-with-multiple-response:
+    get:
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              example:
+                msg: pong
+        400:
+          description: OK
+          content:
+            application/json:
+              example:
+                msg: invalid request
+        5XX:
+          description: error
+          content:
+            application/json:
+              example:
+                msg: gateway timeout
+        default:
+          description: default response
+          content:
+            application/json:
+              example:
+                msg: unknow error
+  /array-empty-example:
+    get:
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SinglePropertyGroupOutput'
+  /empty-array-in-schema-example:
+    get:
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyErrorsResponse'
+  /nested-empty-arrays:
+    get:
+      responses:
+        200:
+          description: "A response with nested empty arrays"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NestedEmptyArraysInObjectExample'
+  /nested-empty-arrays-in-object:
+    get:
+      responses:
+        '200':
+          description: A response with nested empty arrays in object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NestedEmptyArraysInArraySchema'
+  /empty-arrays-in-array:
+    get:
+      responses:
+        '200':
+          description: A response with empty arrays in array
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmptyArraysInArraySchema'
+  /deep-nested-array-object:
+    get:
+      responses:
+        '200':
+          description: A response with deep nested array object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeepNestedArrayObjectSchema'
+
+components:
+  responses:
+    InvalidRequestResponse:
+      description: '400'
+      content:
+        application/json:
+          example:
+            code: "INVALID_REQUEST"
+            msg: "Invalid Request"
+  schemas:
+    APIResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        msg:
+          type: string
+    GetInventoryItemResponse:
+      allOf:
+        - $ref: '#/components/schemas/APIResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/InventoryItem'
+    InventoryItem:
+      required:
+        - id
+        - manufacturer
+        - name
+        - releaseDate
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        name:
+          type: string
+          example: Doge111
+        releaseDate:
+          type: string
+          format: date-time
+          example: 2016-08-29T09:12:33.001Z
+        manufacturer:
+          $ref: '#/components/schemas/Manufacturer'
+    Manufacturer:
+      required:
+        - name
+      type: object
+      properties:
+        name:
+          type: string
+          example: ACME Corporation
+        homePage:
+          type: string
+          format: url
+          example: https://www.acme-corp.com
+        phone:
+          type: string
+          example: 408-867-5309
+    SinglePropertyGroupOutput:
+      type: object
+      additionalProperties: false
+      properties:
+        validationErrorsList:
+          type: array
+          minItems: 0
+          items:
+            type: string
+          example: []
+    EmptyErrorsResponse:
+      type: object
+      properties:
+        Code:
+          type: string
+        Errors:
+          nullable: true
+          type: array
+        Id:
+          type: string
+        Message:
+          type: string
+      example:
+        Code: ""
+        Errors: []
+        Id: 123
+        Message: Checking
+    NestedEmptyArraysInObjectExample:
+      type: object
+      properties:
+        topLevelProperty:
+          type: string
+        emptyArrayTop:
+          type: array
+          items:
+            type: string
+        level1:
+          type: object
+          properties:
+            level1Property:
+              type: number
+            emptyArrayLevel1:
+              type: array
+              items:
+                type: object
+            level2:
+              type: object
+              properties:
+                level2Property:
+                  type: boolean
+                emptyArrayLevel2:
+                  type: array
+                  items:
+                    type: number
+                level3:
+                  type: object
+                  properties:
+                    level3Property:
+                      type: string
+                    emptyArrayLevel3:
+                      type: array
+                      items:
+                        type: string
+      example:
+        topLevelProperty: "top value"
+        emptyArrayTop: []
+        level1:
+          level1Property: 123
+          emptyArrayLevel1: []
+          level2:
+            level2Property: true
+            emptyArrayLevel2: []
+            level3:
+              level3Property: "deepest value"
+              emptyArrayLevel3: []
+    NestedEmptyArraysInArraySchema:
+      type: object
+      properties:
+        name:
+          type: string
+        nestedArrays:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+      example:
+        name: test name
+        nestedArrays: [[]]
+    EmptyArraysInArraySchema:
+      type: array
+      items:
+        type: array
+        items:
+          type: string
+      example: [[]]
+    DeepNestedArrayObjectSchema:
+      type: array
+      items:
+        type: object
+        properties:
+          level1:
+            type: object
+            properties:
+              level2:
+                type: object
+                properties:
+                  deepArray:
+                    type: array
+                    items:
+                      type: string
+      example:
+        - level1:
+            level2:
+              deepArray: []
+        - level1:
+            level2:
+              deepArray: []

@@ -1,0 +1,56 @@
+{
+  "type": "response.done",
+  "response": {
+    "id": "resp_BbV7R6D63Jg3Uc8oTROaX",
+    "metadata": null,
+    "usage": {
+      "input_token_details": {
+        "cached_tokens": 256,
+        "text_tokens": 178,
+        "cached_tokens_details": {
+          "audio_tokens": 128,
+          "text_tokens": 125,
+          "image_tokens": 3,
+          "bananas": 0
+        },
+        "audio_tokens": 187
+      },
+      "output_token_details": {
+        "audio_tokens": 262,
+        "text_tokens": 71
+      },
+      "input_tokens": 365,
+      "total_tokens": 698,
+      "output_tokens": 333,
+      "monkeys": 0
+    },
+    "modalities": [
+      "audio",
+      "text"
+    ],
+    "conversation_id": "conv_BbV7OariEWK8mS10Wg2tR",
+    "max_output_tokens": "inf",
+    "voice": "alloy",
+    "status": "completed",
+    "output_audio_format": "pcm16",
+    "output": [
+      {
+        "id": "item_BbV7RpJ6Y9IVbkKr8J8bB",
+        "status": "completed",
+        "type": "message",
+        "content": [
+          {
+            "type": "audio",
+            "transcript": "It sounds like you might be referring to a bird you're seeing or a specific type of bird. If you describe what it looks like\u2014its color, size, and any distinctive features\u2014I can help you figure out what kind of bird it might be!"
+          }
+        ],
+        "role": "assistant",
+        "object": "realtime.item"
+      }
+    ],
+    "object": "realtime.response",
+    "status_details": null,
+    "temperature": 0.8
+  },
+  "event_id": "event_BbV7Tcf8YZRoutUyrk9q2"
+}
