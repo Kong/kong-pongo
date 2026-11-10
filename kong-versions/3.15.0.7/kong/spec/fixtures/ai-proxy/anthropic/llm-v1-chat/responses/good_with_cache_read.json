@@ -1,0 +1,17 @@
+{
+  "content": [
+    {
+      "text": "The sum of 1 + 1 is 2.",
+      "type": "text"
+    }
+  ],
+  "model": "claude-haiku-4-5-20251001",
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 8,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 5505,
+    "output_tokens": 150
+  }
+}
