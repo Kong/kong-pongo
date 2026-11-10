@@ -1,0 +1,6 @@
+{
+  "id": "chatcmpl-choices-null-test",
+  "object": "chat.completion",
+  "model": "gpt-4o-mini",
+  "choices": null
+}

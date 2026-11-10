@@ -1,0 +1,291 @@
+{
+  "realm": "pg-oauth",
+  "enabled": true,
+  "accessTokenLifespan": 3600,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "clients": [
+    {
+      "clientId": "kong-pg-client",
+      "name": "Kong PostgreSQL OAuth Client (Hardcoded sub)",
+      "description": "Uses hardcoded claim mapper to set sub=pguser for service account",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "kong-pg-client-secret",
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": true,
+      "protocol": "openid-connect",
+      "redirectUris": ["*"],
+      "webOrigins": ["*"],
+      "defaultClientScopes": ["openid", "pg-oidc-compat"],
+      "optionalClientScopes": [],
+      "protocolMappers": [
+        {
+          "name": "hardcoded-sub-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-hardcoded-claim-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.value": "pguser",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "sub",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "preferred-username-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "username",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "preferred_username",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "kong-pg-client-username",
+      "name": "Kong PostgreSQL OAuth Client (Username as sub)",
+      "description": "Uses username mapper - sub claim equals Keycloak username",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "kong-pg-client-username-secret",
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": true,
+      "protocol": "openid-connect",
+      "redirectUris": ["*"],
+      "webOrigins": ["*"],
+      "defaultClientScopes": ["openid", "pg-oidc-compat"],
+      "optionalClientScopes": [],
+      "protocolMappers": [
+        {
+          "name": "username-sub-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "username",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "sub",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "kong-pg-client-attribute",
+      "name": "Kong PostgreSQL OAuth Client (User attribute as sub)",
+      "description": "Uses user attribute mapper - sub claim from pg_username attribute",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "kong-pg-client-attribute-secret",
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": true,
+      "protocol": "openid-connect",
+      "redirectUris": ["*"],
+      "webOrigins": ["*"],
+      "defaultClientScopes": ["openid", "pg-oidc-compat"],
+      "optionalClientScopes": [],
+      "protocolMappers": [
+        {
+          "name": "attribute-sub-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "pg_username",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "sub",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "kong-pg-client-public",
+      "name": "Kong PostgreSQL OAuth Client (Public - no secret)",
+      "description": "Public client for password grant without client_secret, simulates ADFS public client flow",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "standardFlowEnabled": true,
+      "protocol": "openid-connect",
+      "redirectUris": ["*"],
+      "webOrigins": ["*"],
+      "defaultClientScopes": ["openid", "pg-oidc-compat"],
+      "optionalClientScopes": [],
+      "protocolMappers": [
+        {
+          "name": "hardcoded-sub-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-hardcoded-claim-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.value": "pguser",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "sub",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "name": "preferred-username-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "username",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "preferred_username",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "kong-pg-client-multiscope",
+      "name": "Kong PostgreSQL OAuth Client (Multiple scopes)",
+      "description": "Client with profile and email scopes for multi-scope testing",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "kong-pg-client-multiscope-secret",
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": true,
+      "protocol": "openid-connect",
+      "redirectUris": ["*"],
+      "webOrigins": ["*"],
+      "defaultClientScopes": ["openid", "profile", "email", "pg-oidc-compat"],
+      "optionalClientScopes": [],
+      "protocolMappers": [
+        {
+          "name": "hardcoded-sub-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-hardcoded-claim-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.value": "pguser",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "sub",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "pguser",
+      "enabled": true,
+      "email": "pguser@example.com",
+      "firstName": "PostgreSQL",
+      "lastName": "User",
+      "emailVerified": true,
+      "requiredActions": [],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "pgpassword",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["default-roles-pg-oauth"],
+      "attributes": {
+        "pg_username": ["pguser"]
+      }
+    },
+    {
+      "username": "testuser",
+      "enabled": true,
+      "email": "testuser@example.com",
+      "firstName": "Test",
+      "lastName": "User",
+      "emailVerified": true,
+      "requiredActions": [],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "testpassword",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["default-roles-pg-oauth"],
+      "attributes": {
+        "pg_username": ["pguser"]
+      }
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "default-roles-pg-oauth",
+        "description": "Default roles for pg-oauth realm"
+      }
+    ]
+  },
+  "clientScopes": [
+    {
+      "name": "profile",
+      "description": "OpenID Connect profile scope",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true"
+      }
+    },
+    {
+      "name": "email",
+      "description": "OpenID Connect email scope",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true"
+      }
+    },
+    {
+      "name": "pg-oidc-compat",
+      "description": "Adds scp claim for pg_oidc_validator compatibility (expects Azure AD-style scp instead of standard scope)",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "scp-claim-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-hardcoded-claim-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.value": "openid",
+            "userinfo.token.claim": "false",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "claim.name": "scp",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    }
+  ]
+}
