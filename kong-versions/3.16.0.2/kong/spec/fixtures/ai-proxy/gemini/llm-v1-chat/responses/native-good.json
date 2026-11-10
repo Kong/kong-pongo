@@ -1,0 +1,23 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "AI works by using **algorithms and data** to **learn patterns** and make **decisions or predictions**." 
+          }
+        ]
+      },
+      "finishReason": "STOP", 
+      "index": 0,
+      "safetyRatings": [
+      ]
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 10,
+    "candidatesTokenCount": 20,
+    "totalTokenCount": 30
+  }
+}

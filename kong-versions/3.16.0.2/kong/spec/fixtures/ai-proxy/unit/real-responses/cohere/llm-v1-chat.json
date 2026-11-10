@@ -1,0 +1,23 @@
+{
+  "id": "f8aabbeb-f745-4e9b-85b1-71a3269620d9",
+  "finish_reason": "COMPLETE",
+  "message": {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "You cannot divide by zero because it is not a valid operation in mathematics."
+      }
+    ]
+  },
+  "usage": {
+    "billed_units": {
+      "input_tokens": 102,
+      "output_tokens": 258
+    },
+    "tokens": {
+      "input_tokens": 102,
+      "output_tokens": 258
+    }
+  }
+}
