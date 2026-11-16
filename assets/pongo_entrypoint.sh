@@ -109,11 +109,26 @@ fi
 # /kong-plugin/servroot folder (which resides on the mount).
 # Since those permissions are controlled by the host, we update the 'kong' user
 # inside the container to match the UID and GID.
+#
+# On rootless Podman the host user owning the mount is mapped to UID 0 inside
+# the container, so the 'kong' user ends up as UID 0 here. That is intended;
+# UID 0 in the container's user namespace is the unprivileged host user.
 if [ -d /kong-plugin ]; then
   KONG_UID=$(id -u kong)
   KONG_GID=$(id -g kong)
   MOUNT_UID=$(stat -c "%u" /kong-plugin)
   MOUNT_GID=$(stat -c "%g" /kong-plugin)
+
+  if [ "$MOUNT_UID" = "65534" ]; then
+    # 'nobody'; the owner of the mount falls outside the user namespace. On
+    # rootless Podman this means the plugin directory is not owned by the user
+    # running Podman, and Kong will not be able to write to it.
+    echo "[pongo-WARN] '/kong-plugin' is owned by a user outside of this" >&2
+    echo "[pongo-WARN] container's user namespace. If you are using rootless" >&2
+    echo "[pongo-WARN] Podman, make sure the plugin directory is owned by the" >&2
+    echo "[pongo-WARN] user running Podman." >&2
+  fi
+
   if [ ! "$KONG_GID" = "$MOUNT_GID" ]; then
     # change KONG_GID to the ID of the folder owner group
     groupmod -g "$MOUNT_GID" --non-unique kong

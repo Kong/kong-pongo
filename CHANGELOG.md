@@ -14,11 +14,61 @@
     * mark the PR as "draft"
     * example where/how to make the change: https://github.com/Kong/kong-ee/pull/11257. Copy the to-do list from the PR description!
     * make sure it passes, adjust if required
- * merge the Pongo release branch, tag as `x.y.z`, and push the tag
- * in Github UI create a release from the tag
+ * merge the Pongo release branch
+ * run the ["Release" workflow](../../actions/workflows/release.yml) from the
+   Actions tab, against `master`, with the version as input. It tags the
+   commit and publishes the release with generated notes.
+    * it refuses to run if the version is not already committed to `pongo.sh`,
+      the README logo and the changelog, so merge the release PR first
+    * run it right after merging the release PR, so the tag lands on the
+      release commit. If something else has already landed on `master`, pass
+      that commit in the "commit" input instead of tagging the branch head
+    * if it fails part way, run it again with "recreate" ticked; that deletes
+      the tag and release the failed attempt left behind before making them
+      again
  * update Kong-Enterprise PR (created in the first step)
     * Change the Pongo version to use to the newly released version of Pongo
     * remove "draft" status.
+
+---
+
+## 2.30.0 released 22-Oct-2026
+
+* Fix: make health checks work without kill for grpcbin.
+  [#840](https://github.com/Kong/kong-pongo/pull/840)
+* Fix: support app installation tokens.
+  [#839](https://github.com/Kong/kong-pongo/pull/839)
+
+## 2.29.0 released 25-Sep-2026
+
+ * Feat: added support for Podman and podman-compose as an alternative container
+   runtime, including rootless mode. Use `PONGO_CONTAINER_RUNTIME=podman` to
+   select it explicitly, see the [README](README.md#pongo-with-podman).
+ * Fix: the "is the test environment running" check no longer greps the human
+   readable `compose ps` output, which differs between platforms and compose
+   implementations.
+ * Fix: `docker compose` is now detected with `docker compose version` instead
+   of a bare `docker compose`, which exits non-zero on Compose v2.
+ * Fix: the service health checks are no longer switched off by an interpolated
+   `disable:` value. podman-compose reads any non-empty string as true, so the
+   default `"false"` disabled every health check and left Pongo with nothing to
+   wait for. `HEALTH_TIMEOUT=0` now applies an overlay compose file instead.
+ * Fix: `PONGO_INSECURE` no longer switches TLS verification off on every
+   build. The condition tested `-n "$PONGO_INSECURE" || "$PONGO_INSECURE" !=
+   "false"`, whose branches cover every value, so curl and git were configured
+   insecure during each image build regardless of the setting.
+ * Fix: images built with Podman keep their health check. Podman defaults to
+   the OCI image format, which has no field for one, so buildah dropped the
+   `HEALTHCHECK` inherited from the Kong base image. Pongo now builds in the
+   Docker format on Podman.
+   [#831](https://github.com/Kong/kong-pongo/pull/831)
+ * Chore: releases are cut by a "Release" workflow instead of by hand. It
+   refuses to tag a version that is not committed to `pongo.sh`, the README
+   logo and this changelog; it can tag a specific commit rather than the head
+   of the branch it runs from; and it can replace the tag and release a failed
+   attempt left behind.
+   [#833](https://github.com/Kong/kong-pongo/pull/833)
+   [#834](https://github.com/Kong/kong-pongo/pull/834)
 
 ---
 

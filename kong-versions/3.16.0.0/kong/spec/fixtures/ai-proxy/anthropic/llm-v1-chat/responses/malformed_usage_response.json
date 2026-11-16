@@ -1,0 +1,15 @@
+{
+  "content": [
+      {
+          "text": "The sum of 1 + 1 is 2.",
+          "type": "text"
+      }
+  ],
+  "model": "anthropic.chat.small",
+  "stop_reason": "end_turn",
+  "stop_sequence": "string",
+  "usage": {
+      "foo": 0,
+      "bar": 0
+  }
+}

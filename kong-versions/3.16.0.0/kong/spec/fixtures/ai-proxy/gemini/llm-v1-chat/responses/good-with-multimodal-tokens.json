@@ -1,0 +1,33 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {
+            "text": "The image shows a cat."
+          }
+        ]
+      },
+      "finishReason": "STOP"
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 1124,
+    "candidatesTokenCount": 12,
+    "totalTokenCount": 1136,
+    "cachedContentTokenCount": 512,
+    "promptTokensDetails": [
+      {"modality": "TEXT",  "tokenCount": 1000},
+      {"modality": "IMAGE", "tokenCount": 124}
+    ],
+    "cacheTokensDetails": [
+      {"modality": "TEXT",  "tokenCount": 500},
+      {"modality": "IMAGE", "tokenCount": 12}
+    ],
+    "candidatesTokensDetails": [
+      {"modality": "TEXT", "tokenCount": 12}
+    ]
+  },
+  "modelVersion": "gemini-2.5-flash"
+}

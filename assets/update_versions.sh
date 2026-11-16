@@ -20,7 +20,7 @@ function update_repo {
         if [[ "$token" == "" ]]; then
             repo_url=https://github.com/kong/$repo_name.git
         else
-            repo_url=https://$token:@github.com/kong/$repo_name.git
+            repo_url=https://x-access-token:$token@github.com/kong/$repo_name.git
         fi
         git clone -q "$repo_url"
         if [ ! $? -eq 0 ]; then
