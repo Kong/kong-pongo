@@ -1,0 +1,10 @@
+: keepalive
+retry: 1500
+id: 42
+event: response.created
+data: {"type":"response.created"}
+
+event: response.done
+data: {"type":"response.done"}
+
+: end
