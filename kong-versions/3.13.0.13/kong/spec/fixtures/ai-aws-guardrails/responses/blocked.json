@@ -1,0 +1,39 @@
+{
+  "action":"GUARDRAIL_INTERVENED",
+  "actionReason":"Guardrail blocked.",
+  "assessments":[
+    {
+      "contentPolicy":{
+        "filters":[
+          {"action":"BLOCKED","confidence":"HIGH","detected":true,"filterStrength":"HIGH","type":"HATE"}
+        ]
+      },
+      "invocationMetrics":{
+        "guardrailCoverage":{"textCharacters":{"guarded":57,"total":57}},
+        "guardrailProcessingLatency":197,
+        "usage":{
+          "contentPolicyImageUnits":0,
+          "contentPolicyUnits":1,
+          "contextualGroundingPolicyUnits":0,
+          "sensitiveInformationPolicyFreeUnits":0,
+          "sensitiveInformationPolicyUnits":0,
+          "topicPolicyUnits":1,
+          "wordPolicyUnits":1
+        }
+      }
+    }
+  ],
+  "blockedResponse":"Sorry, the model cannot answer this question.",
+  "guardrailCoverage":{"textCharacters":{"guarded":57,"total":57}},
+  "output":[{"text":"Sorry, the model cannot answer this question."}],
+  "outputs":[{"text":"Sorry, the model cannot answer this question."}],
+  "usage":{
+    "contentPolicyImageUnits":0,
+    "contentPolicyUnits":1,
+    "contextualGroundingPolicyUnits":0,
+    "sensitiveInformationPolicyFreeUnits":0,
+    "sensitiveInformationPolicyUnits":0,
+    "topicPolicyUnits":1,
+    "wordPolicyUnits":1
+  }
+}
