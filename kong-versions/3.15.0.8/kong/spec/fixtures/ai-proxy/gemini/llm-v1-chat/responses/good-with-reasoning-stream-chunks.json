@@ -1,0 +1,6 @@
+[
+  "[",
+  "{\"candidates\":[{\"content\":{\"role\":\"model\",\"parts\":[{\"text\":\"Everything is okay.\"}]},\"finishReason\":\"NULL\",\"index\":0}],\"usageMetadata\":{\"promptTokenCount\":2,\"candidatesTokenCount\":4,\"thoughtsTokenCount\":5,\"totalTokenCount\":11},\"createTime\":\"2025-08-03T15:42:18.396462Z\",\"responseId\":\"reasoning-stream-001\"},",
+  "{\"candidates\":[{\"content\":{\"role\":\"model\",\"parts\":[{\"text\":\"\"}]},\"finishReason\":\"STOP\",\"index\":0}],\"usageMetadata\":{\"promptTokenCount\":2,\"candidatesTokenCount\":11,\"thoughtsTokenCount\":5,\"totalTokenCount\":18},\"createTime\":\"2025-08-03T15:42:18.396462Z\",\"responseId\":\"reasoning-stream-001\"}",
+  "]"
+]
