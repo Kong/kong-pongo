@@ -1,0 +1,233 @@
+openapi: 3.1.0
+info:
+  title: Complete ReadOnly/WriteOnly Test API
+  version: 1.0.0
+  description: Comprehensive API for testing readOnly and writeOnly properties in simple and complex schemas
+servers:
+  - url: http://localhost:12345
+    description: Test server
+paths:
+  /profile:
+    post:
+      summary: Create user profile with password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfile"
+      responses:
+        "201":
+          description: Profile created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+    put:
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfile"
+      responses:
+        "201":
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+    patch:
+      summary: Partially update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfile"
+      responses:
+        "201":
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+    get:
+      summary: Get user profile (password should not be returned)
+      responses:
+        "200":
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+  /profile-with-password:
+    get:
+      summary: Get user profile (this endpoint incorrectly returns writeOnly password)
+      responses:
+        "200":
+          description: Profile retrieved with password (should fail validation)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+  /profile-with-extra:
+    get:
+      summary: Get user profile with extra field (should pass validation)
+      responses:
+        "200":
+          description: Profile retrieved with extra field (should pass)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: Username for the profile
+                  email:
+                    type: string
+                    format: email
+                    description: User email address
+                  profile_id:
+                    type: string
+                    description: Auto-generated profile ID
+                    readOnly: true
+                  created_at:
+                    type: string
+                    format: date-time
+                    description: Profile creation timestamp
+                    readOnly: true
+                  metadata:
+                    $ref: "#/components/schemas/MetadataInfo"
+                required:
+                  - username
+                  - email
+                  - profile_id
+  /profile-missing-readonly:
+    get:
+      summary: Get user profile missing required readOnly field (should fail validation)
+      responses:
+        "200":
+          description: Profile retrieved without required readOnly field (should fail)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+  /complex-allof:
+    post:
+      summary: Test allOf schemas with readOnly/writeOnly
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComplexAllOf"
+      responses:
+        "201":
+          description: Created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplexAllOf"
+    get:
+      summary: Get complex allOf data
+      responses:
+        "200":
+          description: Retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplexAllOf"
+
+components:
+  schemas:
+    UserProfile:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Username for the profile
+        email:
+          type: string
+          format: email
+          description: User email address
+        password:
+          type: string
+          description: User password (write-only)
+          writeOnly: true
+        profile_id:
+          type: string
+          description: Auto-generated profile ID
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          description: Profile creation timestamp
+          readOnly: true
+      required:
+        - username
+        - email
+        - password
+        - profile_id
+      example:
+        username: johndoe
+        email: john@example.com
+        password: secret123
+        profile_id: "12345"
+        created_at: "2024-01-01T00:00:00Z"
+    
+    ComplexAllOf:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              description: Unique identifier
+              readOnly: true
+            name:
+              type: string
+              description: Name field
+        - type: object
+          properties:
+            email:
+              type: string
+              format: email
+              description: Email field
+            created_at:
+              type: string
+              format: date-time
+              readOnly: true
+            metadata:
+              type: object
+              properties:
+                internal_id:
+                  type: string
+                  readOnly: true
+                secret_token:
+                  type: string
+                  writeOnly: true
+      required:
+        - name
+        - email
+      example:
+        id: "user-123"
+        name: "John Doe"
+        email: "john@example.com"
+        created_at: "2024-01-01T00:00:00Z"
+        metadata:
+          internal_id: "internal-456"
+          secret_token: "token-789"
+    
+    MetadataInfo:
+      type: object
+      properties:
+        internal_id:
+          type: string
+          readOnly: true
+        secret_token:
+          type: string
+          writeOnly: true
+      required:
+        - internal_id

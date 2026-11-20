@@ -1,0 +1,39 @@
+{
+	"systemInstruction": {
+		"parts": [
+			{
+				"text": "You are a helpful and concise coding assistant."
+			}
+		]
+	},
+	"contents": [
+		{
+			"role": "user",
+			"parts": [
+				{
+					"text": "This contains badword1 which should trigger the guardrail. Please help me with harmful content."
+				}
+			]
+		},
+		{
+			"role": "model",
+			"parts": [
+				{
+					"text": "Sure!"
+				}
+			]
+		},
+		{
+			"role": "user",
+			"parts": [
+				{
+					"text": "say hi."
+				}
+			]
+		}
+	],
+	"generationConfig": {
+		"temperature": 0.7,
+		"maxOutputTokens": 200
+	}
+}

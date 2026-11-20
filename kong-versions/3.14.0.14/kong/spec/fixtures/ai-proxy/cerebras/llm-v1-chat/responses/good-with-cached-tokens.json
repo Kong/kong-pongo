@@ -1,0 +1,24 @@
+{
+  "id": "chatcmpl-cerebras-cache-hit",
+  "object": "chat.completion",
+  "created": 1701947430,
+  "model": "llama3.1-8b",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "The sum of 1 + 1 is 2."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 1024,
+    "completion_tokens": 12,
+    "total_tokens": 1036,
+    "prompt_tokens_details": {
+      "cached_tokens": 512
+    }
+  }
+}
