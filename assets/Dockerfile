@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 ARG KONG_BASE
 FROM ${KONG_BASE}
 
