@@ -1,0 +1,35 @@
+{
+  "content": [
+    {
+      "type": "compaction",
+      "content": "Summary of the conversation: The user requested help building a web scraper..."
+    },
+    {
+      "type": "text",
+      "text": "Based on our conversation so far..."
+    }
+  ],
+  "model": "claude-haiku-4-5-20251001",
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 23000,
+    "output_tokens": 1000,
+    "iterations": [
+      {
+        "type": "compaction",
+        "input_tokens": 180000,
+        "output_tokens": 3500,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      },
+      {
+        "type": "message",
+        "input_tokens": 23000,
+        "output_tokens": 1000,
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0
+      }
+    ]
+  }
+}

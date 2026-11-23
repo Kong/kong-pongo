@@ -1,0 +1,14 @@
+{
+  "object": "list",
+  "data": [
+    {
+      "object": "embedding",
+      "index": 0
+    }
+  ],
+  "model": "openai.embeddings.large",
+  "usage": {
+    "prompt_tokens": 4,
+    "total_tokens": 4
+  }
+}
