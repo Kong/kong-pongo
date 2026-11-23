@@ -1,0 +1,174 @@
+services:
+  solace:
+    container_name: solace
+    image: solace/solace-pubsub-standard:10.25.0.24
+    volumes:
+      - "storage-group:/var/lib/solace"
+    shm_size: 1g
+    ulimits:
+      core: -1
+      nofile:
+        soft: 2448
+        hard: 1048576
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 1
+    networks:
+      - solace-network
+    ports:
+    #Port Mappings:  With the exception of SMF, ports are mapped straight
+    #through from host to container.  This may result in port collisions on
+    #commonly used ports that will cause failure of the container to start.
+      #Web transport
+      - ':8008'
+      #Web transport over TLS
+      - ':1443'
+      #SEMP over TLS
+      - ':1943'
+      #MQTT Default VPN
+      - ':1883'
+      #AMQP Default VPN over TLS
+      - ':5671'
+      #AMQP Default VPN
+      - ':5672'
+      #MQTT Default VPN over WebSockets
+      - ':8000'
+      #MQTT Default VPN over WebSockets / TLS
+      - ':8443'
+      #MQTT Default VPN over TLS
+      - ':8883'
+      #SEMP / PubSub+ Manager
+      - ':8080'
+      #REST Default VPN
+      - ':9000'
+      #REST Default VPN over TLS
+      - ':9443'
+      #SMF
+      - ':55555'
+      #SMF Compressed
+      - ':55003'
+      #SMF over TLS
+      - ':55443'
+    environment:
+      - username_admin_globalaccesslevel=admin
+      - username_admin_password=admin
+      - system_scaling_maxconnectioncount=100
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 2s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+  mqtt-consumer:
+    build:
+      context: ./mqtt-consumer
+      no_cache: true
+    container_name: solace-mqtt-consumer
+    depends_on:
+      solace:
+        condition: service_healthy
+    environment:
+      - MQTT_BROKER=solace
+      - MQTT_PORT=1883
+      - MQTT_TOPICS=example/topic,tutorial/topic,test/topic
+      - LOG_FILE=/var/log/mqtt/solace_mqtt.log
+    volumes:
+      - ./mqtt-consumer/logs:/var/log/mqtt  # Mount logs directory to host
+    healthcheck:
+      test: ["CMD", "test", "-f", "/var/log/mqtt/solace_mqtt.log"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - solace-network
+  webhook-consumer:
+    build:
+      context: ./webhook-consumer
+      no_cache: true
+    container_name: solace-webhook-consumer
+    depends_on:
+      solace:
+        condition: service_healthy
+    ports:
+      - ':9080'  # Webhook consumer port
+    volumes:
+      - ./webhook-consumer/logs:/var/log/webhook  # Mount logs directory to host
+      - ./webhook-consumer/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf  # Mount latest nginx config
+    environment:
+      - NGINX_ENTRYPOINT_QUIET_LOGS=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9080/health"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - solace-network
+  solace-setup:
+    image: docker:latest
+    container_name: solace-setup
+    depends_on:
+      solace:
+        condition: service_healthy
+      webhook-consumer:
+        condition: service_healthy
+      solace-keycloak:
+        condition: service_healthy
+    networks:
+      - solace-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./scripts/solace-tls-config.sh:/solace-tls-config.sh
+      - ./certs:/certs
+    environment:
+      - KONG_SPEC_TEST_SOLACE_WEBHOOK_LOGS_PATH=${PWD}/webhook-consumer/logs
+      - KONG_SPEC_TEST_SOLACE_MQTT_LOGS_PATH=${PWD}/mqtt-consumer/logs
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin
+    command: >
+      sh -c "
+        apk add --no-cache curl &&
+        chmod +x /solace-tls-config.sh &&
+        /solace-tls-config.sh
+      "
+    restart: no
+
+  solace-keycloak:
+    image: quay.io/keycloak/keycloak:${PONGO_KEYCLOAK_VERSION:-24.0}
+    container_name: solace-keycloak
+    command: start-dev --import-realm
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=test
+      - VIRTUAL_PORT=8080,8443
+      - DB_VENDOR=h2
+    healthcheck:
+      interval: 2s
+      retries: 10
+      start_period: 60s
+      test:
+        - CMD
+        - timeout
+        - 3s
+        - bash
+        - -c
+        - ':> /dev/tcp/127.0.0.1/8080'
+      timeout: 10s
+    volumes:
+      - ./keycloak/demo.json:/opt/keycloak/data/import/demo.json
+    restart: on-failure
+    stop_signal: SIGKILL
+    networks:
+      - solace-network
+
+volumes:
+  storage-group:
+
+networks:
+  solace-network:
+    driver: bridge
+    name: solace-test-network
