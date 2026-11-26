@@ -1,0 +1,9 @@
+{
+    "error":{
+        "message": "Required body invalid, please check the request body format.",
+        "type": "invalid_request_error",
+        "param": null,
+        "code": null
+    },
+    "request_id": "7de6bfac-0605-49f0-91fe-0f2b09918bfc"
+}
