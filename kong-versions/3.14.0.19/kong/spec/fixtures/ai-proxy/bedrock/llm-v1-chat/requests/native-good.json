@@ -1,0 +1,18 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "What is 1 + 1?"
+        },
+        {
+          "text": "Tell me the answer"
+        }
+      ]
+    }
+  ],
+  "inferenceConfig": {
+    "maxTokens": 100
+  }
+}
