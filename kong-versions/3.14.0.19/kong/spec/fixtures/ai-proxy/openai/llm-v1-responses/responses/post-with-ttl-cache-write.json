@@ -1,0 +1,65 @@
+{
+  "id": "resp_ttl-cache-write-test",
+  "object": "response",
+  "created_at": 1741386163,
+  "status": "completed",
+  "error": null,
+  "incomplete_details": null,
+  "instructions": null,
+  "max_output_tokens": null,
+  "model": "gpt-5.6-sol",
+  "output": [
+    {
+      "type": "message",
+      "id": "msg_67cb71b3c2b0819084d481baaaf148f206981a8637e6bc44",
+      "status": "completed",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "Silent circuits hum.",
+          "annotations": []
+        }
+      ]
+    }
+  ],
+  "parallel_tool_calls": true,
+  "prompt_cache_options": {
+    "mode": "implicit",
+    "ttl": "12h"
+  },
+  "previous_response_id": null,
+  "reasoning": {
+    "effort": null,
+    "summary": null
+  },
+  "store": true,
+  "temperature": 1.0,
+  "text": {
+    "format": {
+      "type": "text"
+    }
+  },
+  "tool_choice": "auto",
+  "tools": [],
+  "top_p": 1.0,
+  "truncation": "disabled",
+  "usage": {
+    "input_tokens": 1024,
+    "output_tokens": 12,
+    "total_tokens": 1036,
+    "input_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 1000,
+      "cache_write_tokens_details": {
+        "ttl_30m_tokens": 0,
+        "ttl_12h_tokens": 1000
+      }
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "user": null,
+  "metadata": {}
+}
